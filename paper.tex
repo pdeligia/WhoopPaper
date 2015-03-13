@@ -349,7 +349,9 @@
 \usepackage{amssymb}
 
 \usepackage{multirow}
+\usepackage{listings}
 \usepackage{booktabs}
+\usepackage{tikz}
 \usepackage{xspace}
 
 \newtheorem{theorem}{Theorem}
@@ -415,6 +417,12 @@ zvonimir@cs.utah.edu}}
 %\IEEEspecialpapernotice{(Invited Paper)}
 
 
+\lstset{
+captionpos=b, float, abovecaptionskip=\medskipamount,
+language=C, basicstyle=\ttfamily\footnotesize,
+moredelim=**[is][{\btHL[fill=green!30,draw=red,thin]}]{@}{@},
+emph={static, void, struct, if},
+emphstyle=\color{blue}}
 
 
 % make the title area
