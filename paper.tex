@@ -422,7 +422,7 @@ zvonimir@cs.utah.edu}}
 
 
 \begin{abstract}
-Kernel modules (e.g. device drivers and filesystems) are notoriously hard to develop and even harder to debug. Especially in the case of drivers, this has a negative impact in hardware product releases, as time-to-market is commonly dominated by driver development, verification and validation schedules. Even after a driver has shipped, it is typically prone to many serious issues such as data races and other safety properties. It is hard to reason about these properties, because Linux Kernel Modules are highly concurrent, which leads to state explosion. In this paper, we present \emph{static pair-wise lock set analysis}, a novel sound verification technique for proving data race freedom in Linux kernel modules written in C. Our approach not only avoids reasoning about thread interleavings, thus can scale well, but also allows the reuse of existing successful sequential verification techniques. We have prototyped this approach in \whoop, a practical tool for automatic concurrency verification. Taking advantage of the race-freedom guarantees that \whoop provides, we show that we can significantly accelerate \corral, a state-of-the-art bug finder for concurrent programs.
+Linux kernel modules (e.g. device drivers and filesystems) are notoriously hard to develop and even harder to debug. Especially in the case of drivers, this has a negative impact in hardware product releases, as time-to-market is commonly dominated by driver development, verification and validation schedules. Even after a driver has shipped, it is typically prone to many serious issues such as data races and other safety properties. It is hard to reason about these properties, because Linux kernel modules are highly concurrent, which leads to state explosion. In this paper, we present \emph{static pairwise lockset analysis}, a novel sound verification technique for proving data race freedom in Linux kernel modules written in C. Our approach not only avoids reasoning about thread interleavings, thus can scale well, but also allows the reuse of existing successful sequential verification techniques. Taking advantage of the race-freedom guarantees that our technique provides, we then achieve a sound partial-order reduction that can significantly accelerate \corral, a state-of-the-art bug finder for concurrent programs. We have prototyped this approach in \whoop, a practical tool for automatic concurrency verification, which we used to analyse 10 modules available in the Linux distribution.
 \end{abstract}
 % IEEEtran.cls defaults to using nonbold math in the Abstract.
 % This preserves the distinction between vectors and scalars. However,
@@ -456,7 +456,7 @@ Kernel modules (e.g. device drivers and filesystems) are notoriously hard to dev
 
 \input{background}
 
-\section{Static Pair-Wise Lock Set Analysis}
+\section{Static Pairwise Lockset Analysis}
 \label{main_technique}
 
 \input{theory}
