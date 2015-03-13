@@ -343,10 +343,19 @@
 % (Unless specifically asked to do so by the journal or conference you plan
 % to submit to, of course. )
 
+\usepackage[pdftex]{graphicx}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\usepackage{multirow}
+\usepackage{booktabs}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{definition}{Definition}
 
 % correct bad hyphenation here
 \hyphenation{op-tical net-works semi-conduc-tor}
-
 
 \begin{document}
 %
@@ -368,7 +377,7 @@ p.deligiannis@imperial.ac.uk}
 Imperial College London, UK\\
 alastair.donaldson@imperial.ac.uk}
 \and
-\IEEEauthorblockN{Zvonimir Rakamaric}
+\IEEEauthorblockN{Zvonimir Rakamari\'c}
 \IEEEauthorblockA{School of Computing,\\
 University of Utah, USA\\
 zvonimir@cs.utah.edu}}
@@ -410,7 +419,7 @@ zvonimir@cs.utah.edu}}
 
 \begin{abstract}
 %\boldmath
-The abstract goes here.
+[Change to include Corral] Device drivers are notoriously hard to develop and even harder to debug. This has a negative impact in hardware product releases, as time-to-market is commonly dominated by driver development, verification and validation schedules. Even after a driver has shipped, it is typically prone to many serious issues such as data races. In this paper, we present \emph{static pair-wise lock set analysis}, a novel sound verification technique for proving data race freedom in device drivers. Our approach not only avoids reasoning about thread interleavings, but also allows the reuse of existing successful sequential verification techniques. We have prototyped this approach in \textsc{Whoop}, a practical tool for automatic concurrency verification of Linux drivers.
 \end{abstract}
 % IEEEtran.cls defaults to using nonbold math in the Abstract.
 % This preserves the distinction between vectors and scalars. However,
@@ -440,13 +449,27 @@ The abstract goes here.
 
 \input{intro}
 
-\subsection{Subsection Heading Here}
-Subsection text here.
+\section{Background}
 
+\input{background}
 
-\subsubsection{Subsubsection Heading Here}
-Subsubsection text here.
+\section{Static Pair-Wise Lock Set Analysis}
+\label{main_technique}
 
+\input{theory}
+
+\section{Implementation}
+\label{implementation}
+
+\input{implementation}
+
+\section{Related Work}
+
+\input{related}
+
+\section{Conclusions}
+
+\input{conclusion}
 
 % An example of a floating figure using the graphicx package.
 % Note that \label must occur AFTER (or within) \caption.
@@ -531,14 +554,9 @@ Subsubsection text here.
 % command of the stfloats package.
 
 
-
-\section{Conclusion}
-The conclusion goes here.
-
-
 % use section* for acknowledgement
-%\section*{Acknowledgment}
-
+\section*{Acknowledgments}
+We would like to thank the Multicore Programming Group of Imperial College London for all the useful discussions and feedback. This work is part of the research project ``Automatic Synthesis of High-Assurance Device Drivers'' and is generously funded by a gift from Intel Corporation.
 
 
 % trigger a \newpage just before the given reference
