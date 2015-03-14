@@ -87,7 +87,7 @@ An alternative approach to happens-before, known as \emph{lockset analysis}, res
 \label{fig:locksets}
 \end{figure}
 
-Figure~\ref{fig:locksets} shows an example of applying lockset analysis on a thread of a concurrent program. Lockset analysis starts by creating one lockset for each thread $T$ in the program, called current lockset of $T$ or $CLS_T$, and one lockset for each shared variable $v$, called lockset of $v$ or $LS_v$. In this example we analyse only one thread and only one shared variable and thus there are two such locksets: Current Lockset ($CLS$) and Lockset A ($LS_A$). Initially, $CLS$ is empty, because it represents the set of locks before the program starts executing, which is the empty set $\{ \}$. Likewise, $LS_A$ starts as the set of all existing locks in the program, which in this case is $\{M, N\}$. Lockset analysis then proceeds as follows:
+Figure~\ref{fig:locksets} shows an example of applying lockset analysis on a thread of a concurrent program. Lockset analysis starts by creating one lockset for each thread $T$ in the program, called current lockset of $T$ or $CLS_T$, and one lockset for each shared variable $v$, called lockset of $v$ or $LS_v$. In this example we analyse only one thread and only one shared variable and thus there are two such locksets: Current Lockset ($CLS$) and Lockset A ($LS_A$). Initially, $CLS$ is empty, because it represents the set of locks before the program starts executing, which is the empty set $\varnothing$. Likewise, $LS_A$ starts as the set of all existing locks in the program, which in this case is $\{M, N\}$. Lockset analysis then proceeds as follows:
 
 \begin{enumerate}
 \item In each \emph{lock} and \emph{unlock} operation, update ($CLS$) with the currently held locks.
