@@ -1,18 +1,52 @@
-We have implemented our approach in \whoop, a prototype infrastructure that combines static lockset analysis with state-of-the-art compilation and sequential verification techniques to (i) soundly analyse Linux kernel modules for data races and (ii) accelerate a plugged-in precise bug finder. Figure~\ref{fig:whoop}
+We have implemented our approach in \whoop, a prototype infrastructure that combines static lockset analysis with state-of-the-art compilation and sequential verification techniques to (i) soundly analyse Linux kernel modules for data races and (ii) accelerate a plugged-in bug finder.
 
 \begin{figure*}
 \centering
 \includegraphics[width=.99\linewidth]{img/whoop.pdf}
-\caption{The \textsc{Whoop} infrastructure, empowered by state-of-the-art compilation (Clang/LLVM and SMACK) and verification (Boogie and Corral) tools}
+\caption{The \whoop infrastructure, empowered by state-of-the-art compilation (Clang/LLVM and SMACK) and verification (Boogie and \corral) tools}
 \label{fig:whoop}
 \end{figure*}
 
-The proof sketch behind our static lockset analysis is given in Section~\ref{proof}. The verification technique is described in more detail in Section~\ref{method}. The summarisation that we perform to achieve scalability is discussed in Section~\ref{summarisation}. Various optimisations that we perform to achieve precision are described in Section~\ref{optimisations}. Finally, the prototype implementation of our approach as the practical tool \textsc{Whoop} is presented in Section~\ref{implementation}.
+Figure~\ref{fig:whoop} depicts the \whoop infrastructure. Initially, \whoop accepts a kernel module written in C, together with a Linux environmental model. The environmental model (i.e. stub Linux header files) is required to ``close'' the module and allow it to be translated and subsequently analysed. Both the module and the environmental model are passed to the translation phase of \whoop (see Section~\ref{tech:translation}), which outputs an over-approximated program written in the Boogie intermediate verification language (IVL)~\cite{deline2005boogiepl}. Next, the analysis phase of \whoop runs (see Section~\ref{tech:analysis}), detecting all potential data races in the abstract program. Finally, \whoop uses information from the race analysis phase to accelerate bug finding with \corral (see Section~\ref{tech:bugfinding}).
+
+\subsection{Translation to Boogie IVL}
+\label{tech:translation}
+
+The main aim of this phase is to take an input Linux kernel module written in C, together with an environmental model, and output an over-approximated version of the program in Boogie IVL, a simple imperative language with well-defined verification-focused semantics used as the input to a number of cutting-edge verifiers (e.g. Boogie and \corral). To achieve this translation, \whoop uses three LLVM\footnote{http://llvm.org}-based tools: Chauffeur, Clang\footnote{http://clang.llvm.org} and SMACK\footnote{https://github.com/smackers/smack}~\cite{rakamaric2014smack}.
+
+First, \whoop runs Chauffeur, a Clang-frontend that we developed to perform two tasks: (i) visit the abstract syntax tree (AST) of the original program and extract all available entry point identifier names in the given module, together with the identifier names of their corresponding kernel callbacks; and (ii) instrument the original program with a function that calls all available entry points. This function acts as the main entry point to the module after the latter has been registered with the kernel. This simple rewriting does not alter the semantics of the original program, is required so that Clang does not compile away any uncalled entry points (because we closed the environment using stub functions) and is also later used by \whoop to help instrument asynchronous calls to entry points and create checker procedures (see Sections~\ref{tech:analysis} and~\ref{tech:bugfinding}). The output is a file that contains information regarding the entry points and a file with the rewritten program.
+
+Next, the rewritten program is passed to Clang which compiles it to LLVM-IR~\cite{lattner2004llvm}, a low-level assembly-like language in single static assignment (SSA) form. SMACK then translates the LLVM-IR to Boogie IVL. SMACK leverages the pointer-alias analyses of LLVM to efficiently model the heap manipulation operations of the original program in Boogie IVL. To achieve scalability, SMACK is using a split-memory model instead of a monolithic one that would be difficult for backend verifiers to reason about~\cite{rakamaric2009scalable}.
+
+\begin{lstlisting}[caption = Simple networking entry point in C, label = fig:original_program]
+static void entrypoint(struct net_device *dev) {  struct shared *tp = netdev_priv(dev);
+  mutex_lock(&tp->wk.mutex);
+  tp->field = 4;
+  mutex_unlock(&tp->wk.mutex);
+}
+\end{lstlisting}
+
+Example~\ref{fig:original_program} shows a simple program in C and Example~\ref{fig:smack_translation} shows its corresponding translation in Boogie IVL using SMACK. The function \texttt{\$pa} models pointer arithmetic, while the map \texttt{\$M.0} is a memory region that typically denotes a shared resource. Notice that functional calls (e.g. to lock and unlock a mutex) are preserved in the translation.
+
+\begin{boogie}[caption = Translation to Boogie IVL using SMACK, label = fig:smack_translation]
+procedure entrypoint(dev: int) modifies $M.0; {  var $p0, $p1, $p2, $p3, $p4, $p5, $p6: int;
+  $bb0:    $p0 := dev;    $p1 := $pa($p0, 32, 1);    $p2 := $pa($pa($p1, 0, 24), 12, 1);
+    $p3 := $pa($pa($p2, 0, 12), 0, 1);
+    call mutex_lock($p3);    $p4 := $pa($pa($p1, 0, 24), 4, 1);
+    $M.0[$p4] := 4;    $p5 := $pa($pa($p1, 0, 24), 12, 1);
+    $p6 := $pa($pa($p5, 0, 12), 0, 1);
+    call mutex_unlock($p6);    return;
+}
+\end{boogie}
 
 \subsection{Static Pairwise Lockset Analysis}
-\label{spla}
+\label{tech:analysis}
+
+%Next, the Boogie program is transformed into a sequentialised abstract program, using pair-wise sequentialisation and lock set instrumentation as discussed in Section~\ref{method}. Finally the abstract program is send to the Boogie verification engine, which generates verification conditions~\cite{barnett2005weakest} and discharges them to a theorem prover. Successful verification implies that the original driver is free of data races, while an error denotes a \emph{potential} data race.
 
 We now present \emph{static pairwise lockset analysis}, a novel verification technique for proving data race freedom in Linux kernel modules. The key idea behind our approach is that we can verify absence of data races by (i) deriving a sound \emph{sequential} model that \emph{over-approximates} the originally concurrent program, (ii) instrumenting it for lockset analysis and race checking, and (iii) asserting that all write/read accesses to the same shared resource are consistently protected by at least one common lock. The immediate benefit is that our approach not only avoids reasoning about thread interleavings, and thus has the potential to scale well, but also allows the reuse of existing sequential verification techniques.
+
+The proof sketch behind our static lockset analysis is given in Section~\ref{proof}. The verification technique is described in more detail in Section~\ref{method}. The summarisation that we perform to achieve scalability is discussed in Section~\ref{summarisation}. Various optimisations that we perform to achieve precision are described in Section~\ref{optimisations}. Finally, the prototype implementation of our approach as the practical tool \textsc{Whoop} is presented in Section~\ref{implementation}.
 
 \subsection{Static Lockset Analysis Proof Sketch}
 \label{proof}
@@ -73,3 +107,11 @@ Draft.
 \label{optimisations}
 
 Draft.
+
+\subsection{Assumptions and Limitations}
+\label{limitations}
+
+\subsection{Bug Finding Phase}
+\label{tech:bugfinding}
+
+%\textsc{Whoop} is currently working on an unmodified network device driver (the RealTek r8169 which is part of the official Linux kernel distribution). Our immediate future work includes applying invariant generation to tame the effect of our coarse over-approximation. We also plan to introduce counterexample feasibility checking to evaluate if a reported bug is real or spurious. Towards this, we plan to feed a counterexample generated by \textsc{Whoop} into a precise bug finder, such as Corral~\cite{lal2012corral}, which will be guided only to execution paths that may manifest the bug, to either confirm it or discard it as a false positive.

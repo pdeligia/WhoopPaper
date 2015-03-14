@@ -8,11 +8,9 @@ Nowadays, multicore architectures have become mainstream, leading to an ever-inc
 A data race occurs when two distinct threads access a shared memory location, at least one of the accesses modifies the location, and there is no mechanism in place to prevent these accesses from being simultaneous.
 \end{definition}
 
-Figure~\ref{fig:data_race_example} is an example of a data race between two entry points of a Linux module. The resource \texttt{dev->resource} is shared between the two entry points \texttt{ep1} and \texttt{ep2}. Entry point \texttt{ep1} writes the value 5 to \texttt{dev->resource}, and entry point \texttt{ep2} writes the value 3 to \texttt{dev->resource} if the value of \texttt{dev->resource} is not 5. A data race can occur if \texttt{ep1} and \texttt{ep2} run concurrently: the read and write accesses to the shared resource may execute in arbitrary order leading to nondeterministic behaviour.
+Example~\ref{fig:data_race_example} presents a simple data race between two entry points of a Linux module. The resource \texttt{dev->resource} is shared between the two entry points \texttt{ep1} and \texttt{ep2}. Entry point \texttt{ep1} writes the value 5 to \texttt{dev->resource}, and entry point \texttt{ep2} writes the value 3 to \texttt{dev->resource} if the value of \texttt{dev->resource} is not 5. A data race can occur if \texttt{ep1} and \texttt{ep2} run concurrently: the read and write accesses to the shared resource may execute in arbitrary order leading to nondeterministic behaviour.
 
-\begin{figure}[!h]
-\centering
-\begin{lstlisting}
+\begin{lstlisting}[caption = Simple data race in a Linux module, label = fig:data_race_example]
 static void ep1 (struct shared *dev) {
   dev->resource = 5;
 }
@@ -22,14 +20,10 @@ static void ep2 (struct shared *dev) {
     dev->resource = 3;
 }
 \end{lstlisting}
-\caption{Simple data race in a Linux module}
-\label{fig:data_race_example}
-\end{figure}
 
-\begin{figure}[!h]
-\centering
-\noindent\begin{minipage}{.95\textwidth}
-\begin{lstlisting}
+The most common technique for eliminating data races is using a \emph{locking} mechanism. Locking a set of program statements that access a shared resource creates a \emph{critical section}, i.e. source code that cannot be executed by more than one thread simultaneously. Example~\ref{fig:lock_example} shows how to use a lock to eliminate the data race in Example~\ref{fig:data_race_example}.
+
+\begin{lstlisting}[caption = Using locks to eliminate the data race, label = fig:lock_example]
 static void ep1 (struct shared *dev) {
   lock(&dev->lock);
   dev->resource = 5;
@@ -43,12 +37,6 @@ static void ep2 (struct shared *dev) {
   unlock(&dev->lock);
 }
 \end{lstlisting}
-\end{minipage}
-\caption{Using locks to eliminate the data race}
-\label{fig:lock_example}
-\end{figure}
-
-The most common technique for eliminating data races is using a \emph{locking} mechanism. Locking a set of program statements that access a shared resource creates a \emph{critical section}, i.e. source code that cannot be executed by more than one thread simultaneously. Figure~\ref{fig:lock_example} shows how to use a lock to eliminate the data race in the previous example.
 
 Lock-based synchronisation is a powerful tool for preventing data races in drivers, but careless use of locks has multiple pitfalls~\cite{sutter2005software}. Coarse-grained locking can severely hurt performance, because it limits the opportunity for concurrency. On the other hand, fine-grained locking can easily lead to \emph{deadlocks}, a system-halting situation in which no active thread can progress, because it is waiting to acquire a lock that is held by another blocked thread. Although the Linux kernel provides sophisticated lock-free synchronisation mechanisms~\cite{corbet2005linux}, in this work we focus on locks.
 
@@ -67,7 +55,7 @@ Happens-before is transitive, i.e. for any three events $E_1$, $E_2$ and $E_3$, 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=1\linewidth]{img/happens_before.pdf}
-\caption{Example showcasing the main limitation of happens-before}
+\caption{Applying happens-before in two concurrently running threads}
 \label{fig:happens_before}
 \end{figure}
 

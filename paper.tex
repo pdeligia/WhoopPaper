@@ -344,6 +344,7 @@
 % to submit to, of course. )
 
 \usepackage[pdftex]{graphicx}
+\usepackage{hyperref}
 
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -354,8 +355,12 @@
 \usepackage{tikz}
 \usepackage{xspace}
 
+\usepackage{boogie}
+
 \newtheorem{theorem}{Theorem}
 \newtheorem{definition}{Definition}
+
+\renewcommand\lstlistingname{Ex}
 
 % correct bad hyphenation here
 \hyphenation{op-tical net-works semi-conduc-tor}
@@ -421,10 +426,10 @@ zvonimir@cs.utah.edu}}
 
 \lstset{
 captionpos=b, float, abovecaptionskip=\medskipamount,
+ xleftmargin=8pt,xrightmargin=8pt,
 language=C, basicstyle=\ttfamily\footnotesize,
-moredelim=**[is][{\btHL[fill=green!30,draw=red,thin]}]{@}{@},
-emph={static, void, struct, if},
-emphstyle=\color{blue}}
+emph={mutex_lock, mutex_unlock},
+emphstyle=\bfseries}
 
 
 % make the title area
@@ -461,15 +466,10 @@ Linux kernel modules, such as device drivers and filesystems, are notoriously ha
 
 \input{background}
 
-\section{\whoop: A Static Lockset Analyser}
-\label{echnique}
+\section{The \whoop Infrastructure}
+\label{technique}
 
 \input{technique}
-
-\section{Implementation}
-\label{implementation}
-
-\input{implementation}
 
 \section{Evaluation}
 
