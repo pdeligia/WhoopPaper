@@ -1,8 +1,8 @@
 We now present \emph{static pairwise lockset analysis}, a novel verification technique for proving data race freedom in Linux kernel modules. The key idea behind our approach is that we can verify absence of data races by (i) deriving a sound \emph{sequential} model that \emph{over-approximates} the originally concurrent program, (ii) instrumenting it for lockset analysis and race checking, and (iii) asserting that all write/read accesses to the same shared resource are consistently protected by at least one common lock. The immediate benefit is that our approach not only avoids reasoning about thread interleavings, and thus has the potential to scale well, but also allows the reuse of existing sequential verification techniques.
 
-The proof sketch behind our static lockset analysis is given in Section~\ref{proof}. The verification technique is described in more detail in Section~\ref{method}. The prototype implementation of our approach as the practical tool \textsc{Whoop} is presented in Section~\ref{implementation}.
+The proof sketch behind our static lockset analysis is given in Section~\ref{proof}. The verification technique is described in more detail in Section~\ref{method}. The summarisation that we perform to achieve scalability is discussed in Section~\ref{summarisation}. Various optimisations that we perform to achieve precision are described in Section~\ref{optimisations}. Finally, the prototype implementation of our approach as the practical tool \textsc{Whoop} is presented in Section~\ref{implementation}.
 
-\subsection{Static lockset analysis proof sketch}
+\subsection{Static Lockset Analysis Proof Sketch}
 \label{proof}
 
 We now formalise our approach to verifying data race freedom in a kernel module by statically analysing its locksets. Let $\{\mathit{ep}_{1}, \mathit{ep}_{2}, \dotsc, \mathit{ep}_{n}\}$ be all the entry points of a module, and let $\{\ell_{1}, \ell_{2}, \dotsc, \ell_{k}\}$ be all the locks used by this module. Although we assume that the number of locks is finite and with a known bound, we argue that this assumption is realistic: all modules that we have studied so far in the Linux kernel have only a small number of locks (typically one). Indeed, the Linux device driver book~\cite{corbet2005linux} advocates the use of as few locks as possible to avoid introducing unnecessary complexity and synchronisation bugs that arise from careless fine-grained locking. The actual Linux kernel employs sophisticated fine-grained locking, but this is part of the environment which is abstracted away in our models.
@@ -16,7 +16,7 @@ For each pair of entry points $\mathit{ep}_{i}, \mathit{ep}_{j}\in \{\mathit{ep}
 
 A sketch of how the above theorem can be proved is as follows. Suppose there are in fact entry points $\mathit{ep}_{i}$ and $\mathit{ep}_{j}$ that can race on a memory location $m$. By our hypothesis, there exists at least one lock, say $\ell$, which belongs to both $\mathit{LS}_{i}$ and $\mathit{LS}_{j}$. By the definition of a lockset, this means that $\ell$ is held during the access to $m$ by both $ep_1$ and $ep_2$. As a result, $m$ \emph{must} be unlocked and locked between the two accesses, which contradicts that the pair of accesses is racing.
 
-\subsection{Verification method}
+\subsection{Verification Method}
 \label{method}
 
 \begin{table*}
@@ -42,7 +42,7 @@ A sketch of how the above theorem can be proved is as follows. Suppose there are
 \label{tab:instrumentation}
 \end{table*}
 
-Our approach begins by performing \emph{two-thread reduction}, an abstraction that removes all but two arbitrary threads, each running an entry point of the originally concurrent driver, and then performs \emph{pairwise sequentialisation}, which combines the two arbitrary threads in a single sequential pair. This is achieved by replacing the \texttt{return} statement of the first entry point with a \texttt{goto} statement that jumps execution to the first statement of the second entry point. This process repeats until all pairs of entry points have been sequentialised. To achieve soundness, each time an entry point performs a read access to a shared resource, we return a nondeterministic value. This over-approximates any effects from all the unmodeled threads on the device driver shared state.
+Our verification technique begins by performing \emph{two-thread reduction}, a sound abstraction that removes all but two arbitrary threads, each running an entry point of the originally concurrent program, and then performs \emph{pairwise sequentialisation}, which combines the two arbitrary threads in a single sequential pair. This is achieved by replacing the \texttt{return} statement of the first entry point with a \texttt{goto} statement that jumps execution to the first statement of the second entry point. This process repeats until all pairs of entry points have been sequentialised. To achieve soundness, each time an entry point performs a read access to a shared resource, we return a nondeterministic value. This over-approximates any effects from all the unmodeled threads on the device driver shared state.
 
 Next, we split each pair into two distinct analysis regions: the \emph{logger}, which contains all the statements from the first entry point; and the \emph{checker}, which contains all the statements from the second entry point. The logger and the checker are then instrumented according to Table~\ref{tab:instrumentation}. The two regions directly contribute to the static lockset analysis and race checking as follows: the logger is responsible for recording all locksets $\mathit{LS}$ maintained by its entry point; while the checker asserts for potential conflicts between its own entry point and a given lockset $\mathit{LS}$ from the logger. This whole process is summarised below:
 
@@ -51,3 +51,13 @@ Next, we split each pair into two distinct analysis regions: the \emph{logger}, 
   
   \item[Checker] Initially, for each memory location $m$ accessed by the checker's entry point, the checker's lockset $\mathit{LS}\lbrack m\rbrack$ and write access set $W\lbrack m\rbrack$ are equal to the corresponding sets supplied at the end of the logger. Also, the logger's current lockset $\mathit{LS}_{CR}$ is initially empty. Each time the checker performs a write access to $m$, it asserts that the intersection between $\mathit{LS}_{CR}$ and $\mathit{LS}\lbrack m\rbrack$ is non-empty. If the assertion fails, it implies that the entry point of the logger and the entry point of the checker potentially race on $m$. In this case a counterexample is generated and reported to the user. To check a read access, the checker performs the aforementioned assertion only if the write access set $W\lbrack m\rbrack$ is true, thus avoids to report a read-read data race, which is inherently benign.
 \end{description}
+
+\subsection{Watchdog Summarisation}
+\label{summarisation}
+
+Draft.
+
+\subsection{Optimisations}
+\label{optimisations}
+
+Draft.
