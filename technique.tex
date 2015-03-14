@@ -1,6 +1,18 @@
-We now present \emph{static pairwise lockset analysis}, a novel verification technique for proving data race freedom in Linux kernel modules. The key idea behind our approach is that we can verify absence of data races by (i) deriving a sound \emph{sequential} model that \emph{over-approximates} the originally concurrent program, (ii) instrumenting it for lockset analysis and race checking, and (iii) asserting that all write/read accesses to the same shared resource are consistently protected by at least one common lock. The immediate benefit is that our approach not only avoids reasoning about thread interleavings, and thus has the potential to scale well, but also allows the reuse of existing sequential verification techniques.
+We have implemented our approach in \whoop, a prototype infrastructure that combines static lockset analysis with state-of-the-art compilation and sequential verification techniques to (i) soundly analyse Linux kernel modules for data races and (ii) accelerate a plugged-in precise bug finder. Figure~\ref{fig:whoop}
+
+\begin{figure*}
+\centering
+\includegraphics[width=.99\linewidth]{img/whoop.pdf}
+\caption{The \textsc{Whoop} infrastructure, empowered by state-of-the-art compilation (Clang/LLVM and SMACK) and verification (Boogie and Corral) tools}
+\label{fig:whoop}
+\end{figure*}
 
 The proof sketch behind our static lockset analysis is given in Section~\ref{proof}. The verification technique is described in more detail in Section~\ref{method}. The summarisation that we perform to achieve scalability is discussed in Section~\ref{summarisation}. Various optimisations that we perform to achieve precision are described in Section~\ref{optimisations}. Finally, the prototype implementation of our approach as the practical tool \textsc{Whoop} is presented in Section~\ref{implementation}.
+
+\subsection{Static Pairwise Lockset Analysis}
+\label{spla}
+
+We now present \emph{static pairwise lockset analysis}, a novel verification technique for proving data race freedom in Linux kernel modules. The key idea behind our approach is that we can verify absence of data races by (i) deriving a sound \emph{sequential} model that \emph{over-approximates} the originally concurrent program, (ii) instrumenting it for lockset analysis and race checking, and (iii) asserting that all write/read accesses to the same shared resource are consistently protected by at least one common lock. The immediate benefit is that our approach not only avoids reasoning about thread interleavings, and thus has the potential to scale well, but also allows the reuse of existing sequential verification techniques.
 
 \subsection{Static Lockset Analysis Proof Sketch}
 \label{proof}
