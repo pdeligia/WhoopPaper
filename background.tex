@@ -71,11 +71,11 @@ Happens-before is transitive, i.e. for any three events $E_1$, $E_2$ and $E_3$, 
 \label{fig:happens_before}
 \end{figure}
 
-Figure~\ref{fig:happens_before} shows an example of applying happens-before reasoning in two concurrently running entry points. Each of the three statements \{A, B, C\} in thread 1 is executed before the next one, and thus all of them are ordered by the happens-before relation. The same applies for each of the four statements \{D, E, F, G\} in thread 2. Statement C in thread 1 releases the lock, and subsequently allows D in thread 2 to acquire the same lock. Thus, $C \rightarrow D$. This means that for this specific thread interleaving the set of statements \{A, B, C\} happens before the set of statements \{D, E, F, G\}.
+Figure~\ref{fig:happens_before} shows an example of applying happens-before reasoning in two concurrently running entry points. Each of the three statements $\{A, B, C\}$ in thread 1 is executed before the next one, and thus all of them are ordered by the happens-before relation. The same applies for each of the four statements $\{D, E, F, G\}$ in thread 2. Statement $C$ in thread 1 releases the lock, and subsequently allows $D$ in thread 2 to acquire the same lock. Thus, $C \rightarrow D$. This means that for this specific thread interleaving the set of statements $\{A, B, C\}$ happens before the set of statements $\{D, E, F, G\}$.
 
-The above example also showcases the main limitation of happens-before. If the technique explores \emph{only} this specific thread interleaving, it will miss a potential data race between statements B and G, because $B \rightarrow G$ in this specific schedule. Thus, a tool based on happens-before requires a scheduler that produces as many different thread interleavings as possible to increase execution path coverage~\cite{savage1997eraser}. Achieving full coverage with tools based on happens-before is infeasible though, because of the exponential number of possible thread interleavings in realistic concurrent programs. Furthermore, attempting to explore a large number of thread schedules quickly leads to scalability issues~\cite{musuvathi2008finding}, a problem known as state space explosion. Thus, previous work based on happens-before typically explore paths under a certain bound, such as the number of allowed context switches~\cite{qadeer2004kiss}.
+The above example also showcases the main limitation of happens-before. If the technique explores \emph{only} this specific thread interleaving, it will miss a potential data race between statements $B$ and $G$, because $B \rightarrow G$ in this specific schedule. Thus, a tool based on happens-before requires a scheduler that produces as many different thread interleavings as possible to increase execution path coverage~\cite{savage1997eraser}. Achieving full coverage with tools based on happens-before is infeasible though, because of the exponential number of possible thread interleavings in realistic concurrent programs. Furthermore, attempting to explore a large number of thread schedules quickly leads to scalability issues~\cite{musuvathi2008finding}, a problem known as state space explosion. Thus, previous work based on happens-before typically explore paths under a certain bound, such as the number of allowed context switches~\cite{qadeer2004kiss}.
 
-\subsection{Reasoning about Locks}
+\subsection{Reasoning about Locksets}
 \label{bg:lockset}
 
 An alternative approach to happens-before, known as \emph{lockset analysis}, resolves around reasoning about the locking behaviour of concurrent programs. Lockset analysis has its roots in Eraser~\cite{savage1997eraser}, a dynamic data race detector that tracks the set of locks that \emph{consistently} protect a memory location during program execution. If that lockset ever becomes empty, the analysis reports a potential data race on that memory location. This is because an inconsistent lockset suggests that a memory location \emph{may} be accessed simultaneously by two or more threads.
@@ -83,10 +83,16 @@ An alternative approach to happens-before, known as \emph{lockset analysis}, res
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=1\linewidth]{img/lockset.pdf}
-\caption{Applying lockset analysis on two threads}
+\caption{Applying lockset analysis on a thread of a concurrent program}
 \label{fig:locksets}
 \end{figure}
 
-Figure~\ref{fig:locksets} shows an example of applying lockset analysis on two concurrently running threads.
+Figure~\ref{fig:locksets} shows an example of applying lockset analysis on a thread of a concurrent program. Lockset analysis starts by creating one lockset for each thread $T$ in the program, called current lockset of $T$ or $CLS_T$, and one lockset for each shared variable $v$, called lockset of $v$ or $LS_v$. In this example we analyse only one thread and only one shared variable and thus there are two such locksets: Current Lockset ($CLS$) and Lockset A ($LS_A$). Initially, $CLS$ is empty, because it represents the set of locks before the program starts executing, which is the empty set $\{ \}$. Likewise, $LS_A$ starts as the set of all existing locks in the program, which in this case is $\{M, N\}$. Lockset analysis then proceeds as follows:
 
-Lockset analysis avoids reasoning about arbitrary thread interleavings, and thus has the potential to scale well in realistic concurrent programs. The technique, though, suffers from imprecision (i.e. can report many false bugs), because a violation of the locking discipline does not always correspond to a real data race~\cite{savage1997eraser, pozniansky2003efficient, o2003hybrid, elmas2007goldilocks, flanagan2009fasttrack}. Furthermore, as a classic dynamic analyser, Eraser's bug finding ability is limited to the execution paths that the tool explores.
+\begin{enumerate}
+\item In each \emph{lock} and \emph{unlock} operation, update ($CLS$) with the currently held locks.
+\item In each shared variable access, update ($LS_A$) with the intersection of the latest ($CLS$) and the ($LS_A$) of the previous statement.
+\item If ($LS_A$) ever becomes empty, then report that access to $A$ is unprotected.
+\end{enumerate}
+
+Lockset analysis avoids reasoning about arbitrary thread interleavings, and thus has the potential to scale well in realistic concurrent programs. The technique, though, suffers from imprecision (i.e. can report many false bugs), because a violation of the locking discipline does not always correspond to a real data race~\cite{savage1997eraser, pozniansky2003efficient, o2003hybrid, elmas2007goldilocks, flanagan2009fasttrack}. Furthermore, as a classic dynamic analyser, Eraser's bug finding ability is limited to the execution paths that the tool explores. To counter these limitations, we apply the idea of Eraser's lockset analysis in a static verification context.

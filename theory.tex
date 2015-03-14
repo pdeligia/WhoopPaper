@@ -1,5 +1,3 @@
-To counter these limitations, we apply the idea of Eraser's lockset analysis in a static context.
-
 We propose \emph{static pair-wise lockset analysis}, a novel verification technique for proving data race freedom in device drivers. The key idea behind our approach is that we can verify absence of data races by (i) deriving a sound \emph{sequential} model that \emph{over-approximates} the originally concurrent driver, (ii) instrumenting it for lockset analysis and race checking, and (iii) asserting that all write/read accesses to the same shared resource are consistently protected by at least one common lock. The immediate benefit is that our approach not only avoids reasoning about thread interleavings, and thus has the potential to scale well, but also allows the reuse of existing successful sequential verification techniques.
 
 The proof sketch behind our static lockset analysis is given in Section~\ref{proof}. The verification technique is described in more detail in Section~\ref{method}. The prototype implementation of our approach as the practical tool \textsc{Whoop} is presented in Section~\ref{implementation}.
