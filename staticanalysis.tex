@@ -54,58 +54,89 @@ const {:watchdog} WATCHED_ACCESS_$M.0: int;
 
 The above instrumented variables represent the follows: \texttt{lock\$0\_in\_CLS\_\$ep1} is the current lockset (CLS) of \texttt{ep1}; \texttt{WATCHED\_ACCESS\_\$M.0} is an \emph{unconstrained} constant representing the offset to memory region \texttt{\$M.0} that should be checked for races; \texttt{lock\$0\_in\_LS\_\$M.0\_\$ep1} is the lockset for \texttt{\$M.0}; \texttt{WRITTEN\_\$M.0\_\$ep1} is the write-set for \texttt{\$M.0}; and \texttt{READ\_\$M.0\_\$ep1} is the read-set for \texttt{\$M.0}. Verification involves proving that two entry points cannot race at the watched offset of every memory region. The arbitrary watched offset implies that every offset of each memory region is race-free. Watchdog race checking has been used before for verifying GPU kernels~\cite{bardsley2014engineering}.
 
-\whoop proceeds by instrumenting each entry point call-graph for lockset analysis by replacing each call to a locking or unlocking function, with an instrumented version of the original lock and unlock functions. This means that Example~\ref{fig:smack_translation} will be instrumented as:
+\whoop proceeds by instrumenting each entry point call-graph for lockset analysis by replacing each call to a locking or unlocking function with a \whoop-specific lock and unlock functions. This means that Example~\ref{fig:smack_translation} will become:
 
-\begin{boogie}%[caption = Program instrumented with lock/unlock functions, label = fig:lock_instrumentation]
-procedure entrypoint(dev: int) modifies $M.0; {
+\begin{boogie}
+procedure ep1(dev: int) modifies $M.0; {
   var $p0, $p1, $p2, $p3, $p4, $p5, $p6: int;
   $bb0:
     $p0 := dev;
     $p1 := $pa($p0, 32, 1);
     $p2 := $pa($pa($p1, 0, 24), 12, 1);
     $p3 := $pa($pa($p2, 0, 12), 0, 1);
-    call _UPDATE_CLS_$ep(lock$0, true);
+    call _UPDATE_CLS_$ep1(lock$0, true);
     $p4 := $pa($pa($p1, 0, 24), 4, 1);
     $M.0[$p4] := 4;
     $p5 := $pa($pa($p1, 0, 24), 12, 1);
     $p6 := $pa($pa($p5, 0, 12), 0, 1);
-    call _UPDATE_CLS_$ep(lock$0, false);
+    call _UPDATE_CLS_$ep1(lock$0, false);
     return;
 }
 \end{boogie}
 
-The \texttt{\_UPDATE\_CLS\_\$ep} is a special \whoop function that updates the CLS global variable to either true or false, if the lock is held or released accordingly.
+The \texttt{\_UPDATE\_CLS\_\$ep1()} is a special function that updates the CLS global variable to either true or false, if the lock is held or released by \texttt{ep1} accordingly:
 
-%The alternative, which we call watchdog race checking, uses a single, unconstrained constant representing an offset with respect to which races should be checked: the ?watched offset?. Verification involves proving for every array that a data race at the watched offset is impossible. Because the watched offset is arbitrary, this implies that every offset of each array is race-free. For each array, two Booleans are introduced to record whether a read from or write to the watched offset has occurred. Initially these Booleans are false, and they are reset at each barrier. Thread s sets the ?read? Boolean to true whenever it reads from the watched offset, and similarly for the ?write? Boolean. A race between s and t is reported if thread t reads from the watched offset and the ?write? Boolean is true, or if thread t writes to the watched offset and either the ?read? or ?write? Boolean is true. The non-deterministic choice per array access is eliminated.
+\begin{boogie}
+procedure {:inline 1} _UPDATE_CLS_$ep1(lock: int,
+    isLocked: bool);
+  modifies lock$0_in_CLS_$ep1;
+
+implementation {:inline 1} _UPDATE_CLS_$ep1(
+    lock: int, isLocked: bool) {  _UPDATE:    lock$0_in_CLS_$ep1 := (if lock == lock$0 then
+      isLocked else lock$0_in_CLS_$ep1);
+  return;}
+\end{boogie}
+
+Next, \whoop replaces every write and read access in each entry point call-graph with a \whoop-specific function:
+
+\begin{boogie}
+procedure ep1(dev: int) modifies $M.0; {
+  var $p0, $p1, $p2, $p3, $p4, $p5, $p6: int;
+  $bb0:
+    \textbf{$p0 := dev;}
+    $p1 := $pa($p0, 32, 1);
+    $p2 := $pa($pa($p1, 0, 24), 12, 1);
+    $p3 := $pa($pa($p2, 0, 12), 0, 1);
+    call _UPDATE_CLS_$ep1(lock$0, true);
+    $p4 := $pa($pa($p1, 0, 24), 4, 1);
+    call _WRITE_LS_$M.0_$ep1($p4);
+    $p5 := $pa($pa($p1, 0, 24), 12, 1);
+    $p6 := $pa($pa($p5, 0, 12), 0, 1);
+    call _UPDATE_CLS_$ep1(lock$0, false);
+    return;
+}
+\end{boogie}
+
+The \texttt{\_WRITE\_LS\_\$M.0\_\$ep1()} is a special function that computes the intersection of the CLS and the lockset of \texttt{\$M.0} (see Section~\ref{bg:lockset}). It also updates the write-set of \texttt{\$M.0} to true, because there was a write access by \texttt{ep1}:
+
+\begin{boogie}
+procedure {:inline 1} _WRITE_LS_$M.0_$ep1(
+    ptr: int);  modifies lock$0_in_LS_$M.0_$ep1,
+    WRITTEN_$M.0_$ep1;
+
+implementation {:inline 1} _WRITE_LS_$M.0_$ep1(
+    ptr: int) {  _WRITE:    goto anon1_Then, anon1_Else;
+
+  anon1_Then:    assume {:partition} WATCHED_ACCESS_$M.0 ==
+      ptr && DEVICE_IS_REGISTERED_$ep;
+    lock$0_in_LS_$M.0_$ep := lock$0_in_CLS_$ep && lock$0_in_LS_$M.0_$ep;    WRITTEN_$M.0_$ep := true;
+    return;  anon1_Else:    assume {:partition} !(WATCHED_ACCESS_$M.0 ==
+      ptr && DEVICE_IS_REGISTERED_$ep);
+    return;
+}
+\end{boogie}
+
+The \texttt{\_READ\_LS\_\$M.0\_\$ep1()} updates the lockset of \texttt{\$M.0} and the read-set accordingly for a read access.
+
+To be sound, \whoop returns a nondeterministic value (using the Boogie keyword \texttt{havoc}) for each read access to a shared memory location. This over-approximates any effects from all the unmodeled threads on the shared state, but can and will result into false positives.
+
+%For each array, two Booleans are introduced to record whether a read from or write to the watched offset has occurred. Initially these Booleans are false, and they are reset at each barrier. Thread s sets the ?read? Boolean to true whenever it reads from the watched offset, and similarly for the ?write? Boolean. A race between s and t is reported if thread t reads from the watched offset and the ?write? Boolean is true, or if thread t writes to the watched offset and either the ?read? or ?write? Boolean is true. The non-deterministic choice per array access is eliminated.
 
 
 %\begin{boogie}[caption = Translation to Boogie IVL using SMACK, label = fig:smack_translation]
 %call mutex_lock($p3);
 %\end{boogie}
 
-
-\begin{table*}
-\small
-\begin{center}
-\begin{tabular}{lll}
-\textbf{Statement}           & \textbf{Logger's Instrumentation}      & \textbf{Checker's Instrumentation} \\
-\noalign{\smallskip}\toprule
-\textbf{lock}(m);              & \textbf{add\_lock}(CL, m);                        & \textbf{add\_lock}(CL, m); \\
-\noalign{\smallskip}\hline\noalign{\smallskip}
-\textbf{unlock}(m);          & \textbf{remove\_lock}(CL, m);                  & \textbf{remove\_lock}(CL, m); \\
-\noalign{\smallskip}\hline\noalign{\smallskip}
-\multirow{2}{*}{x := *ptr;} & LS$\lbrack $ptr$\rbrack :=$ LS$\lbrack $ptr$\rbrack$ $\cap$ CL; & \textbf{assert}(W$\lbrack $ptr$\rbrack \implies$ CL $\cap$ LS$\lbrack $ptr$\rbrack \not= \varnothing$); \\
-\noalign{\smallskip}
-                                       & \textbf{havoc}(x);                                 & \textbf{havoc}(x); \\
-\noalign{\smallskip}\hline\noalign{\smallskip}
-\multirow{2}{*}{*ptr := x;} & LS$\lbrack $ptr$\rbrack :=$ LS$\lbrack $ptr$\rbrack$ $\cap$ CL; & \multirow{2}{*}{\textbf{assert}(CL $\cap$ LS$\lbrack $ptr$\rbrack \not= \varnothing$);} \\
-\noalign{\smallskip}
-                                       & W$\lbrack $ptr$\rbrack := true;$ &
-\end{tabular}
-\end{center}
-\caption{Logger and Checker statements to be instrumented in each pair of entry points. The \texttt{havoc(x)} statement assigns a nondeterministic value to \texttt{x}.}
-\label{tab:instrumentation}
-\end{table*}
 
 Our verification technique begins by performing \emph{two-thread reduction}, a sound abstraction that removes all but two arbitrary threads, each running an entry point of the originally concurrent program, and then performs \emph{pairwise sequentialisation}, which combines the two arbitrary threads in a single sequential pair. This is achieved by replacing the \texttt{return} statement of the first entry point with a \texttt{goto} statement that jumps execution to the first statement of the second entry point. This process repeats until all pairs of entry points have been sequentialised. To achieve soundness, each time an entry point performs a read access to a shared resource, we return a nondeterministic value. This over-approximates any effects from all the unmodeled threads on the device driver shared state.
 

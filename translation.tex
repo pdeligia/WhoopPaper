@@ -5,7 +5,7 @@ First, \whoop runs Chauffeur, a Clang-frontend that we developed to perform two 
 Next, the rewritten program is passed to Clang which compiles it to LLVM-IR~\cite{lattner2004llvm}, a low-level assembly-like language in single static assignment (SSA) form. SMACK then translates the LLVM-IR to Boogie IVL. SMACK leverages the pointer-alias analyses of LLVM to efficiently model the heap manipulation operations of the original program in Boogie IVL. To achieve scalability, SMACK is using a split-memory model instead of a monolithic one that would be difficult for backend verifiers to reason about~\cite{rakamaric2009scalable}.
 
 \begin{lstlisting}[caption = Simple networking entry point in C, label = fig:original_program]
-static void entrypoint(struct net_device *dev) {
+static void ep1(struct net_device *dev) {
   struct shared *tp = netdev_priv(dev);
   mutex_lock(&tp->wk.mutex);
   tp->field = 4;
@@ -16,7 +16,7 @@ static void entrypoint(struct net_device *dev) {
 Example~\ref{fig:original_program} shows a simple program in C and Example~\ref{fig:smack_translation} shows its corresponding translation in Boogie IVL using SMACK. The function \texttt{\$pa} models pointer arithmetic, while the map \texttt{\$M.0} is a memory region that typically denotes a shared resource. Notice that functional calls (e.g. to lock and unlock a mutex) are preserved in the translation.
 
 \begin{boogie}[caption = Translation to Boogie IVL using SMACK, label = fig:smack_translation]
-procedure entrypoint(dev: int) modifies $M.0; {
+procedure ep1(dev: int) modifies $M.0; {
   var $p0, $p1, $p2, $p3, $p4, $p5, $p6: int;
   $bb0:
     $p0 := dev;
