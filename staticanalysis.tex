@@ -1,9 +1,9 @@
 After the original program has been translated to the abstract Boogie program, the core \whoop tool is invoked, which performs \emph{static pairwise lockset analysis}, a novel verification technique for proving data race freedom in Linux kernel modules. The key idea behind our approach is that we can verify absence of data races by (i) deriving a sound \emph{sequential} model that \emph{over-approximates} the originally concurrent program, (ii) instrumenting it for lockset analysis and race checking, and (iii) asserting that all write/read accesses to the same shared resource are consistently protected by at least one common lock. The immediate benefit is that our approach not only avoids reasoning about thread interleavings, and thus has the potential to scale well, but also allows the reuse of existing sequential verification techniques.
 
-The proof sketch behind our static lockset analysis is given in Section~\ref{proof}. The verification technique is described in more detail in Section~\ref{method}. The summarisation that we perform to achieve scalability is discussed in Section~\ref{summarisation}. Various optimisations that we perform to achieve precision are described in Section~\ref{optimisations}.
+The proof sketch behind our static lockset analysis is given in Section~\ref{tech:proof}. The instrumentation and analysis is described in more detail in Section~\ref{tech:method}. The summarisation that we perform to achieve scalability is discussed in Section~\ref{tech:summarisation}. Various optimisations that we perform to achieve precision are described in Section~\ref{tech:optimisations}. Finally, assumption and limitations are discussed in Section~\ref{tech:limitations}.
 
 \subsection{Static Lockset Analysis Proof Sketch}
-\label{proof}
+\label{tech:proof}
 
 We now formalise our approach to verifying data race freedom in a kernel module by statically analysing its locksets. Let $\{\mathit{ep}_{1}, \mathit{ep}_{2}, \dotsc, \mathit{ep}_{n}\}$ be all the entry points of a module, and let $\{\ell_{1}, \ell_{2}, \dotsc, \ell_{k}\}$ be all the locks used by this module. Although we assume that the number of locks is finite and with a known bound, we argue that this assumption is realistic: all modules that we have studied so far in the Linux kernel have only a small number of locks (typically one). Indeed, the Linux device driver book~\cite{corbet2005linux} advocates the use of as few locks as possible to avoid introducing unnecessary complexity and synchronisation bugs that arise from careless fine-grained locking. The actual Linux kernel employs sophisticated fine-grained locking, but this is part of the environment which is abstracted away in our models.
 
@@ -17,9 +17,32 @@ For each pair of entry points $\mathit{ep}_{i}, \mathit{ep}_{j}\in \{\mathit{ep}
 A sketch of how the above theorem can be proved is as follows. Suppose there are in fact entry points $\mathit{ep}_{i}$ and $\mathit{ep}_{j}$ that can race on a memory location $m$. By our hypothesis, there exists at least one lock, say $\ell$, which belongs to both $\mathit{LS}_{i}$ and $\mathit{LS}_{j}$. By the definition of a lockset, this means that $\ell$ is held during the access to $m$ by both $ep_1$ and $ep_2$. As a result, $m$ \emph{must} be unlocked and locked between the two accesses, which contradicts that the pair of accesses is racing.
 
 \subsection{Instrumentation and Analysis}
-\label{method}
+\label{tech:method}
 
-\whoop Engine is invoked. In this phase, \whoop instruments the program for \emph{static pairwise lockset analysis}
+The Engine component of \whoop (see Figure~\ref{fig:whoop}) is responsible for parsing, instrumenting and sequentialising the abstract Boogie program. During the initial parsing, \whoop performs a static analysis (on the Boogie IVL code) to identify all lock identifiers and rewrite them to a unique constant Boogie variable, e.g. the following call to \texttt{mutex\_lock()}:
+
+\begin{boogie}
+call mutex_lock($p3);
+\end{boogie}
+
+Will be rewritten to:
+
+\begin{boogie}
+const {:lock} unique lock$0: int;
+
+call mutex_lock(lock$0);
+\end{boogie}
+
+If \whoop cannot infer a lock it will exit with a warning. A limitation of lockset analysis is that it cannot understand external locking mechanisms (\whoop currently only supports Linux kernel mutexes and spinlocks). It is relatively straightforward to enhance \whoop, though, with new locking primitives. \whoop will also exit with a warning if it detects ``improper'' use of locks (e.g. dynamic lock creation). The reason behind this is twofold: first, it is arguably infeasible to detect such locks using static analysis; and second, because we want to advocate the use of good locking practises when developing modules for the Linux kernel.
+
+When the lock rewriting finishes, \whoop traverses the Boogie IVL code, uses the information extracted by Chauffeur and separates each independent entry point call-graph from the rest of the program. To achieve this, it duplicates helper functions and renames them accordingly: e.g. for entry point \texttt{ep1}, a helper function \texttt{foo} will be renamed to \texttt{foo\$ep1}. This allows \whoop to perform entry point sensitive instrumentation and analysis. Although the program can potentially become much larger, this does not affect the analysis as discussed later.
+
+
+
+%\begin{boogie}[caption = Translation to Boogie IVL using SMACK, label = fig:smack_translation]
+%call mutex_lock($p3);
+%\end{boogie}
+
 
 \begin{table*}
 \small
@@ -55,16 +78,16 @@ Next, we split each pair into two distinct analysis regions: the \emph{logger}, 
 \end{description}
 
 \subsection{Watchdog Summarisation}
-\label{summarisation}
+\label{tech:summarisation}
 
 Draft.
 
 \subsection{Optimisations}
-\label{optimisations}
+\label{tech:optimisations}
 
 Draft.
 
 \subsection{Assumptions and Limitations}
-\label{limitations}
+\label{tech:limitations}
 
 %Next, the Boogie program is transformed into a sequentialised abstract program, using pair-wise sequentialisation and lock set instrumentation as discussed in Section~\ref{method}. Finally the abstract program is send to the Boogie verification engine, which generates verification conditions~\cite{barnett2005weakest} and discharges them to a theorem prover. Successful verification implies that the original driver is free of data races, while an error denotes a \emph{potential} data race.
