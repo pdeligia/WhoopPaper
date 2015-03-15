@@ -1,6 +1,7 @@
 After the original program has been translated to the abstract Boogie program, the core \whoop tool is invoked, which performs \emph{static pairwise lockset analysis}, a novel verification technique for proving data race freedom in Linux kernel modules. The key idea behind our approach is that we can verify absence of data races by (i) deriving a sound \emph{sequential} model that \emph{over-approximates} the originally concurrent program, (ii) instrumenting it for lockset analysis and race checking, and (iii) asserting that all write/read accesses to the same shared resource are consistently protected by at least one common lock. The immediate benefit is that our approach not only avoids reasoning about thread interleavings, and thus has the potential to scale well, but also allows the reuse of existing sequential verification techniques.
 
-The proof sketch behind our static lockset analysis is given in Section~\ref{tech:proof}. The instrumentation and analysis is described in more detail in Section~\ref{tech:method}. The summarisation that we perform to achieve scalability is discussed in Section~\ref{tech:summarisation}. Various optimisations that we perform to achieve precision are described in Section~\ref{tech:optimisations}. Finally, assumption and limitations are discussed in Section~\ref{tech:limitations}.
+The proof sketch behind our static lockset analysis is given in Section~\ref{tech:proof}. The instrumentation and analysis is described in more detail in Section~\ref{tech:method}. The summarisation that we perform to achieve scalability is presented in Section~\ref{tech:summarisation}. 
+Information about modelling, optimisations and assumptions is given in Section~\ref{tech:optimisations}. Finally, the limitations of our static lockset analysis are discussed in Section~\ref{tech:limitations}.
 
 \subsection{Static Lockset Analysis Proof Sketch}
 \label{tech:proof}
@@ -204,7 +205,7 @@ procedure foo$ep1(dev: int);
   ...
 \end{boogie}
 
-\subsection{Modelling and Optimisations}
+\subsection{Modelling, Optimisations and Assumptions}
 \label{tech:optimisations}
 
 A common practise for statically analysing software is to ``close'' the environment by abstracting away the low level implementation details. Any abstract environmental model, though, can and will ultimately result in decreased precision and thus false positives. This is one of the main limitations of statically analysing real life software that use complex external APIs. In our case, we developed a simple environmental model for the Linux kernel that consists of stub header files. Because we only focus on lockset-based properties during the race-checking phase of \whoop, we can get away with abstracting a lot of the underlying functionality. Our model, though, can still result in a lot of false positives.
@@ -217,9 +218,13 @@ Another optimisation, is to soundly reduce the checked memory locations. If a me
 
 Modelling kernel methods is another opportunity to increase precision, but requires expert knowledge about Linux. For example, the \texttt{register\_netdev()} function registers a network driver with the kernel. Before this function is called, the kernel is not able to invoke any of the driver's entry points. Modelling this functionality can reduce false positives when race checking accesses before the driver's registration.
 
-Finally, we also optimise the use of function pointers. LLVM and SMACK do not perform context-sensitive translation, which means that a function that accepts a function pointer as an argument, can arbitrarily call any possible method that corresponds to that function pointer regardless of call site. To increase precision, Chauffeur analyses the AST of the original program and attempts to infer context-sensitive function pointer use information. This information is the used by \whoop to increase precision. To be sound, this optimisation is conservative: if no information can be extracted for a function pointer at a call site, then \whoop uses the original over-approximated function.
+We also optimise the use of function pointers. LLVM and SMACK do not perform context-sensitive translation, which means that a function that accepts a function pointer as an argument, can arbitrarily call any possible method that corresponds to that function pointer regardless of call site. To increase precision, Chauffeur analyses the AST of the original program and attempts to infer context-sensitive function pointer use information. This information is the used by \whoop to increase precision. To be sound, this optimisation is conservative: if no information can be extracted for a function pointer at a call site, then \whoop uses the original over-approximated function.
 
-\subsection{Assumptions and Limitations}
+Finally, we assume that the formal parameters of an entry point do not alias, and thus do not race. This is a potentially unsound feature that can be turned off using a command line option. In our experience so far, though, we have not missed any data races because of this assumption. We also assume that our environmental model and domain-specific knowledge are correct and do not cause any bugs to be missed.
+
+\subsection{Limitations}
 \label{tech:limitations}
 
-Draft.
+The main limitation of \whoop is that it is based on static lockset analysis. As an example of this limitation is that we do not check for dynamically created locks (or for locks that are provided by external libraries). Because we perform two thread reduction, we also over-approximate the read accesses, which is another source of false positives. Environmental modelling is also another limitation of \whoop. As aforementioned, enriching \whoop with domain-specific knowledge to increase precision is an ongoing manual effort, but requires expertise in the Linux kernel.
+
+We argue that further increasing the precision of our models is orthogonal to the contributions of this paper. Moreover, despite unavoidable imprecisions during the sound static data race analysis, \whoop can use the reported information to significantly speedup precise bug-finders for concurrent programs, as seen in Sections~\ref{bugfinding} and~\ref{evaluation}.
