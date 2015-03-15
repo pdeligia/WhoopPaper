@@ -166,7 +166,27 @@ write by entry point ep2, foo.c:52:2
 
 Early on during the development of \whoop, we realised that scalability would be a serious issue. When we tried to apply \whoop on the r8169 RealTek ethernet driver (8000 lines of C code) with all functions fully inlined, we were running out of memory. One reason was that the C to Boogie translation produced hundreds of thousands of Boogie IVL code, which could not fit in memory. Another reason was that some entry points recursively call helper functions. Inherently, recursion does not work with inlining. To tackle these issues we developed \emph{watchdog summarisation}, a novel summarisation technique that allows us to analyse Linux kernel modules in a scalable fashion, but without destroying precision.
 
-Watchdog summarisation is based on our lockset and watchdog race checking instrumentation and uses the Houdini~\cite{flanagan2001houdini} invariant inference algorithm (available in Boogie) to automatically compute summaries from a pool of automatically generated candidate invariants.
+Watchdog summarisation uses the Houdini~\cite{flanagan2001houdini} invariant inference algorithm (available inside Boogie) to automatically compute summaries (pre- and post-conditions and loop invariants) from a pool of \emph{candidate} invariants.
+
+The candidate invariants are based on the global variables that \whoop instruments to perform lockset analysis and race checking (see Section~\ref{tech:method}). The key idea behind watchdog summarisation is that we automatically generate candidate invariants in the granularity of watched accesses. This means that for e.g. watched access \texttt{\$M.0[\$p0]} the entry point has performed a write access, but for \texttt{\$M.0[\$p1]} it has not. This reduces the false positives from reporting errors if only e.g. a field of a struct is racing, but the rest of the fields are not. An example of candidate post-conditions is the following:
+
+\begin{boogie}
+procedure foo$ep1(dev: int);
+  ...
+  ensures _b$ls$entrypoint1$0
+    ==> WATCHED_ACCESS_$M.0 == dev + 4
+    ==> lock$0_in_LS_$M.0_$entrypoint1;
+  ensures _b$ls$entrypoint1$1
+    ==> WATCHED_ACCESS_$M.0 == dev + 8
+    ==> lock$0_in_LS_$M.0_$entrypoint1;
+  ensures _b$ac$entrypoint1$0
+    ==> WATCHED_ACCESS_$M.0 == dev + 4
+    ==> !WRITTEN_$M.0_$entrypoint1;
+  ensures _b$ac$entrypoint1$1
+    ==> WATCHED_ACCESS_$M.0 == dev + 8
+    ==> !WRITTEN_$M.0_$entrypoint1;
+  ...
+\end{boogie}
 
 \subsection{Optimisations for Precision}
 \label{tech:optimisations}
