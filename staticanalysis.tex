@@ -168,7 +168,7 @@ Early on during the development of \whoop, we realised that scalability would be
 
 Watchdog summarisation uses the Houdini~\cite{flanagan2001houdini} invariant inference algorithm (available inside Boogie) to automatically compute summaries (pre- and post-conditions and loop invariants) from a pool of \emph{candidate} invariants.
 
-The candidate invariants are based on the global variables that \whoop instruments to perform lockset analysis and race checking (see Section~\ref{tech:method}). The key idea behind watchdog summarisation is that we automatically generate candidate invariants in the granularity of watched accesses. This means that for e.g. watched access \texttt{\$M.0[\$p0]} the entry point has performed a write access, but for \texttt{\$M.0[\$p1]} it has not. This reduces the false positives from reporting errors if only e.g. a field of a struct is racing, but the rest of the fields are not. An example of candidate post-conditions is the following:
+The candidate invariants are based on the global variables that \whoop instruments to perform lockset analysis and race checking (see Section~\ref{tech:method}). The key idea behind watchdog summarisation is that we automatically generate candidate invariants for each memory region in the granularity of watched accesses. This reduces the false positives from reporting errors if only e.g. a field in memory region \texttt{\$M.0} is racing, but the rest of the fields are not. An example of watchdog-based candidate post-conditions is the following:
 
 \begin{boogie}
 procedure foo$ep1(dev: int);
@@ -184,6 +184,22 @@ procedure foo$ep1(dev: int);
     ==> !WRITTEN_$M.0_$entrypoint1;
   ensures _b$ac$entrypoint1$1
     ==> WATCHED_ACCESS_$M.0 == dev + 8
+    ==> !WRITTEN_$M.0_$entrypoint1;
+  ...
+\end{boogie}
+
+To generate the candidate invariants, \whoop performs an intra-procedural static analysis on the call-graph (in Boogie IVL code) of each entry point, identifying all possible accesses to shared memory locations. To be sound, if \whoop cannot infer information for a specific access, it generates a coarse-grained candidate for the corresponding memory region. For example the previous \texttt{\$M.0} candidates would now be:
+
+\begin{boogie}
+procedure foo$ep1(dev: int);
+  ...
+  ensures _b$ls$entrypoint1$0
+    ==> lock$0_in_LS_$M.0_$entrypoint1;
+  ensures _b$ls$entrypoint1$1
+    ==> lock$0_in_LS_$M.0_$entrypoint1;
+  ensures _b$ac$entrypoint1$0
+    ==> !WRITTEN_$M.0_$entrypoint1;
+  ensures _b$ac$entrypoint1$1
     ==> !WRITTEN_$M.0_$entrypoint1;
   ...
 \end{boogie}
