@@ -204,13 +204,20 @@ procedure foo$ep1(dev: int);
   ...
 \end{boogie}
 
-\subsection{Optimisations for Precision}
+\subsection{Modelling and Optimisations}
 \label{tech:optimisations}
 
-Kernel imposed locks
-Sound reduction of checked memory regions
-Modelling kernel methods
-Controlling SMACK's coarse over-approximation of function pointers
+A common practise for statically analysing software is to ``close'' the environment by abstracting away the low level implementation details. Any abstract environmental model, though, can and will ultimately result in decreased precision and thus false positives. This is one of the main limitations of statically analysing real life software that use complex external APIs. In our case, we developed a simple environmental model for the Linux kernel that consists of stub header files. Because we only focus on lockset-based properties during the race-checking phase of \whoop, we can get away with abstracting a lot of the underlying functionality. Our model, though, can still result in a lot of false positives.
+
+To increase precision we enhance \whoop with domain-specific knowledge of how the Linux kernel uses its various modules. This is an ongoing manual effort: the more kernel modules we study, the more domain-specific properties we discover, which we then use for increased precision.
+
+In our experience, one of the most effective precision optimisations is to enrich \whoop with information regarding kernel imposed locks. The Linux kernel is able to serialise a number of entry point calls, which thus can never run concurrently with each other. An an example, a large number of networking and ethernet entry points are mutually serialised with RTNL, a network-specific kernel lock. \whoop will not create pairs for entry points that cannot run concurrently.
+
+Another optimisation, is to soundly reduce the checked memory locations. If a memory location is accessed only by one entry point in the pair, then it is safe to not check it. This can potentially decrease the amount of generated candidate invariants and speed up the verification process.
+
+Modelling kernel methods is another opportunity to increase precision, but requires expert knowledge about Linux. For example, the \texttt{register\_netdev()} function registers a network driver with the kernel. Before this function is called, the kernel is not able to invoke any of the driver's entry points. Modelling this functionality can reduce false positives when race checking accesses before the driver's registration.
+
+Finally, we also optimise the use of function pointers. LLVM and SMACK do not perform context-sensitive translation, which means that a function that accepts a function pointer as an argument, can arbitrarily call any possible method that corresponds to that function pointer regardless of call site. To increase precision, Chauffeur analyses the AST of the original program and attempts to infer context-sensitive function pointer use information. This information is the used by \whoop to increase precision. To be sound, this optimisation is conservative: if no information can be extracted for a function pointer at a call site, then \whoop uses the original over-approximated function.
 
 \subsection{Assumptions and Limitations}
 \label{tech:limitations}
