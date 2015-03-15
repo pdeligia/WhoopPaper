@@ -164,9 +164,9 @@ write by entry point ep2, foo.c:52:2
 \subsection{Watchdog Summarisation}
 \label{tech:summarisation}
 
-Early on during the development of \whoop, we realised that scalability would be a serious issue. When we tried to apply \whoop on the r8169 RealTek ethernet driver (8000 lines of C code) with all functions fully inlined, we were running out of memory. One reason was that the C to Boogie translation produced hundreds of thousands of Boogie IVL code, which could not fit in memory. Another reason was that some entry points recursively call helper functions. Inherently, recursion does not work with inlining. To tackle these issues we developed \emph{watchdog summarisation}, a novel summarisation technique that allows us to analyse Linux kernel modules in a scalable fashion, but without destroying precision and reporting countless false positives.
+Early on during the development of \whoop, we realised that scalability would be a serious issue. When we tried to apply \whoop on the r8169 RealTek ethernet driver (8000 lines of C code) with all functions fully inlined, we were running out of memory. One reason was that the C to Boogie translation produced hundreds of thousands of Boogie IVL code, which could not fit in memory. Another reason was that some entry points recursively call helper functions. Inherently, recursion does not work with inlining. To tackle these issues we developed \emph{watchdog summarisation}, a novel summarisation technique that allows us to analyse Linux kernel modules in a scalable fashion, but without destroying precision.
 
-Watchdog summarisation is based on watchdog race checking and uses the Houdini~\cite{flanagan2001houdini} algorithm to infer pre- and post-conditions and loop invariants from a pool of automatically generated candidate invariants.
+Watchdog summarisation is based on our lockset and watchdog race checking instrumentation and uses the Houdini~\cite{flanagan2001houdini} invariant inference algorithm (available in Boogie) to automatically compute summaries from a pool of automatically generated candidate invariants.
 
 \subsection{Optimisations for Precision}
 \label{tech:optimisations}
