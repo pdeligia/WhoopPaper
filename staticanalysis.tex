@@ -37,6 +37,46 @@ If \whoop cannot infer a lock it will exit with a warning. A limitation of locks
 
 When the lock rewriting finishes, \whoop traverses the Boogie IVL code, uses the information extracted by Chauffeur and separates each independent entry point call-graph from the rest of the program. To achieve this, it duplicates helper functions and renames them accordingly: e.g. for entry point \texttt{ep1}, a helper function \texttt{foo} will be renamed to \texttt{foo\$ep1}. This allows \whoop to perform entry point sensitive instrumentation and analysis. Although the program can potentially become much larger, this does not affect the analysis as discussed later.
 
+Next, \whoop instruments the program with global variables for lockset analysis and race checking per entry point. For example, for entry point \texttt{ep1}, \whoop instruments:
+
+\begin{boogie}
+var {:current_lockset} lock$0_in_CLS_$ep1: bool;
+var {:lockset} lock$0_in_LS_$M.0_$ep1: bool;
+var {:access_checking} WRITTEN_$M.0_$ep1: bool;
+var {:access_checking} READ_$M.0_$ep1: bool;
+\end{boogie}
+
+\whoop also instruments a global watchdog variable per memory region that is common to all entry points:
+
+\begin{boogie}
+const {:watchdog} WATCHED_ACCESS_$M.0: int;
+\end{boogie}
+
+The above instrumented variables represent the follows: \texttt{lock\$0\_in\_CLS\_\$ep1} is the current lockset (CLS) of \texttt{ep1}; \texttt{WATCHED\_ACCESS\_\$M.0} is an \emph{unconstrained} constant representing the offset to memory region \texttt{\$M.0} that should be checked for races; \texttt{lock\$0\_in\_LS\_\$M.0\_\$ep1} is the lockset for \texttt{\$M.0}; \texttt{WRITTEN\_\$M.0\_\$ep1} is the write-set for \texttt{\$M.0}; and \texttt{READ\_\$M.0\_\$ep1} is the read-set for \texttt{\$M.0}. Verification involves proving that two entry points cannot race at the watched offset of every memory region. The arbitrary watched offset implies that every offset of each memory region is race-free. Watchdog race checking has been used before for verifying GPU kernels~\cite{bardsley2014engineering}.
+
+\whoop proceeds by instrumenting each entry point call-graph for lockset analysis by replacing each call to a locking or unlocking function, with an instrumented version of the original lock and unlock functions. This means that Example~\ref{fig:smack_translation} will be instrumented as:
+
+\begin{boogie}%[caption = Program instrumented with lock/unlock functions, label = fig:lock_instrumentation]
+procedure entrypoint(dev: int) modifies $M.0; {
+  var $p0, $p1, $p2, $p3, $p4, $p5, $p6: int;
+  $bb0:
+    $p0 := dev;
+    $p1 := $pa($p0, 32, 1);
+    $p2 := $pa($pa($p1, 0, 24), 12, 1);
+    $p3 := $pa($pa($p2, 0, 12), 0, 1);
+    call _UPDATE_CLS_$ep(lock$0, true);
+    $p4 := $pa($pa($p1, 0, 24), 4, 1);
+    $M.0[$p4] := 4;
+    $p5 := $pa($pa($p1, 0, 24), 12, 1);
+    $p6 := $pa($pa($p5, 0, 12), 0, 1);
+    call _UPDATE_CLS_$ep(lock$0, false);
+    return;
+}
+\end{boogie}
+
+The \texttt{\_UPDATE\_CLS\_\$ep} is a special \whoop function that updates the CLS global variable to either true or false, if the lock is held or released accordingly.
+
+%The alternative, which we call watchdog race checking, uses a single, unconstrained constant representing an offset with respect to which races should be checked: the ?watched offset?. Verification involves proving for every array that a data race at the watched offset is impossible. Because the watched offset is arbitrary, this implies that every offset of each array is race-free. For each array, two Booleans are introduced to record whether a read from or write to the watched offset has occurred. Initially these Booleans are false, and they are reset at each barrier. Thread s sets the ?read? Boolean to true whenever it reads from the watched offset, and similarly for the ?write? Boolean. A race between s and t is reported if thread t reads from the watched offset and the ?write? Boolean is true, or if thread t writes to the watched offset and either the ?read? or ?write? Boolean is true. The non-deterministic choice per array access is eliminated.
 
 
 %\begin{boogie}[caption = Translation to Boogie IVL using SMACK, label = fig:smack_translation]
