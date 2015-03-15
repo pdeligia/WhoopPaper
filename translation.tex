@@ -13,7 +13,7 @@ static void ep1(struct net_device *dev) {
 }
 \end{lstlisting}
 
-Example~\ref{fig:original_program} shows a simple program in C and Example~\ref{fig:smack_translation} shows its corresponding translation in Boogie IVL using SMACK. The function \texttt{\$pa} models pointer arithmetic, while the map \texttt{\$M.0} is a memory region that typically denotes a shared resource. Notice that functional calls (e.g. to lock and unlock a mutex) are preserved in the translation.
+Example~\ref{fig:original_program} shows a simple program in C and Example~\ref{fig:smack_translation} shows its corresponding translation in Boogie IVL using SMACK. The function \texttt{\$pa} models pointer arithmetic, while the map \texttt{\$M.0} is a memory region that typically denotes a shared resource. Notice that function calls (e.g. to lock and unlock a mutex) are preserved in the translation.
 
 \begin{boogie}[caption = Translation to Boogie IVL using SMACK, label = fig:smack_translation]
 procedure ep1(dev: int) modifies $M.0; {
