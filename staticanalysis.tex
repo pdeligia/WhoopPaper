@@ -164,12 +164,17 @@ write by entry point ep2, foo.c:52:2
 \subsection{Watchdog Summarisation}
 \label{tech:summarisation}
 
-Draft.
+Early on during the development of \whoop we realised that scalability would be a serious issue. When we tried to apply \whoop on the r8169 RealTek ethernet driver (8000 lines of C code), \whoop was running out of memory. One reason was that the translation produced hundreds of thousands of Boogie IVL code. Another reason was that some entry points of the driver have recursion (which does not work with inlining). Because of these reasons we decided to investigate summarisation techniques that would allow us to analyse Linux kernel modules in a scalable fashion, but without destroying precision and reporting countless false positives.
+
+Towards this, we came up with \emph{watchdog summarisation}, a novel summarisation technique that combines watchdog race checking with pre- and post-conditions and loop invariants for increased precision.
 
 \subsection{Optimisations}
 \label{tech:optimisations}
 
-Draft.
+Kernel imposed locks
+Sound reduction of checked memory regions
+Modelling kernel methods
+Controlling SMACK's coarse over-approximation of function pointers
 
 \subsection{Assumptions and Limitations}
 \label{tech:limitations}
