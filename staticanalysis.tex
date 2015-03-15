@@ -128,11 +128,38 @@ implementation {:inline 1} _WRITE_LS_$M.0_$ep1(
 
 The \texttt{\_READ\_LS\_\$M.0\_\$ep1()} updates the lockset of \texttt{\$M.0} and the read-set accordingly for a read access.
 
-\whoop continues by performing \emph{two-thread reduction}, a sound abstraction that removes all but two arbitrary threads, each running an entry point of the originally concurrent program, and then performs \emph{pairwise sequentialisation}, which combines the two arbitrary threads in a single sequential pair. This is achieved by
+\whoop continues by performing \emph{two-thread reduction}, a sound abstraction that removes all but two arbitrary threads, each running an entry point of the originally concurrent program, and then performs \emph{pairwise sequentialisation}, which combines the two arbitrary threads in a single sequential pair. This is achieved by creating a checker function that calls the two instrumented entry points and then performs race checking assertions. This process repeats until all possible pairs of entry points have been sequentialised. To be sound, each time an entry point performs a read access to a shared memory location, \whoop returns a nondeterministic value (using the Boogie keyword \texttt{havoc}). This over-approximates any effects from all the unmodeled threads on the shared state of the pair. Two-thread reduction is not a new idea, it has been used before in GPU kernel verification~\cite{bardsley2014engineering} and in model checking of cache coherence protocols~\cite{mcmillan1999verification}.
 
-This process repeats until all pairs of entry points have been sequentialised. To be sound, each time an entry point performs a read access to a shared memory location, \whoop returns a nondeterministic value (using the Boogie keyword \texttt{havoc}). This over-approximates any effects from all the unmodeled threads on the shared state.
+After each checker function calls a pair of entry points, it asserts that each shared memory location is protected by at least one common lock (see Section~\ref{bg:lockset}). The assertion check is triggered iff the memory location was accessed by both entry points and at least one of the accesses was a write. We do not check for read-read races, which are inherently benign. The following is an example of a checker function for entry points \texttt{ep1} and \texttt{ep2}:
 
-Each time the checker performs a write access to $m$, it asserts that the intersection between $\mathit{LS}_{CR}$ and $\mathit{LS}\lbrack m\rbrack$ is non-empty. If the assertion fails, it implies that the entry point of the logger and the entry point of the checker potentially race on $m$. In this case a counterexample is generated and reported to the user. To check a read access, the checker performs the aforementioned assertion only if the write access set $W\lbrack m\rbrack$ is true, thus avoids to report a read-read data race, which is inherently benign.
+\begin{boogie}
+procedure check$ep1$ep2(dev: int);
+  requires !lock$0_in_CLS_$ep1;  requires !lock$0_in_CLS_$ep2;  requires lock$0_in_LS_$M.0_$ep1;  requires lock$0_in_LS_$M.0_$ep2;  requires !WRITTEN_$M.0_$ep1;  requires !WRITTEN_$M.0_$ep2;  requires !READ_$M.0_$ep1;  requires !READ_$M.0_$ep2;  modifies lock$0_in_CLS_$ep1, lock$0_in_CLS_$ep2,
+    lock$0_in_LS_$M.0_$ep1, lock$0_in_LS_$M.0_$ep2,
+    WRITTEN_ $M.0_$ep1,WRITTEN_$M.0_$ep2,
+    READ_$M.0_$ep1, READ_$M.0_$ep2;
+
+implementation check$ep1$ep2(dev: int) {  _CHECK:
+    call ep1(dev);
+    call ep2(dev);    assert (WRITTEN_$M.0_$ep1 && WRITTEN_$M.0_$ep2)
+      || (WRITTEN_$M.0_$ep1 && READ_$M.0_$ep2)
+      || (READ_$M.0_$ep1 && WRITTEN_$M.0_$ep2)
+      ==> lock$0_in_LS_$M.0_$ep1 &&
+      lock$0_in_LS_$M.0_$ep2;    return;
+}
+\end{boogie}
+
+Finally the abstract program is send to the Boogie verification engine, which generates verification conditions~\cite{barnett2005weakest} and discharges them to a theorem prover (Boogie supports Z3~\cite{de2008z3} and CVC4~\cite{barrett2011cvc4}). Successful verification implies that the original program is free of data races, while an error denotes a \emph{potential} data race and is reported to the user. To improve usability \whoop has a built-in error reporter that matches Boogie counterexamples to source code. The following is an example of a reported error:
+
+\begin{lstlisting}
+foo.c: error: potential write-write race:
+
+write by entry point ep1, foo.c:36:2
+  shared->resource = 4;
+
+write by entry point ep2, foo.c:52:2
+  shared->resource = 5;
+\end{lstlisting}
 
 \subsection{Watchdog Summarisation}
 \label{tech:summarisation}
@@ -146,5 +173,3 @@ Draft.
 
 \subsection{Assumptions and Limitations}
 \label{tech:limitations}
-
-%Next, the Boogie program is transformed into a sequentialised abstract program, using pair-wise sequentialisation and lock set instrumentation as discussed in Section~\ref{method}. Finally the abstract program is send to the Boogie verification engine, which generates verification conditions~\cite{barnett2005weakest} and discharges them to a theorem prover. Successful verification implies that the original driver is free of data races, while an error denotes a \emph{potential} data race.

@@ -25,16 +25,16 @@ The most common technique for eliminating data races is using a \emph{locking} m
 
 \begin{lstlisting}[caption = Using locks to eliminate the data race, label = fig:lock_example]
 static void ep1 (struct shared *dev) {
-  lock(&dev->lock);
+  mutex_lock(&dev->lock);
   dev->resource = 5;
-  unlock(&dev->lock);
+  mutex_unlock(&dev->lock);
 }
 
 static void ep2 (struct shared *dev) {
-  lock(&dev->lock);
+  mutex_lock(&dev->lock);
   if (dev->resource != 5)
     dev->resource = 3;
-  unlock(&dev->lock);
+  mutex_unlock(&dev->lock);
 }
 \end{lstlisting}
 

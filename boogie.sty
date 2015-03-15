@@ -42,17 +42,17 @@
     {:}{$\colon$}1
     {::}{$\bullet$}2
     {:=}{$:$$=$}2
-    {!}{$\lnot$}1
+    %{!}{$\lnot$}1
     %{==}{$=$}1
     %{!=}{$\neq$}1
     %{&&}{$\land$}1
     %{||}{$\lor$}1
-    {<=}{$\le$}1
-    {=>}{$\ge$}1
-    {==>}{$\Longrightarrow$}3 
-    {<==>}{$\Longleftrightarrow$}4 
-    {forall}{$\forall$}1
-    {exists}{$\exists$}1
+    %{<=}{$\le$}1
+    %{=>}{$\ge$}1
+    %{==>}{$\Longrightarrow$}3 
+    %{<==>}{$\Longleftrightarrow$}4 
+    %{forall}{$\forall$}1
+    %{exists}{$\exists$}1
     {lambda}{$\lambda$}1
     % the following isn't actually Boogie, but it gives the option to produce nicer latex
     {<<}{$\langle$}1
@@ -108,10 +108,10 @@
 \lstnewenvironment{boogie}[1][]{%
   \lstset{language=boogie,
     floatplacement={tbp},captionpos=b,
-    xleftmargin=8pt,xrightmargin=8pt,basicstyle=\ttfamily\footnotesize,#1}}{}
+    xleftmargin=6pt,xrightmargin=6pt,basicstyle=\ttfamily\footnotesize,#1}}{}
 \def\inlineboogie{%
     \lstinline[language=boogie,basicstyle=\ttfamily\footnotesize,columns=fixed]}
 \newcommand{\lstfile}[1]{
   \lstinputlisting[language=boogie,%
-    frame=lines,xleftmargin=8pt,xrightmargin=8pt,basicstyle=\ttfamily\footnotesize,columns=fixed]{#1}
+    frame=lines,xleftmargin=6pt,xrightmargin=6pt,basicstyle=\ttfamily\footnotesize,columns=fixed]{#1}
 }

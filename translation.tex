@@ -8,7 +8,7 @@ Next, the rewritten program is passed to Clang which compiles it to LLVM-IR~\cit
 static void ep1(struct net_device *dev) {
   struct shared *tp = netdev_priv(dev);
   mutex_lock(&tp->wk.mutex);
-  tp->field = 4;
+  tp->resource = 4;
   mutex_unlock(&tp->wk.mutex);
 }
 \end{lstlisting}
