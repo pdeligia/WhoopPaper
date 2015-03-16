@@ -19,4 +19,21 @@ We now show that our partial order reduction is sound, in other words it does no
 \subsection{Race Checking Instrumentation}
 \label{bf:racechecking}
 
-We use a simple, but effective, race checking instrumentation with \corral. This instrumentation is optional and we use it as a feasibility checking for the potential data races that \whoop reports.
+We use a simple, but effective, race checking instrumentation with \corral. This instrumentation, which is based on previous work~\cite{}, can be enabled using a command line option and we use it as a feasibility checking for the potential data races that \whoop reports. Whenever there is a write access, e.g. \texttt{\$M.13 := 0}, we instrument the Boogie IVL code as follows:
+
+\begin{boogie}
+$M.13 := 0;
+yield;
+assert $M.13 == 0;
+\end{boogie}
+
+Likewise, for a read access, e.g. \texttt{\$p0 := \$M.13}, we instrument the Boogie IVL code as follows:
+
+\begin{boogie}
+$p0 := $M.13;
+yield;
+$rv0 := $M.13;
+assert $p0 == $rv0;
+\end{boogie}
+
+Our instrumentation tolerates benign races, as it will never report an assertion violation if there is a write-write race, where the two write accesses update the shared memory location with the same value.
