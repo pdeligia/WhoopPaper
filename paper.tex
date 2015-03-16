@@ -375,7 +375,7 @@
 %
 % paper title
 % can use linebreaks \\ within to get better formatting as desired
-\title{\whoop: A Static Lockset Analyser for\\ Accelerating Bug Finding in the Linux Kernel}
+\title{\whoop: A Static Lockset Analyser for\\ Accelerating Bug-Finding in the Linux Kernel}
 
 % author names and affiliations
 % use a multiple column layout for up to three different
@@ -436,7 +436,7 @@ emphstyle=\bfseries}
 \maketitle
 
 \begin{abstract}
-Linux kernel modules, such as device drivers and filesystems, are notoriously hard to develop and even harder to debug. Especially in the case of drivers, this has a negative impact in hardware product releases, as time-to-market is commonly dominated by driver development, verification and validation schedules. Even after a driver has shipped, it is typically prone to many serious issues such as data races and other safety properties. Trying to reason about program correctness is challenging, because Linux kernel modules are highly concurrent, which leads to the infamous state explosion problem. In this paper, we present \whoop, a novel infrastructure for (i) automatically analysing the concurrent behaviour of Linux kernel modules written in C and (ii) accelerating external bug finders that can easily plug in our toolchain. \whoop is empowered by \emph{static pairwise lockset analysis}, a novel analysis that can soundly detect all \emph{potential} data races in a concurrent Linux kernel module. Our analysis not only avoids reasoning about thread interleavings, thus can scale well, but also allows the reuse of existing sequential verification techniques. Exploiting the race-freedom guarantees provided by our analysis, we achieve a sound partial-order reduction that can significantly accelerate \corral, a state-of-the-art bug finder for concurrent programs. Using \whoop and \corral we analysed 10 modules available in the Linux distribution.
+Linux kernel modules, such as device drivers and filesystems, are notoriously hard to develop and even harder to debug. Especially in the case of drivers, this has a negative impact in hardware product releases, as time-to-market is commonly dominated by driver development, verification and validation schedules. Even after a driver has shipped, it is typically prone to many serious issues such as data races and other safety properties. Trying to reason about program correctness is challenging, because Linux kernel modules are highly concurrent, which leads to the infamous state explosion problem. In this paper, we present \whoop, a novel infrastructure for (i) automatically analysing the concurrent behaviour of Linux kernel modules written in C and (ii) accelerating external bug-finders that can easily plug in our toolchain. \whoop is empowered by \emph{static pairwise lockset analysis}, a novel analysis that can soundly detect all \emph{potential} data races in a concurrent Linux kernel module. Our analysis not only avoids reasoning about thread interleavings, thus can scale well, but also allows the reuse of existing sequential verification techniques. Exploiting the race-freedom guarantees provided by our analysis, we achieve a sound partial-order reduction that can significantly accelerate \corral, a state-of-the-art bug-finder for concurrent programs. Using \whoop and \corral we analysed 10 modules available in the Linux distribution.
 \end{abstract}
 
 % IEEEtran.cls defaults to using nonbold math in the Abstract.
@@ -481,7 +481,7 @@ Linux kernel modules, such as device drivers and filesystems, are notoriously ha
 
 \input{staticanalysis}
 
-\section{Accelerating \corral}
+\section{Accelerating Bug-Finding}
 \label{bugfinding}
 
 \input{bugfinding}
