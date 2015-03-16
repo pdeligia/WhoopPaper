@@ -83,9 +83,12 @@ procedure {:inline 1} _UPDATE_CLS_$ep1(lock: int,
   modifies lock$0_in_CLS_$ep1;
 
 implementation {:inline 1} _UPDATE_CLS_$ep1(
-    lock: int, isLocked: bool) {  _UPDATE:    lock$0_in_CLS_$ep1 := (if lock == lock$0 then
+    lock: int, isLocked: bool) {
+  _UPDATE:
+    lock$0_in_CLS_$ep1 := (if lock == lock$0 then
       isLocked else lock$0_in_CLS_$ep1);
-  return;}
+  return;
+}
 \end{boogie}
 
 Next, \whoop replaces every write and read access in each entry point call-graph with a \whoop-specific function:
@@ -112,16 +115,23 @@ The \texttt{\_WRITE\_LS\_\$M.0\_\$ep1()} is a special function that computes the
 
 \begin{boogie}
 procedure {:inline 1} _WRITE_LS_$M.0_$ep1(
-    ptr: int);  modifies lock$0_in_LS_$M.0_$ep1,
+    ptr: int);
+  modifies lock$0_in_LS_$M.0_$ep1,
     WRITTEN_$M.0_$ep1;
 
 implementation {:inline 1} _WRITE_LS_$M.0_$ep1(
-    ptr: int) {  _WRITE:    goto anon1_Then, anon1_Else;
+    ptr: int) {
+  _WRITE:
+    goto anon1_Then, anon1_Else;
 
-  anon1_Then:    assume {:partition} WATCHED_ACCESS_$M.0 ==
+  anon1_Then:
+    assume {:partition} WATCHED_ACCESS_$M.0 ==
       ptr && DEVICE_IS_REGISTERED_$ep;
-    lock$0_in_LS_$M.0_$ep := lock$0_in_CLS_$ep && lock$0_in_LS_$M.0_$ep;    WRITTEN_$M.0_$ep := true;
-    return;  anon1_Else:    assume {:partition} !(WATCHED_ACCESS_$M.0 ==
+    lock$0_in_LS_$M.0_$ep := lock$0_in_CLS_$ep && lock$0_in_LS_$M.0_$ep;
+    WRITTEN_$M.0_$ep := true;
+    return;
+  anon1_Else:
+    assume {:partition} !(WATCHED_ACCESS_$M.0 ==
       ptr && DEVICE_IS_REGISTERED_$ep);
     return;
 }
@@ -135,18 +145,29 @@ After each checker function calls a pair of entry points, it asserts that each s
 
 \begin{boogie}
 procedure check$ep1$ep2(dev: int);
-  requires !lock$0_in_CLS_$ep1;  requires !lock$0_in_CLS_$ep2;  requires lock$0_in_LS_$M.0_$ep1;  requires lock$0_in_LS_$M.0_$ep2;  requires !WRITTEN_$M.0_$ep1;  requires !WRITTEN_$M.0_$ep2;  requires !READ_$M.0_$ep1;  requires !READ_$M.0_$ep2;  modifies lock$0_in_CLS_$ep1, lock$0_in_CLS_$ep2,
+  requires !lock$0_in_CLS_$ep1;
+  requires !lock$0_in_CLS_$ep2;
+  requires lock$0_in_LS_$M.0_$ep1;
+  requires lock$0_in_LS_$M.0_$ep2;
+  requires !WRITTEN_$M.0_$ep1;
+  requires !WRITTEN_$M.0_$ep2;
+  requires !READ_$M.0_$ep1;
+  requires !READ_$M.0_$ep2;
+  modifies lock$0_in_CLS_$ep1, lock$0_in_CLS_$ep2,
     lock$0_in_LS_$M.0_$ep1, lock$0_in_LS_$M.0_$ep2,
     WRITTEN_ $M.0_$ep1,WRITTEN_$M.0_$ep2,
     READ_$M.0_$ep1, READ_$M.0_$ep2;
 
-implementation check$ep1$ep2(dev: int) {  _CHECK:
+implementation check$ep1$ep2(dev: int) {
+  _CHECK:
     call ep1(dev);
-    call ep2(dev);    assert (WRITTEN_$M.0_$ep1 && WRITTEN_$M.0_$ep2)
+    call ep2(dev);
+    assert (WRITTEN_$M.0_$ep1 && WRITTEN_$M.0_$ep2)
       || (WRITTEN_$M.0_$ep1 && READ_$M.0_$ep2)
       || (READ_$M.0_$ep1 && WRITTEN_$M.0_$ep2)
       ==> lock$0_in_LS_$M.0_$ep1 &&
-      lock$0_in_LS_$M.0_$ep2;    return;
+      lock$0_in_LS_$M.0_$ep2;
+    return;
 }
 \end{boogie}
 
@@ -225,6 +246,6 @@ Finally, we assume that the formal parameters of an entry point do not alias, an
 \subsection{Limitations}
 \label{tech:limitations}
 
-The main limitation of \whoop is that it is based on static lockset analysis. As an example of this limitation is that we do not check for dynamically created locks (or for locks that are provided by external libraries). Because we perform two thread reduction, we also over-approximate the read accesses, which is another source of false positives. Environmental modelling is also another limitation of \whoop. As aforementioned, enriching \whoop with domain-specific knowledge to increase precision is an ongoing manual effort, but requires expertise in the Linux kernel.
+\whoop inherits all limitations of lockset analysis (as discussed in Section~\ref{bg:lockset}): a violation of the locking discipline does not always correspond to a real error (e.g. \whoop does not reasons about lockfree data structures in a special way, it just over-approximates their read accesses); and we do not check for dynamically created locks (or for locks that are provided by external libraries). Because we perform two thread reduction, we also over-approximate the read accesses, which is another source of false positives.
 
-We argue that further increasing the precision of our models is orthogonal to the contributions of this paper. Moreover, despite unavoidable imprecisions during the sound static data race analysis, \whoop can use the reported information to significantly speedup precise bug-finders for concurrent programs, as seen in Sections~\ref{bugfinding} and~\ref{evaluation}.
+Environmental modelling is another limitation of \whoop. As aforementioned, enriching \whoop with domain-specific knowledge to increase precision is an ongoing manual effort, but requires expertise in the Linux kernel. We argue that further increasing the precision of our models is orthogonal to the contributions of this paper. Moreover, despite unavoidable imprecisions during the sound static data race analysis, \whoop can use the reported information to significantly speedup precise bug-finders for concurrent programs, as seen in Sections~\ref{bugfinding} and~\ref{evaluation}.
