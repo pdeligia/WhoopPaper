@@ -32,8 +32,8 @@ Likewise, for a read access, e.g. \texttt{\$p0 := \$M.13}, we instrument the Boo
 \begin{boogie}
 $p0 := $M.13;
 yield;
-$rv0 := $M.13;
+$rv0 := $M.13; // $rv0 is an auxiliary variable
 assert $p0 == $rv0;
 \end{boogie}
 
-Our instrumentation tolerates benign races, as it will never report an assertion violation if there is a write-write race, where the two write accesses update the shared memory location with the same value.
+Our instrumentation tolerates benign races, as it will never report a write-write race, if the two write accesses update the shared memory location with the same value.
