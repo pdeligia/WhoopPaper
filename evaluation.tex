@@ -1,16 +1,18 @@
 \subsection{Granularity of Yield Instrumentation}
 \label{eval:granularity}
 
-Granularities: Full-force; Coarse; MemoryRegion
+Granularities: Yield-All (\corral without \whoop); \yieldcoarse; \yieldmr
 
 \newcommand{\colspacing}{\hspace{1.8em}}
 \begin{table*}[t]
 \small
 \centering
-\begin{tabular}{l rr rr rr rr rr}
+\begin{tabular}{l rrr rr rr rr rr}
 \centering
 \input{experiments/tables/granularity.tex}
 \end{tabular}
 \caption{Results ...}
 \label{tab:granularity}
 \end{table*}
+
+The machzwd watchdog driver explodes when running on vanilla \corral, because in some entry point pairs it attempts to analyse a large number of memory regions. For example for the entry point pair write vs init, it instruments interleavings at 26 different memory regions in a single invocation of \corral, which required approximately 1000 seconds to analyse. The same entry point pair is found race-free by \whoop. Using this information in \corral with the \yieldmr instrumentation, the pair takes less than a second to analyse. The \yieldcoarse instrumentation does not perform as well, because it works in the binary granularity of racy or non-racy entry points.
