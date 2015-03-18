@@ -1,5 +1,17 @@
+\subsection{Experimental Setup}
+\label{eval:setup}
+
+We conducted all experiments on ... We use the following software versions: Z3 4.1; SMACK 1.4; Clang/LLVM 3.5; \corral commit 3aa62d7425b5; Boogie commit d6a7f2bd79c9.
+
+\subsection{Benchmarks}
+\label{eval:benchmarks}
+
+We evaluate our methodology against 10 modules taken from the Linux kernel (currently a mix of latest and older distributions).
+
 \subsection{Granularity of Yield Instrumentation}
 \label{eval:granularity}
+
+We evaluate the scalability of our acceleration technique with respect to our benchmark sets.
 
 Granularities: Yield-All (\corral without \whoop); \yieldcoarse; \yieldmr
 
@@ -7,7 +19,7 @@ Granularities: Yield-All (\corral without \whoop); \yieldcoarse; \yieldmr
 \begin{table*}[t]
 \small
 \centering
-\begin{tabular}{l rrr rr rr rr rr}
+\begin{tabular}{l rrr rr rr r r}
 \centering
 \input{experiments/tables/granularity.tex}
 \end{tabular}
