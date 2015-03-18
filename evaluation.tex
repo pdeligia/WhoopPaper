@@ -1,20 +1,3 @@
-\subsection{Experimental Setup}
-\label{eval:setup}
-
-We conducted all experiments on ... We use the following software versions: Z3 4.1; SMACK 1.4; Clang/LLVM 3.5; \corral commit 3aa62d7425b5; Boogie commit d6a7f2bd79c9.
-
-\subsection{Benchmarks}
-\label{eval:benchmarks}
-
-We evaluate our methodology against 10 modules taken from the Linux kernel (currently a mix of latest and older distributions).
-
-\subsection{Granularity of Yield Instrumentation}
-\label{eval:granularity}
-
-We evaluate the scalability of our acceleration technique with respect to our benchmark sets.
-
-Granularities: Yield-All (\corral without \whoop); \yieldcoarse; \yieldmr
-
 \newcommand{\colspacing}{\hspace{1.8em}}
 \begin{table*}[t]
 \small
@@ -24,9 +7,28 @@ Granularities: Yield-All (\corral without \whoop); \yieldcoarse; \yieldmr
 \input{experiments/tables/granularity.tex}
 \end{tabular}
 \caption{Results ...}
-\label{tab:granularity}
+\label{tab:races}
 \end{table*}
 
-The machzwd watchdog driver explodes when running on vanilla \corral, because in some entry point pairs it attempts to analyse a large number of memory regions. For example for the entry point pair write vs init, it instruments interleavings at 26 different memory regions in a single invocation of \corral, which required approximately 1000 seconds to analyse. The same entry point pair is found race-free by \whoop. Using this information in \corral with the \yieldmr instrumentation, the pair takes less than a second to analyse. The \yieldcoarse instrumentation does not perform as well, because it works in the binary granularity of racy or non-racy entry points.
+\subsection{Experimental Setup}
+\label{eval:setup}
 
-Our experiments used the default \corral context switch bound \texttt{/k:2}. A higher context switch bound would result into deeper interleavings being explored and thus a larger sequentialised program. Intuitively, this means that we would see even greater speedups using information from \whoop, when exploring deeper interleavings. \PDComment{We should take a few measurements with higher k -- no need to be in the table -- just to verify this argument.}
+We conducted all experiments on ... We use the following software versions: Z3 4.1; SMACK 1.4; Clang/LLVM 3.5; \corral commit 3aa62d7425b5; Boogie commit d6a7f2bd79c9.
+
+\subsection{Benchmarks}
+\label{eval:benchmarks}
+
+We evaluate our methodology against 10 modules taken from the Linux kernel (currently a mix of latest and older distributions). \PDComment{Say something about the benchmarks}
+
+\subsection{Context-Switch Granularity of Yield Instrumentation}
+\label{eval:granularity}
+
+We evaluate the scalability of our acceleration technique with respect to our benchmark sets.
+
+Our experiments use the default \corral context switch bound \texttt{/k:2}. A higher context switch bound would result into deeper interleavings being explored and thus a larger sequentialised program. Intuitively, this means that we would see even greater speedups using information from \whoop, when exploring deeper interleavings. \PDComment{We should take a few measurements with higher k -- no need to be in the table -- just to verify this argument.}
+
+When running \corral on its own, it can potentially report a spurious race (that \whoop does not report), because \corral is not enhanced with domain-specific information that \whoop uses to discard spurious races. Using \whoop + \corral, though, will inherently discard spurious data races (assuming a precise environmental model).
+
+In Table~\ref{tab:races}, we can notice that \whoop is much faster than \corral. For exampl, \whoop analyses the dtlk char driver in 6.51 seconds, whereas \corral requires 1287.05 seconds.
+
+When \corral on its own tries to analyse the machzwd watchdog driver it explodes, because in some entry point pairs it attempts to analyse a large number of memory regions. For example for the entry point pair write vs init, it instruments interleavings at 26 different memory regions in a single invocation of \corral, which required approximately 1000 seconds to analyse. The same entry point pair is found race-free by \whoop. Using this information in \corral with the \yieldmr instrumentation, the pair takes less than a second to analyse. The \yieldcoarse instrumentation does not perform as well, because it works in the binary granularity of racy or non-racy entry points.

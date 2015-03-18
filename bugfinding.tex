@@ -10,11 +10,20 @@ Because \corral performs bounded model checking, it is inherently unsound, in ot
 \subsection{Sound Partial Order Reduction}
 \label{bf:reduction}
 
-By default, \corral instruments a \texttt{yield} statement (which denotes a preemption) before every \emph{visible operation} (i.e. synchronisation operations and shared memory accesses) of a concurrently running thread. It then sequentialises the concurrent program with a schedule that explores all possible interleavings up to a pre-defined bound.
+By default, \corral instruments a \texttt{yield} statement (which denotes a context-switch) before each \emph{visible operation} (i.e. synchronisation operations and shared memory accesses) of a concurrently running thread. It then sequentialises the concurrent program with a schedule that explores all possible interleavings up to a pre-defined bound.
 
-Our idea for accelerating \corral is simple: we simplify the sequentialisation that \corral performs by removing \texttt{yield} statements from all shared memory accesses that \whoop has soundly proved to not be racy. We basically perform a partial order reduction that can significantly reduce the interleavings that \corral needs to explore, and thus increase performance and scalability.
+Our idea for accelerating \corral is simple: we simplify the sequentialisation that \corral performs by instrumenting \texttt{yield} statements only in shared memory accesses that \whoop reported as potentially racy. This effectively acts as a partial order reduction that can significantly reduce the interleavings that \corral needs to explore, and thus increase performance and scalability.
 
 We now show that our partial order reduction is sound, in other words it does not miss any more bugs than the bugs that \corral would miss even without taking advantage of the \whoop race-related information. Let \corral run an $n$ amount of entry point pairs with yields in all visible operations. Let this configuration be known as $C$. Each entry point pair is running in a separate \corral process. \corral will miss all bugs that are triggered by more than 3 bugs running concurrently and all bugs that are triggered by investigating a larger than $r$ recursion bound and larger than $k$ context switch bound. Let \corral then run the same $n$ amount of pairs, but this time with all \texttt{yield} statements in non-racy shared memory accesses (according to \whoop) removed. Let this configuration be known as $W+C$. Because these shared memory accesses cannot race, performing a \texttt{yield} will not introduce any new program behaviours. Thus, \corral will find the same bugs using the configuration $W+C$, as using the configuration $C$.
+
+\subsection{Granularity of Context-Switches}
+\label{bf:granularity}
+
+As aforementioned, \corral instruments by default a \texttt{yield} statement in each visible operation. Using information from \whoop, though, we can avoid instrumenting context-switches in memory accesses that do not race. To achieve this, we use the \corral command line option \texttt{/cooperative}, which disables \texttt{yield} instrumentation in \corral, and then we instrument context-switches inside \whoop before sending these Boogie files to \corral. We have implemented two different levels of context-switch instrumentation granularity: \emph{\yieldcoarse} and \emph{\yieldmr}.
+
+\yieldcoarse instruments \texttt{yield} statement in a binary fashion: if \whoop finds that a pair of entry points cannot race, then it will only instrument context-switches in synchronisation points of this pair; else if \whoop finds that a pair of entry points can race, then it will instrument context-switches in all visible operations of this pair.
+
+\yieldmr is a finer-grained instrumentation: \whoop instruments context-switches in all synchronisation points, but only instruments context-switches in memory regions that can potentially race (regardless if a pair has not been fully verified as race-free). In our experiments (see Section~\ref{evaluation}), \yieldmr performs significantly faster than \yieldcoarse.
 
 \subsection{Race Checking Instrumentation}
 \label{bf:racechecking}
