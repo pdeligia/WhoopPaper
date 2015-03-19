@@ -1,24 +1,26 @@
-& & & & \multicolumn{2}{c}{\textbf{\whoop}}
+& & & & \multicolumn{3}{c}{\textbf{\whoop}}
 & \multicolumn{2}{c}{\textbf{\corral}}
 & \multicolumn{2}{c}{\textbf{\whoop + \corral}}\\
-\cmidrule(lr){5-6}
-\cmidrule(lr){7-8}
-\cmidrule(lr){9-10}
+\cmidrule(lr){5-7}
+\cmidrule(lr){8-9}
+\cmidrule(lr){10-11}
 
 & & & & \multirow{2}{*}{\textbf{\#Racy}}
+& \multirow{2}{*}{\textbf{\#Race}}
 & & \multirow{2}{*}{\textbf{\#Races}}
 & \multicolumn{1}{c}{\textbf{\yieldall}}
 & \multicolumn{1}{c}{\textbf{\yieldcoarse}}
 & \multicolumn{1}{c}{\textbf{\yieldmr}}\\
-\cmidrule(lr){8-8}
 \cmidrule(lr){9-9}
 \cmidrule(lr){10-10}
+\cmidrule(lr){11-11}
 
 \textbf{Benchmarks}
 & \textbf{LoC}
-& \textbf{\#MR}
 & \textbf{\#Pairs}
-& \textbf{Pairs}
+& \textbf{\#MRs}
+& \textbf{MRs}
+& \textbf{Reports}
 & \textbf{\textbf{Time (s)}}
 & \multicolumn{1}{r}{\textbf{Found?}}
 & \multicolumn{1}{r}{\textbf{Time (s)}}
@@ -29,9 +31,10 @@
 
 generic\_nvram
 & 152
-& 25
 & 14
-& \multicolumn{1}{r}{5}
+& 25
+& \multicolumn{1}{r}{2}
+& \multicolumn{1}{r}{6}
 & \multicolumn{1}{r}{3.15}
 & \multicolumn{1}{r}{\xmark}
 & \multicolumn{1}{r}{191.36}
@@ -40,8 +43,9 @@ generic\_nvram
 
 efirtc
 & 420
-& 35
 & 6
+& 35
+& \multicolumn{1}{r}{1}
 & \multicolumn{1}{r}{2}
 & \multicolumn{1}{r}{3.25}
 & \multicolumn{1}{r}{\xmark}
@@ -51,19 +55,33 @@ efirtc
 
 machzwd
 & 457
-& 49
 & 10
-& \multicolumn{1}{r}{9}
+& 49
+& \multicolumn{1}{r}{11}
+& \multicolumn{1}{r}{27}
 & \multicolumn{1}{r}{6.07}
 & \multicolumn{1}{r}{1}
 & \multicolumn{1}{r}{121.184}
 & \multicolumn{1}{r}{125.55}
 & \multicolumn{1}{r}{44.59}\\
 
+intel\_nfc\_hw\_sim
+& 544
+& 10
+& 21
+& \multicolumn{1}{r}{2}
+& \multicolumn{1}{r}{13}
+& \multicolumn{1}{r}{5.99}
+& \multicolumn{1}{r}{\xmark}
+& \multicolumn{1}{r}{280.065}
+& \multicolumn{1}{r}{273.90}
+& \multicolumn{1}{r}{50.27}\\
+
 intel\_scu\_wtchdg
 & 568
-& 25
 & 10
+& 25
+& \multicolumn{1}{r}{1}
 & \multicolumn{1}{r}{5}
 & \multicolumn{1}{r}{3.19}
 & \multicolumn{1}{r}{1}
@@ -71,22 +89,24 @@ intel\_scu\_wtchdg
 & \multicolumn{1}{r}{78.73}
 & \multicolumn{1}{r}{36.73}\\
 
-ds1286
-& 581
-& 40
-& 15
-& \multicolumn{1}{r}{3}
-& \multicolumn{1}{r}{4.51}
-& \multicolumn{1}{r}{4}
-& \multicolumn{1}{r}{553.48}
-& \multicolumn{1}{r}{114.68}
-& \multicolumn{1}{r}{31.60}\\
+%ds1286
+%& 581
+%& 15
+%& 40
+%& \multicolumn{1}{r}{3}
+%& \multicolumn{1}{r}{}
+%& \multicolumn{1}{r}{4.51}
+%& \multicolumn{1}{r}{4}
+%& \multicolumn{1}{r}{553.48}
+%& \multicolumn{1}{r}{114.68}
+%& \multicolumn{1}{r}{31.60}\\
 
 dtlk
 & 656
-& 37
 & 21
-& \multicolumn{1}{r}{10}
+& 37
+& \multicolumn{1}{r}{6}
+& \multicolumn{1}{r}{20}
 & \multicolumn{1}{r}{6.51}
 & \multicolumn{1}{r}{\xmark}
 & \multicolumn{1}{r}{239.517}
@@ -95,9 +115,10 @@ dtlk
 
 minix
 & 690
-& 34
 & 90
+& 34
 & \multicolumn{1}{r}{50}
+& \multicolumn{1}{r}{}
 & \multicolumn{1}{r}{29.92}
 & \multicolumn{1}{r}{20}
 & \multicolumn{1}{r}{}
@@ -106,8 +127,9 @@ minix
 
 ps3vram
 & 879
-& 25
 & 4
+& 25
+& \multicolumn{1}{r}{1}
 & \multicolumn{1}{r}{2}
 & \multicolumn{1}{r}{4.47}
 & \multicolumn{1}{r}{\xmark}
@@ -124,12 +146,14 @@ ps3vram
 & \multicolumn{1}{r}{}
 & \multicolumn{1}{r}{}
 & \multicolumn{1}{r}{}
+& \multicolumn{1}{r}{}
 & \multicolumn{1}{r}{}\\
 
 r8169
 & 7205
 & 
 & 
+& \multicolumn{1}{r}{}
 & \multicolumn{1}{r}{}
 & \multicolumn{1}{r}{}
 & \multicolumn{1}{r}{}
