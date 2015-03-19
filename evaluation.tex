@@ -6,7 +6,7 @@
 \centering
 \input{experiments/tables/granularity.tex}
 \end{tabular}
-\caption{Data race checking and scalability results.}
+\caption{Data race analysis and scalability results.}
 \label{tab:races}
 \end{table*}
 
@@ -14,6 +14,8 @@
 \label{eval:setup}
 
 We conducted all experiments on ... We use the following software versions: Clang/LLVM 3.5; SMACK 1.4; Z3 4.1; \corral commit 3aa62d7425b5; Boogie commit d6a7f2bd79c9.
+
+All reported times are in seconds and averages of N executions. We report: lines of C code (LoC); number of entry point pairs (\#Pairs); memory regions in the program (\#MRs); the number of racy memory regions that \whoop found (\#Racy MRs); the number of race reports that \whoop generated (\#Race Reports); the number of races that \corral found (same in all configurations).
 
 \subsection{Benchmarks}
 \label{eval:benchmarks}
