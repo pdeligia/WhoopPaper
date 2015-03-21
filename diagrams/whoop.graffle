@@ -187,8 +187,8 @@
 			<integer>0</integer>
 			<key>Points</key>
 			<array>
-				<string>{1251.4071897474114, 305.24148326878594}</string>
-				<string>{1290.3681197485191, 263.14713730914059}</string>
+				<string>{1251.4008358758492, 305.24146449760866}</string>
+				<string>{1290.3574783665713, 263.14708179348105}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -676,8 +676,8 @@ Model}</string>
 			<integer>4</integer>
 			<key>Points</key>
 			<array>
-				<string>{1278.2423950682428, 353.34490551565375}</string>
-				<string>{1320.121151196829, 346.40950989968923}</string>
+				<string>{1278.2425499072219, 353.50988786485755}</string>
+				<string>{1320.121151196829, 346.65651423795703}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -851,8 +851,8 @@ Reports}</string>
 			<integer>4</integer>
 			<key>Points</key>
 			<array>
-				<string>{1055.9153895487866, 214.91172320910096}</string>
-				<string>{1163.53643092689, 142.69610347877602}</string>
+				<string>{1055.9153280203036, 214.8650722971137}</string>
+				<string>{1163.4160812163393, 142.69572895571108}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -1216,7 +1216,7 @@ Verification Engine}</string>
 {\colortbl;\red255\green255\blue255;}
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\qc
 
-\f0\fs40 \cf0 Linux kernel module source code in C}</string>
+\f0\fs40 \cf0 Linux device driver source code in C}</string>
 				<key>VerticalPad</key>
 				<integer>0</integer>
 			</dict>
@@ -1284,8 +1284,8 @@ Verification Engine}</string>
 			<integer>4</integer>
 			<key>Points</key>
 			<array>
-				<string>{1257.6506956888627, 142.81333981681132}</string>
-				<string>{1295.9515884836881, 192.64315180704523}</string>
+				<string>{1257.6250220092863, 142.8134578113949}</string>
+				<string>{1295.8953647571946, 192.64345853048772}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -1816,7 +1816,7 @@ Verification Engine}</string>
 	<key>MasterSheets</key>
 	<array/>
 	<key>ModificationDate</key>
-	<string>2015-03-14 20:12:02 +0000</string>
+	<string>2015-03-21 17:06:44 +0000</string>
 	<key>Modifier</key>
 	<string>Pantazis Deligiannis</string>
 	<key>NotesVisible</key>
@@ -1847,7 +1847,7 @@ Verification Engine}</string>
 		<key>NSPaperName</key>
 		<array>
 			<string>string</string>
-			<string>F9155853-D7E0-401E-BDCE-E95E7FF01E05</string>
+			<string>3D02CB55-EABE-4855-B1A8-A663998B1170</string>
 		</array>
 		<key>NSPaperSize</key>
 		<array>
@@ -1916,7 +1916,7 @@ Verification Engine}</string>
 		<key>SidebarWidth</key>
 		<integer>120</integer>
 		<key>VisibleRegion</key>
-		<string>{{588, -97}, {999, 648}}</string>
+		<string>{{0, -97}, {999, 648}}</string>
 		<key>Zoom</key>
 		<real>1</real>
 		<key>ZoomValues</key>
