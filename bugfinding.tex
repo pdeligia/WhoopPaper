@@ -42,42 +42,93 @@ feasible data races.
 \label{bf:reduction}
 
 By default, \corral instruments a \texttt{yield} statement (which denotes a
-context-switch) before each \emph{visible operation} (i.e. synchronisation
-operations and shared memory accesses) of a concurrently running thread. It then
-sequentialises the concurrent program with a schedule that explores all possible
-interleavings up to a pre-defined bound.
+potential nondeterministic context-switch) before each \emph{visible operation}
+(i.e., synchronisation operations and shared memory accesses) of every thread.
+It then leverages sequentialization to explore all possible thread interleavings
+up to a pre-defined bound.
 
-Our idea for accelerating \corral is simple: we simplify the sequentialisation that \corral performs by instrumenting \texttt{yield} statements only in shared memory accesses that \whoop reported as potentially racy. This effectively acts as a partial order reduction that can significantly reduce the interleavings that \corral needs to explore, and thus increase performance and scalability.
+Our approach to accelerating \corral is simple and yet effective: we simplify
+the sequentialisation that \corral performs by instrumenting \texttt{yield}
+statements only at shared memory accesses that \whoop reported as potentially
+racy. This effectively acts as a partial order reduction that can significantly
+reduce the number of interleavings that \corral needs to explore, and thus
+increase performance and scalability.
 
-We now show that our partial order reduction is sound, in other words it does not miss any more bugs than the bugs that \corral would miss even without taking advantage of the \whoop race-related information. Let \corral run an $n$ amount of entry point pairs with yields in all visible operations. Let this configuration be known as $C$. Each entry point pair is running in a separate \corral process. \corral will miss all bugs that are triggered by more than 3 bugs running concurrently and all bugs that are triggered by investigating a larger than $r$ recursion bound and larger than $k$ context switch bound. Let \corral then run the same $n$ amount of pairs, but this time with all \texttt{yield} statements in non-racy shared memory accesses (according to \whoop) removed. Let this configuration be known as $W+C$. Because these shared memory accesses cannot race, performing a \texttt{yield} will not introduce any new program behaviours. Thus, \corral will find the same bugs using the configuration $W+C$, as using the configuration $C$.
+\ZRComment{Could this be cleaned up a bit? In particular, do we need to talk
+about entry point pairs, or could we prove it just for any pair?}
+We now show that our partial order reduction is sound: it does not miss any more
+bugs than what \corral would miss even without taking advantage of the \whoop
+race-related information. Let \corral run an $n$ amount of entry point pairs
+with yields in all visible operations. Let this configuration be known as $C$.
+Each entry point pair is running in a separate \corral process. \corral will
+miss all bugs that are triggered by more than 3 bugs running concurrently and
+all bugs that are triggered by investigating a larger than $r$ recursion bound
+and larger than $k$ context switch bound. Let \corral then run the same $n$
+amount of pairs, but this time with all \texttt{yield} statements in non-racy
+shared memory accesses (according to \whoop) removed. Let this configuration be
+known as $W+C$. Because these shared memory accesses cannot race, performing a
+\texttt{yield} will not introduce any new program behaviours. Thus, \corral will
+find the same bugs using the configuration $W+C$, as using the configuration
+$C$.
 
 \subsection{Granularity of Context-Switches}
 \label{bf:granularity}
 
-As aforementioned, \corral instruments by default a \texttt{yield} statement in each visible operation. Using information from \whoop, though, we can avoid instrumenting context-switches in memory accesses that do not race. To achieve this, we use the \corral command line option \texttt{/cooperative}, which disables \texttt{yield} instrumentation in \corral, and then we instrument context-switches inside \whoop before sending these Boogie files to \corral. We have implemented two different levels of context-switch instrumentation granularity: \emph{\yieldcoarse} and \emph{\yieldmr}.
+\ZRComment{I think this paragraph is not needed. You already talk about
+how \corral by default instruments everything in the beginning of your previous
+section. The command line switch /cooperative is I think an implementation
+detail we do not have to mention. More generally, I would merge this
+subsection with the previous one and I would keep the descriptions of
+granularities.}
+As aforementioned, \corral instruments by default a \texttt{yield} statement in
+each visible operation. Using information from \whoop, though, we can avoid
+instrumenting context-switches in memory accesses that do not race. To achieve
+this, we use the \corral command line option \texttt{/cooperative}, which
+disables \texttt{yield} instrumentation in \corral, and then we instrument
+context-switches inside \whoop before sending these Boogie files to \corral. We
+have implemented two different levels of context-switch instrumentation
+granularity: \emph{\yieldcoarse} and \emph{\yieldmr}.
 
-\yieldcoarse instruments \texttt{yield} statement in a binary fashion: if \whoop finds that a pair of entry points cannot race, then it will only instrument context-switches in synchronisation points of this pair; else if \whoop finds that a pair of entry points can race, then it will instrument context-switches in all visible operations of this pair.
+\yieldcoarse instruments \texttt{yield} statement in a binary fashion: if \whoop
+finds that a pair of entry points cannot race, then it will only instrument
+context-switches in synchronisation points of this pair; else if \whoop finds
+that a pair of entry points can race, then it will instrument context-switches
+in all visible operations of this pair.
 
-\yieldmr is a finer-grained instrumentation: \whoop instruments context-switches in all synchronisation points, but only instruments context-switches in memory regions that can potentially race (regardless if a pair has not been fully verified as race-free). In our experiments (see Section~\ref{evaluation}), \yieldmr performs significantly faster than \yieldcoarse.
+\yieldmr is a finer-grained instrumentation: \whoop instruments context-switches
+in all synchronisation points, but only instruments context-switches in memory
+regions that can potentially race (regardless if a pair has not been fully
+verified as race-free). In our experiments (see Section~\ref{evaluation}),
+\yieldmr performs significantly faster than \yieldcoarse.
 
 \subsection{Race Checking Instrumentation}
 \label{bf:racechecking}
 
-We use a simple, but effective, race checking instrumentation with \corral. This instrumentation, which is based on previous work~\cite{}, can be enabled using a command line option and we use it as a feasibility checking for the potential data races that \whoop reports. Whenever there is a write access, e.g. \texttt{\$M.13 := 0}, we instrument the Boogie IVL code as follows:
-
+We employ a simple, but effective, encoding of data-race checks within \corral.
+For example, whenever there is a write access to a shared variable such as
+\texttt{\$M.13 := 0}, we instrument the Boogie IVL code to check for write-write
+races as follows:
+%
 \begin{boogie}
-$M.13 := 0;
-yield;
-assert $M.13 == 0;
+$M.13 := 0;        // original write
+yield;             // allow for a context-switch
+assert $M.13 == 0; // check written value
+\end{boogie}
+%
+Likewise, for a read access to a shared variable such as \texttt{\$p0 :=
+\$M.13}, we instrument the Boogie IVL code to check for read-write races as
+follows:
+\ZRComment{Why do you need this auxiliary variable?}
+%
+\begin{boogie}
+$p0 := $M.13;       // original read
+yield;              // allow for a context-switch
+$rv0 := $M.13;      // $rv0 is auxiliary variable
+assert $p0 == $rv0; // check read value
 \end{boogie}
 
-Likewise, for a read access, e.g. \texttt{\$p0 := \$M.13}, we instrument the Boogie IVL code as follows:
+Note that our instrumentation conveniently tolerates most benign races, as it
+does not report a write-write race if the two write accesses update the shared
+memory location with the same value.  We introduce the instrumentation as a
+precise feasibility check for the potential data races that \whoop reports. 
 
-\begin{boogie}
-$p0 := $M.13;
-yield;
-$rv0 := $M.13; // $rv0 is an auxiliary variable
-assert $p0 == $rv0;
-\end{boogie}
-
-Our instrumentation tolerates benign races, as it will never report a write-write race, if the two write accesses update the shared memory location with the same value.
