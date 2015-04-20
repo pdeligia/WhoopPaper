@@ -365,7 +365,7 @@ To increase precision we enhance \whoop with domain-specific knowledge of how th
 
 In our experience, one of the most effective precision optimizations is to enrich \whoop with information regarding kernel imposed locks. The Linux kernel is able to serialize a number of entry point calls, which thus can never run concurrently with each other. An an example, a large number of networking and ethernet entry points are mutually serialized with RTNL, a network-specific kernel lock. \whoop will not create pairs for entry points that cannot run concurrently.
 
-Another optimization, is to soundly reduce the checked memory locations. If a memory location is accessed only by one entry point in the pair, then it is safe to not check it. This can potentially decrease the amount of generated candidate invariants and speed up the verification process.
+Another optimization is to soundly reduce the checked memory locations. If a memory location is accessed only by one entry point in the pair, then it is safe to not check it. This can potentially decrease the amount of generated candidate invariants and speed up the verification process.
 
 Modeling kernel methods is another opportunity to increase precision, but requires expert knowledge about Linux. For example, the \texttt{register\_netdev()} function registers a network driver with the kernel. Before this function is called, the kernel is not able to invoke any of the driver's entry points. Modeling this functionality can reduce false positives when race checking accesses before the driver's registration.
 
