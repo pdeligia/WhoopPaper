@@ -1,36 +1,72 @@
 \newcommand{\colspacing}{\hspace{1.8em}}
+\begin{table}[t]
+\small
+\centering
+\setlength{\tabcolsep}{0.3em}
+\caption{Program statistics and data race detection results from running \whoop and \corral on our benchmarks. Corral uses a context switch bound of 2.}
+\label{tab:stats}
+\begin{tabular}{l rrr rr r}
+\centering
+\input{experiments/tables/statistics.tex}
+\end{tabular}
+\end{table}
+
 \begin{table*}[t]
 \small
 \centering
-\caption{Data race analysis and scalability results.}
-\label{tab:races}
+\caption{Runtime comparison with different yield instrumentation granularities and context-switch bounds (csb).}
+\label{tab:results}
 \begin{tabular}{l rrr rrr rr r r}
 \centering
-\input{experiments/tables/granularity.tex}
+\input{experiments/tables/scalability.tex}
 \end{tabular}
 \end{table*}
+
+%\begin{table*}[t]
+%\small
+%\centering
+%\caption{Program statistics, analysis and scalability results. Corral uses a context switch bound of 2.}
+%\label{tab:races}
+%\begin{tabular}{l rrr rrr rr r r}
+%\centering
+%\input{experiments/tables/granularity.tex}
+%\end{tabular}
+%\end{table*}
+%
+%\begin{table*}[t]
+%\small
+%\centering
+%\caption{Analysis and scalability results. Corral uses a context switch bound of 5 and 9, respectively.}
+%\label{tab:races2}
+%\begin{tabular}{l rr r r rr r r}
+%\centering
+%\input{experiments/tables/granularity2.tex}
+%\end{tabular}
+%\end{table*}
 
 \subsection{Experimental Setup}
 \label{eval:setup}
 
-We conducted all experiments on ... We use the following software versions: Clang/LLVM 3.5; SMACK 1.4; Z3 4.1; \corral commit 3aa62d7425b5; Boogie commit d6a7f2bd79c9.
-
-All reported times are in seconds and averages of N executions. We report: lines of C code (LoC); number of entry point pairs (\#Pairs); memory regions in the program (\#MRs); the number of racy memory regions that \whoop found (\#Racy MRs); the number of race reports that \whoop generated (\#Race Reports); the number of races that \corral found (same in all configurations).
+All experiments were performed on a ... machine running ..., LLVM 3.5; SMACK 1.5; Z3 4.3.2; Boogie rev. 4192 and \corral rev. 534.
 
 \subsection{Benchmarks}
 \label{eval:benchmarks}
 
 We evaluate our methodology against \sizeOfBenchmarks drivers taken from the 4.0 Linux kernel. \PDComment{Say something more about the benchmarks}
 
+Table~\ref{tab:stats} presents statistics for all our benchmarks: lines of code (LoC); number of entry point pairs (\#Pairs); number of SMACK memory regions (\#MRs); number of racy pairs that \whoop identified (\#Racy Pairs); number of racy memory regions that \whoop reported (\#Racy MRs); and number of races that \corral discovered (\#Races Found).
+
 \subsection{Context-Switch Granularity of Yield Instrumentation}
 \label{eval:granularity}
 
-We evaluate the scalability of our acceleration technique with respect to our benchmark sets.
+We evaluate the scalability of our acceleration technique with respect to our benchmark sets (Table~\ref{tab:results}). All reported times are in seconds and averages of three runs. \corral was configured with a time budget of 3000 seconds per tool invocation (one for each pair of entry points); \whoop did not use a timeout.
 
-Our experiments use the default \corral context switch bound \texttt{/k:2}. A higher context switch bound would result into deeper interleavings being explored and thus a larger sequentialized program. Intuitively, this means that we would see even greater speedups using information from \whoop, when exploring deeper interleavings. \PDComment{We should take a few measurements with higher k -- no need to be in the table -- just to verify this argument.}
+Our experiments use the \corral context switch bounds \texttt{/k:2}, \texttt{/k:5} and \texttt{/k:9}. A higher context switch bound would result into deeper interleavings being explored and thus a larger sequentialized program. Intuitively, this means that we would see even greater speedups using information from \whoop, when exploring deeper interleavings.
 
 %When running \corral on its own, it can potentially report a spurious race (that \whoop does not report), because \corral is not enhanced with domain-specific information that \whoop uses to discard spurious races. Using \whoop + \corral, though, will inherently discard spurious data races (assuming a precise environmental model).
 
-In Table~\ref{tab:races}, we can notice that \whoop is much faster than \corral. For example, \whoop analyses the dtlk char driver in 6.51 seconds, whereas \corral requires 1287.05 seconds.
+In Table~\ref{tab:results}, we can notice that \whoop is much faster than \corral. For example, \whoop analyses the dtlk char driver in 6.51 seconds, whereas \corral requires 1287.05 seconds.
+
+% We did not discover any data races with larger context switch bounds.
 
 %When \corral on its own tries to analyze the machzwd watchdog driver it explodes, because in some entry point pairs it attempts to analyze a large number of memory regions. For example for the entry point pair write vs init, it instruments interleavings at 26 different memory regions in a single invocation of \corral, which required approximately 1000 seconds to analyze. The same entry point pair is found race-free by \whoop. Using this information in \corral with the \yieldmr instrumentation, the pair takes less than a second to analyze. The \yieldcoarse instrumentation does not perform as well, because it works in the binary granularity of racy or non-racy entry points.
