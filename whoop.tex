@@ -7,7 +7,7 @@ We have implemented our approach in \whoop, a static lockset analysis infrastruc
 \label{fig:whoop}
 \end{figure*}
 
-The key idea behind our novel static analysis is that we can verify absence of data races by (i) deriving a sound \emph{sequential} model that \emph{over-approximates} the originally concurrent program, (ii) instrumenting it for lockset analysis and race checking, and (iii) asserting that all write/read accesses to the same shared resource are consistently protected by at least one common lock. The immediate benefit is that our approach not only avoids reasoning about thread interleavings, and thus has the potential to scale well, but also allows the reuse of existing sequential verification techniques.
+The key idea behind our novel static analysis is that we can verify absence of data races by (i) deriving a sound \emph{sequential} model that \emph{over-approximates} the originally concurrent program, (ii) instrumenting it for lockset analysis and race-checking, and (iii) asserting that all write/read accesses to the same shared resource are consistently protected by at least one common lock. The immediate benefit is that our approach not only avoids reasoning about thread interleavings, and thus has the potential to scale well, but also allows the reuse of existing sequential verification techniques.
 
 Figure~\ref{fig:whoop} depicts the \whoop toolchain. Initially, \whoop accepts a Linux driver written in C, together with a Linux environmental model\footnote{Stub header files that model the Linux kernel APIs.}, which is required to ``close'' the driver and allow it to be subsequently over-approximated and analyzed. Both the driver and the environmental model are passed to the translation phase of \whoop (see Section~\ref{whoop:translation}), which outputs an over-approximated program written in the Boogie intermediate verification language (IVL)~\cite{deline2005boogiepl}. Next, \whoop performs \emph{static pairwise lockset analysis} to detect all potential data races in the abstract program. The proof sketch behind our static lockset analysis is given in Section~\ref{whoop:proof}. The instrumentation and analysis is described in more detail in Section~\ref{whoop:method}. The summarization that we perform to achieve scalability is presented in Section~\ref{whoop:summarization}. After the static lockset analysis phase, \whoop exploits the race-related information to accelerate bug-finding with \corral (see Section~\ref{whoop:bugfinding})
 
@@ -86,7 +86,7 @@ If \whoop cannot infer a lock it will exit with a warning. A limitation of locks
 
 When the lock rewriting finishes, \whoop traverses the Boogie IVL code, uses the information extracted by Chauffeur and separates each independent entry point call-graph from the rest of the program. To achieve this, it duplicates helper functions and renames them accordingly: e.g. for entry point \texttt{ep1}, a helper function \texttt{foo} will be renamed to \texttt{foo\$ep1}. This allows \whoop to perform entry point sensitive instrumentation and analysis. Although the program can potentially become much larger, this does not affect the analysis as discussed later.
 
-Next, \whoop instruments the program with global variables for lockset analysis and race checking per entry point. For example, for entry point \texttt{ep1}, \whoop instruments:
+Next, \whoop instruments the program with global variables for lockset analysis and race-checking per entry point. For example, for entry point \texttt{ep1}, \whoop instruments:
 
 \begin{boogie}
 var {:current_lockset} lock$0_in_CLS_$ep1: bool;
@@ -101,7 +101,7 @@ var {:access_checking} READ_$M.0_$ep1: bool;
 const {:watchdog} WATCHED_ACCESS_$M.0: int;
 \end{boogie}
 
-The above instrumented variables represent the follows: \texttt{lock\$0\_in\_CLS\_\$ep1} is the current lockset (CLS) of \texttt{ep1}; \texttt{WATCHED\_ACCESS\_\$M.0} is an \emph{unconstrained} constant representing the offset to memory region \texttt{\$M.0} that should be checked for races; \texttt{lock\$0\_in\_LS\_\$M.0\_\$ep1} is the lockset for \texttt{\$M.0}; \texttt{WRITTEN\_\$M.0\_\$ep1} is the write-set for \texttt{\$M.0}; and \texttt{READ\_\$M.0\_\$ep1} is the read-set for \texttt{\$M.0}. Verification involves proving that two entry points cannot race at the watched offset of every memory region. The arbitrary watched offset implies that every offset of each memory region is race-free. Watchdog race checking has been used before for verifying GPU kernels~\cite{bardsley2014engineering}.
+The above instrumented variables represent the follows: \texttt{lock\$0\_in\_CLS\_\$ep1} is the current lockset (CLS) of \texttt{ep1}; \texttt{WATCHED\_ACCESS\_\$M.0} is an \emph{unconstrained} constant representing the offset to memory region \texttt{\$M.0} that should be checked for races; \texttt{lock\$0\_in\_LS\_\$M.0\_\$ep1} is the lockset for \texttt{\$M.0}; \texttt{WRITTEN\_\$M.0\_\$ep1} is the write-set for \texttt{\$M.0}; and \texttt{READ\_\$M.0\_\$ep1} is the read-set for \texttt{\$M.0}. Verification involves proving that two entry points cannot race at the watched offset of every memory region. The arbitrary watched offset implies that every offset of each memory region is race-free. Watchdog race-checking has been used before for verifying GPU kernels~\cite{bardsley2014engineering}.
 
 \whoop proceeds by instrumenting each entry point call-graph for lockset analysis by replacing each call to a locking or unlocking function with a \whoop-specific lock and unlock functions. This means that Example~\ref{fig:smack_translation} will become:
 
@@ -187,7 +187,7 @@ implementation {:inline 1} _WRITE_LS_$M.0_$ep1(
 
 The \texttt{\_READ\_LS\_\$M.0\_\$ep1()} updates the lockset of \texttt{\$M.0} and the read-set accordingly for a read access.
 
-\whoop continues by performing \emph{two-thread reduction}, a sound abstraction that removes all but two arbitrary threads, each running an entry point of the originally concurrent program, and then performs \emph{pairwise sequentialization}, which combines the two arbitrary threads in a single sequential pair. This is achieved by creating a checker function that calls the two instrumented entry points and then performs race checking assertions. This process repeats until all possible pairs of entry points have been sequentialized. To be sound, each time an entry point performs a read access to a shared memory location, \whoop returns a nondeterministic value (using the Boogie keyword \texttt{havoc}). This over-approximates any effects from all the unmodeled threads on the shared state of the pair. Two-thread reduction is not a new idea, it has been used before in GPU kernel verification~\cite{bardsley2014engineering} and in model checking of cache coherence protocols~\cite{mcmillan1999verification}.
+\whoop continues by performing \emph{two-thread reduction}, a sound abstraction that removes all but two arbitrary threads, each running an entry point of the originally concurrent program, and then performs \emph{pairwise sequentialization}, which combines the two arbitrary threads in a single sequential pair. This is achieved by creating a checker function that calls the two instrumented entry points and then performs race-checking assertions. This process repeats until all possible pairs of entry points have been sequentialized. To be sound, each time an entry point performs a read access to a shared memory location, \whoop returns a nondeterministic value (using the Boogie keyword \texttt{havoc}). This over-approximates any effects from all the unmodeled threads on the shared state of the pair. Two-thread reduction is not a new idea, it has been used before in GPU kernel verification~\cite{bardsley2014engineering} and in model checking of cache coherence protocols~\cite{mcmillan1999verification}.
 
 After each checker function calls a pair of entry points, it asserts that each shared memory location is protected by at least one common lock (see Section~\ref{bg:lockset}). The assertion check is triggered iff the memory location was accessed by both entry points and at least one of the accesses was a write. We do not check for read-read races, which are inherently benign. The following is an example of a checker function for entry points \texttt{ep1} and \texttt{ep2}:
 
@@ -238,7 +238,7 @@ Early on during the development of \whoop, we realized that scalability would be
 
 Watchdog summarization uses the Houdini~\cite{flanagan2001houdini} invariant inference algorithm (available inside Boogie) to automatically compute summaries (pre- and post-conditions and loop invariants) from a pool of \emph{candidate} invariants.
 
-The candidate invariants are based on the global variables that \whoop instruments to perform lockset analysis and race checking (see Section~\ref{whoop:method}). The key idea behind watchdog summarization is that we automatically generate candidate invariants for each memory region in the granularity of watched accesses. This reduces the false positives from reporting errors if only e.g. a field in memory region \texttt{\$M.0} is racing, but the rest of the fields are not. An example of watchdog-based candidate post-conditions is the following:
+The candidate invariants are based on the global variables that \whoop instruments to perform lockset analysis and race-checking (see Section~\ref{whoop:method}). The key idea behind watchdog summarization is that we automatically generate candidate invariants for each memory region in the granularity of watched accesses. This reduces the false positives from reporting errors if only e.g. a field in memory region \texttt{\$M.0} is racing, but the rest of the fields are not. An example of watchdog-based candidate post-conditions is the following:
 
 \begin{boogie}
 procedure foo$ep1(dev: int);
@@ -330,7 +330,7 @@ regions that can potentially race (regardless if a pair has not been fully
 verified as race-free). In our experiments (see Section~\ref{evaluation}),
 \yieldmr performs significantly faster than \yieldcoarse.
 
-\subsubsection{Race Checking Instrumentation}
+\subsubsection{Race-Checking Instrumentation}
 \label{bf:racechecking}
 
 We employ a simple, but effective, encoding of data-race checks within \corral.
@@ -367,7 +367,7 @@ In our experience, one of the most effective precision optimizations is to enric
 
 Another optimization is to soundly reduce the checked memory locations. If a memory location is accessed only by one entry point in the pair, then it is safe to not check it. This can potentially decrease the amount of generated candidate invariants and speed up the verification process.
 
-Modeling kernel methods is another opportunity to increase precision, but requires expert knowledge about Linux. For example, the \texttt{register\_netdev()} function registers a network driver with the kernel. Before this function is called, the kernel is not able to invoke any of the driver's entry points. Modeling this functionality can reduce false positives when race checking accesses before the driver's registration.
+Modeling kernel methods is another opportunity to increase precision, but requires expert knowledge about Linux. For example, the \texttt{register\_netdev()} function registers a network driver with the kernel. Before this function is called, the kernel is not able to invoke any of the driver's entry points. Modeling this functionality can reduce false positives when race-checking accesses before the driver's registration.
 
 We also optimize the use of function pointers. LLVM and SMACK do not perform context-sensitive translation, which means that a function that accepts a function pointer as an argument, can arbitrarily call any possible method that corresponds to that function pointer regardless of call site. To increase precision, Chauffeur analyses the AST of the original program and attempts to infer context-sensitive function pointer use information. This information is the used by \whoop to increase precision. To be sound, this optimization is conservative: if no information can be extracted for a function pointer at a call site, then \whoop uses the original over-approximated function.
 
