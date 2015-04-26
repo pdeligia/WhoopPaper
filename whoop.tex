@@ -320,7 +320,7 @@ verified as race-free). In our experiments (see Section~\ref{evaluation}),
 \yieldmr performs significantly faster than \yieldcoarse.
 
 \noindent
-\textbf{Race-Checking Instrumentation}\xspace\xspace We employ a simple, but effective, encoding of data-race checks within \corral.
+\textbf{Race-Checking Instrumentation}\xspace\xspace In this paper, we treat races as bugs. To detect them, we employ a simple, but effective, encoding of data race checks within \corral.
 For example, whenever there is a write access to a shared variable, such as
 \texttt{\$M.13 := 0}, we instrument the Boogie IVL code to check for write-write
 races as follows:
