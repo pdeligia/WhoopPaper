@@ -78,7 +78,6 @@ Will be rewritten to:
 
 \begin{boogie}
 const {:lock} unique lock$0: int;
-
 call mutex_lock(lock$0);
 \end{boogie}
 
@@ -223,12 +222,10 @@ Finally the abstract program is send to the Boogie verification engine, which ge
 
 \begin{lstlisting}
 foo.c: error: potential write-write race:
-
-write by entry point ep1, foo.c:36:2
-  shared->resource = 4;
-
-write by entry point ep2, foo.c:52:2
-  shared->resource = 5;
+  write by entry point ep1, foo.c:36:2
+    shared->resource = 4;
+  write by entry point ep2, foo.c:52:2
+    shared->resource = 5;
 \end{lstlisting}
 
 \subsection{Watchdog Summarization}
@@ -242,7 +239,6 @@ The candidate invariants are based on the global variables that \whoop instrumen
 
 \begin{boogie}
 procedure foo$ep1(dev: int);
-  ...
   ensures _b$ls$entrypoint1$0
     ==> WATCHED_ACCESS_$M.0 == dev + 4
     ==> lock$0_in_LS_$M.0_$entrypoint1;
@@ -262,7 +258,6 @@ To generate the candidate invariants, \whoop performs an intra-procedural static
 
 \begin{boogie}
 procedure foo$ep1(dev: int);
-  ...
   ensures _b$ls$entrypoint1$0
     ==> lock$0_in_LS_$M.0_$entrypoint1;
   ensures _b$ls$entrypoint1$1
