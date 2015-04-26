@@ -341,7 +341,7 @@ yield;               // allow for a context-switch
 assert $p0 == $M.13; // check read value
 \end{boogie}
 
-Note that our instrumentation conveniently tolerates most benign races, as it does not report a write-write race if two write accesses update the same shared memory location with the same value.  We introduce the instrumentation as a precise feasibility check for the potential data races that \whoop reports.
+Note that our instrumentation conveniently tolerates most benign races, as it does not report a write-write race if two write accesses update the same shared memory location with the same value.  An advantage of this instrumentation is that it can be used as a precise feasibility check for the potential data races that \whoop reports.
 
 \subsection{Optimizations and Assumptions}
 \label{whoop:optimizations}
