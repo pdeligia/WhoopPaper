@@ -14,7 +14,7 @@
 \begin{table*}[t]
 \small
 \centering
-\caption{Runtime comparison with different yield instrumentation granularities and context-switch bounds (csb).}
+\caption{Runtime comparison with different yield instrumentation granularities and context-switch bounds.}
 \label{tab:results}
 \begin{tabular}{l rrr rrr rr r r}
 \centering
@@ -22,51 +22,32 @@
 \end{tabular}
 \end{table*}
 
-%\begin{table*}[t]
-%\small
-%\centering
-%\caption{Program statistics, analysis and scalability results. Corral uses a context switch bound of 2.}
-%\label{tab:races}
-%\begin{tabular}{l rrr rrr rr r r}
-%\centering
-%\input{experiments/tables/granularity.tex}
-%\end{tabular}
-%\end{table*}
-%
-%\begin{table*}[t]
-%\small
-%\centering
-%\caption{Analysis and scalability results. Corral uses a context switch bound of 5 and 9, respectively.}
-%\label{tab:races2}
-%\begin{tabular}{l rr r r rr r r}
-%\centering
-%\input{experiments/tables/granularity2.tex}
-%\end{tabular}
-%\end{table*}
+We performed experiments to validate the usefulness of the \whoop approach (see Section~\ref{whoop}). We first present race-checking results from running \whoop and \corral on \sizeOfBenchmarks drivers taken from the 4.0 Linux kernel distribution\footnote{https://www.kernel.org}. We then evaluate the runtime performance and scalability of \corral and \whoop + \corral with different yield instrumentation granularities and context-switch bounds, to show that \whoop can efficiently accelerate bug-finding with \corral.
 
-\subsection{Experimental Setup}
-\label{eval:setup}
+\noindent
+\textbf{Experimental Setup}\xspace\xspace All experiments were performed on a ... machine running ..., LLVM 3.5; SMACK 1.5; Z3 4.3.2; Boogie rev. 4192 and \corral rev. 534.
 
-All experiments were performed on a ... machine running ..., LLVM 3.5; SMACK 1.5; Z3 4.3.2; Boogie rev. 4192 and \corral rev. 534.
+\noindent
+\textbf{Benchmarks}\xspace\xspace We evaluate our methodology against \sizeOfBenchmarks drivers taken from the 4.0 Linux kernel. To thoroughly test \whoop against the Linux driver APIs, we chose drivers from many different domains: block; char; ethernet; near field communication (nfc); universal serial bus (usb); and watchdog. We manually modeled the environment for all these drivers. This process required more than a month of work. We also focused on choosing non-trivial drivers (e.g. large number of entry points, deep nesting of entry point helper functions, complex use of locking, use of function pointers, etc).
 
-\subsection{Benchmarks}
-\label{eval:benchmarks}
+\noindent
+\textbf{Race-Checking}\xspace\xspace Table~\ref{tab:stats} presents statistics for all our benchmarks: lines of code (LoC); number of entry point pairs (\#Pairs); number of SMACK memory regions (\#MRs); number of racy pairs that \whoop identified (\#Racy Pairs); number of racy memory regions that \whoop reported (\#Racy MRs); and number of races that \corral discovered (\#Races Found) using a context-switch bound of 2.
 
-We evaluate our methodology against \sizeOfBenchmarks drivers taken from the 4.0 Linux kernel. \PDComment{Say something more about the benchmarks}
+We can see that \whoop reports many more races than \corral. This is expected, though, as \whoop over-approximates the original driver for soundness and scalability. This means that if a race exists, \whoop will report it (assuming tool and model correctness). On the other hand, \corral performs bounded checking, which means that it will report a race only under pre-defined bounds. A common problem for \corral when analyzing drivers is loop coverage. To deal with this we enable the over-approximation technique described in~\cite{lal2014powering}. This can potentially lead \corral to report false positives, but we have not seen this in practice.
 
-Table~\ref{tab:stats} presents statistics for all our benchmarks: lines of code (LoC); number of entry point pairs (\#Pairs); number of SMACK memory regions (\#MRs); number of racy pairs that \whoop identified (\#Racy Pairs); number of racy memory regions that \whoop reported (\#Racy MRs); and number of races that \corral discovered (\#Races Found).
+We found the following data race in the generic\_nvram driver: during the \texttt{llseek} file operation, the driver is accessing the file offset (\texttt{file->f\_pos}) without using a lock. When we investigated another similar driver that uses the same API, we saw that it was protecting the same offset access with a mutex. This made us suspicious that the generic\_nvram driver might have a real race. We filed a bug report, but did not manage to get a response yet.
 
-\subsection{Context-Switch Granularity of Yield Instrumentation}
-\label{eval:granularity}
+A common case of races that we discovered had to do with incrementing a counter without using a lock. This might happen for performance, but even benign races might lead to serious issues, especially if a compiler tries to perform optimizations assuming no races exist.
 
-We evaluate the scalability of our acceleration technique with respect to our benchmark sets (Table~\ref{tab:results}). All reported times are in seconds and averages of three runs. \corral was configured with a time budget of 3000 seconds per tool invocation (one for each pair of entry points); \whoop did not use a timeout.
+It is worthwhile to mention that we did not discover any additional data races with larger context switch bounds. This might mean that most races in these drivers require only a small amount of context-switches to manifest, or that \corral run out of resources before discovering the deeper bug.
 
-Our experiments use the \corral context switch bounds \texttt{/k:2}, \texttt{/k:5} and \texttt{/k:9}. A higher context switch bound would result into deeper interleavings being explored and thus a larger sequentialized program. Intuitively, this means that we would see even greater speedups using information from \whoop, when exploring deeper interleavings.
+\noindent
+\textbf{Granularity of Context-Switches}\xspace\xspace Table~\ref{tab:results} presents runtime results from running \whoop, \corral and \whoop + \corral. All reported times are in seconds and averages of three runs. \corral was configured with a time budget of 7200 seconds (T.O. denotes a timeout) and a context-switch bound (csb) of 2, 5 and 9. By default, \corral instruments context-switches (i.e. \texttt{yield}) in all visible operations (denoted by \yieldall in the table). \whoop + \corral, uses two context-switch instrumentation granularities (see Section~\ref{whoop:bugfinding}): \yieldcoarse and \yieldmr.
 
-%When running \corral on its own, it can potentially report a spurious race (that \whoop does not report), because \corral is not enhanced with domain-specific information that \whoop uses to discard spurious races. Using \whoop + \corral, though, will inherently discard spurious data races (assuming a precise environmental model).
+A higher context switch bound results into deeper interleavings being explored and thus a larger sequentialized program. Intuitively, this means that we see even greater speedups using information from \whoop, when exploring deeper interleavings.
 
 In Table~\ref{tab:results}, we can notice that \whoop is much faster than \corral. For example, \whoop analyses the dtlk char driver in 6.51 seconds, whereas \corral requires 1287.05 seconds.
 
-% We did not discover any data races with larger context switch bounds.
+%When running \corral on its own, it can potentially report a spurious race (that \whoop does not report), because \corral is not enhanced with domain-specific information that \whoop uses to discard spurious races. Using \whoop + \corral, though, will inherently discard spurious data races (assuming a precise environmental model).
 
 %When \corral on its own tries to analyze the machzwd watchdog driver it explodes, because in some entry point pairs it attempts to analyze a large number of memory regions. For example for the entry point pair write vs init, it instruments interleavings at 26 different memory regions in a single invocation of \corral, which required approximately 1000 seconds to analyze. The same entry point pair is found race-free by \whoop. Using this information in \corral with the \yieldmr instrumentation, the pair takes less than a second to analyze. The \yieldcoarse instrumentation does not perform as well, because it works in the binary granularity of racy or non-racy entry points.

@@ -236,7 +236,7 @@ write by entry point ep2, foo.c:52:2
 
 Early on during the development of \whoop, we realized that scalability would be a serious issue. When we tried to apply \whoop on the r8169 RealTek ethernet driver (8000 lines of C code) with all functions fully inlined, we were running out of memory. One reason was that the C to Boogie translation produced hundreds of thousands of Boogie IVL code, which could not fit in memory. Another reason was that some entry points recursively call helper functions. Inherently, recursion does not work with inlining. To tackle these issues we developed \emph{watchdog summarization}, a novel summarization technique that allows us to analyze Linux drivers in a scalable fashion, but without destroying precision.
 
-Watchdog summarization uses the Houdini~\cite{flanagan2001houdini} invariant inference algorithm (available inside Boogie) to automatically compute summaries (pre- and post-conditions and loop invariants) from a pool of \emph{candidate} invariants.
+Watchdog summarization uses the Houdini~\cite{flanagan2001houdini} invariant inference algorithm (available inside Boogie) to automatically compute summaries (pre- and post-conditions and loop invariants) from a pool of \emph{candidate} invariants. The reason we need loop invariants is that we over-approximate loops using loop-cutting (also available inside Boogie).
 
 The candidate invariants are based on the global variables that \whoop instruments to perform lockset analysis and race-checking (see Section~\ref{whoop:method}). The key idea behind watchdog summarization is that we automatically generate candidate invariants for each memory region in the granularity of watched accesses. This reduces the false positives from reporting errors if only e.g. a field in memory region \texttt{\$M.0} is racing, but the rest of the fields are not. An example of watchdog-based candidate post-conditions is the following:
 
@@ -283,14 +283,8 @@ procedure foo$ep1(dev: int);
 
 Because \corral performs bounded verification both in terms of the number of allowed context switches and loop/recursion unrollings, it is inherently unsound; in other words, it can miss real bugs. On the other hand, \corral is precise, and assuming a precise model of the program environment it will only report true bugs. \whoop takes advantage of this precision to report only feasible data races.
 
-\subsubsection{Sound Partial-Order Reduction}
-\label{bf:reduction}
-
-By default, \corral instruments a \texttt{yield} statement (which denotes a
-potential nondeterministic context-switch) before each \emph{visible operation}
-(i.e., synchronization operations and shared memory accesses) of every thread.
-It then leverages sequentialization to explore all possible thread interleavings
-up to a pre-defined bound.
+\noindent
+\textbf{Sound Partial-Order Reduction}\xspace\xspace By default, \corral instruments a \texttt{yield} statement (which denotes a potential nondeterministic context-switch) before each \emph{visible operation} (i.e., synchronization operations and shared memory accesses) of every thread. It then leverages sequentialization to explore all possible thread interleavings up to a pre-defined bound.
 
 Our approach to accelerating \corral is simple and yet effective: we simplify
 the sequentialization that \corral performs by instrumenting \texttt{yield}
@@ -330,10 +324,8 @@ regions that can potentially race (regardless if a pair has not been fully
 verified as race-free). In our experiments (see Section~\ref{evaluation}),
 \yieldmr performs significantly faster than \yieldcoarse.
 
-\subsubsection{Race-Checking Instrumentation}
-\label{bf:racechecking}
-
-We employ a simple, but effective, encoding of data-race checks within \corral.
+\noindent
+\textbf{Race-Checking Instrumentation}\xspace\xspace We employ a simple, but effective, encoding of data-race checks within \corral.
 For example, whenever there is a write access to a shared variable, such as
 \texttt{\$M.13 := 0}, we instrument the Boogie IVL code to check for write-write
 races as follows:
