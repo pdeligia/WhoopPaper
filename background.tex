@@ -1,16 +1,20 @@
 \subsection{Concurrency in the Linux Kernel}
 \label{bg:concurrency}
 
+\ADComment{I believe that \emph{responsiveness} is a key motivator for concurrency in device drivers: even if there is only a single core, we may wish for driver entry points of distinct processes to run concurrently so that no single process hogs the core.  Can you please consider weaving this into what follows?}
+
 Nowadays, multicore architectures have become mainstream, leading to an ever-increasing demand for concurrency in operating systems. Modern Linux kernel distributions address this demand by providing multiple sources of concurrency~\cite{corbet2005linux}: the kernel can invoke an arbitrary number of entry points from the same driver concurrently; a running driver process can block and be replaced by another process in the same driver; hardware interrupts can be handled concurrently; delayed code execution is the norm; and the user can insert or remove hardware components without rebooting the kernel (known as hot-plugging). All these possibilities can easily lead to serious concurrency issues, such as \emph{data races}, which can be defined as follows:
 
 \begin{definition}
 \label{definition:datarace}
-A data race occurs when two distinct threads access a shared memory location, at least one of the accesses modifies the location, and there is no mechanism in place to prevent these accesses from being simultaneous.
+A data race occurs when two distinct threads access a shared memory location, at least one of the accesses modifies the location, at least one of the accesses is non-atomic, and there is no mechanism in place to prevent these accesses from being simultaneous.
 \end{definition}
 
-Example~\ref{fig:data_race_example} presents a simple data race between two entry points of a Linux driver. The resource \texttt{dev->resource} is shared between the two entry points \texttt{ep1} and \texttt{ep2}. Entry point \texttt{ep1} writes the value 5 to \texttt{dev->resource}, and entry point \texttt{ep2} writes the value 3 to \texttt{dev->resource} if the value of \texttt{dev->resource} is not 5. A data race can occur if \texttt{ep1} and \texttt{ep2} run concurrently: the read and write accesses to the shared resource may execute in arbitrary order leading to nondeterministic behavior.
+\ADComment{In the definition, I added the part about at least one of the accesses being non-atomic.  I believe this is important in drivers, since there are cases where people use atomics.  Could you somewhere briefly acknowledge, referring back to Definition~\ref{definition:datarace}, that we treat atomics soundly in whoop, in the sense that we do not regard them as providing any protection between threads?}
 
-\begin{lstlisting}[caption = Simple data race in a Linux driver, label = fig:data_race_example]
+\ADComment{It would be much more compelling, even if it takes more space, if you could find a small snippet from a real driver such that there is a data race say on a field of a struct.  Could you replace the contrived example with such an example?}  Example~\ref{fig:data_race_example} presents a simple data race between two entry points of a Linux driver. The resource \texttt{dev->resource} is shared between the two entry points \texttt{ep1} and \texttt{ep2}. Entry point \texttt{ep1} writes the value 5 to \texttt{dev->resource}, and entry point \texttt{ep2} writes the value 3 to \texttt{dev->resource} if the value of \texttt{dev->resource} is not 5. A data race can occur if \texttt{ep1} and \texttt{ep2} run concurrently: the read and write accesses to the shared resource may execute in arbitrary order leading to nondeterministic behavior.  \ADComment{If you stick with this example, it would be worth pointing out that a write-write race is also possible.}
+
+\begin{lstlisting}[caption = Simple data race in a Linux driver \ADComment{I think the caption is misleading, since this is clearly not a driver}, label = fig:data_race_example]
 static void ep1 (struct shared *dev) {
   dev->resource = 5;
 }
@@ -38,10 +42,13 @@ static void ep2 (struct shared *dev) {
 }
 \end{lstlisting}
 
-Lock-based synchronization is a powerful tool for preventing data races in drivers, but careless use of locks has multiple pitfalls~\cite{sutter2005software}. Coarse-grained locking can severely hurt performance, because it limits the opportunity for concurrency. On the other hand, fine-grained locking can easily lead to \emph{deadlocks}, a system-halting situation in which no active thread can progress, because it is waiting to acquire a lock that is held by another blocked thread. Although the Linux kernel provides sophisticated lock-free synchronization mechanisms~\cite{corbet2005linux}, in this work we focus on locks.
+Lock-based synchronization is a powerful tool for preventing data races in drivers, but careless use of locks has multiple pitfalls~\cite{sutter2005software}. Coarse-grained locking can \ADComment{I removed the word ``severely''.  My PhD supervisor always advised me to avoid using words that are subjective.} hurt performance, because it limits the opportunity for concurrency. On the other hand, fine-grained locking can easily lead to deadlocks.  \ADComment{Removed description of deadlock, as it is well known.}
+\ADComment{Suggestion: expand the following a little to say what one of the lock-free synchronization methods in Linux is.  Perhaps take this opportunity to refer back to the stuff about ``atomic'' I added in the data race definition.}  Although the Linux kernel provides sophisticated lock-free synchronization mechanisms~\cite{corbet2005linux}, in this work we focus on locks.  \ADComment{Can we justify the focus on locks a bit more?  E.g., are you able to survey, via grepping, what percentage of Linux drivers make use of locks (likely 100\%?) vs.\ what percentage also make use of lock-free mechanisms?}
 
 \subsection{Reasoning about Thread Interleavings}
 \label{bg:happensbefore}
+
+\ADComment{I am unsure as to whether we need this background, but I'm undecided as I'm still getting on top of the rest of the material.}
 
 A fundamental concept in concurrency analysis is Lamport's \emph{happens-before} relation~\cite{lamport1978time}, which denotes a partial-order between all events during the execution of a concurrent program. Happens-before can be defined as follows:
 
@@ -66,7 +73,7 @@ The above example also showcases the main limitation of happens-before. If the t
 \subsection{Reasoning about Locksets}
 \label{bg:lockset}
 
-An alternative approach to happens-before, known as \emph{lockset analysis}, resolves around reasoning about the locking behavior of concurrent programs. Lockset analysis has its roots in Eraser~\cite{savage1997eraser}, a dynamic data race detector that tracks the set of locks that \emph{consistently} protect a memory location during program execution. If that lockset ever becomes empty, the analysis reports a potential data race on that memory location. This is because an inconsistent lockset suggests that a memory location \emph{may} be accessed simultaneously by two or more threads.
+An alternative approach to happens-before, known as \emph{lockset analysis}, resolves around reasoning about the locking behavior of concurrent programs. Lockset analysis was proposed in the context of Eraser~\cite{savage1997eraser}, a dynamic data race detector that tracks the set of locks that \emph{consistently} protect a memory location during program execution. If that lockset ever becomes empty, the analysis reports a potential data race on that memory location. \ADComment{This could be better explained, I think.} This is because an inconsistent lockset suggests that a memory location \emph{may} be accessed simultaneously by two or more threads.
 
 \begin{figure}[htbp]
 \centering
@@ -75,12 +82,24 @@ An alternative approach to happens-before, known as \emph{lockset analysis}, res
 \label{fig:locksets}
 \end{figure}
 
-Figure~\ref{fig:locksets} shows an example of applying lockset analysis on a thread of a concurrent program. Lockset analysis starts by creating one lockset for each thread $T$ in the program, called current lockset of $T$ or $CLS_T$, and one lockset for each shared variable $v$, called lockset of $v$ or $LS_v$. In this example we analyze only one thread and only one shared variable and thus there are two such locksets: Current Lockset ($CLS$) and Lockset A ($LS_A$). Initially, $CLS$ is empty, because it represents the set of locks before the program starts executing, which is the empty set $\varnothing$. Likewise, $LS_A$ starts as the set of all existing locks in the program, which in this case is $\{M, N\}$. Lockset analysis then proceeds as follows:
+\ADComment{What is missing from the explanation, and from the example you give, is the idea that with a dynamic approach, you run the program and a thread operates in a truly concurrent environment.  You thus only get to see what the thread did on the particular schedule that was followed.  I also think you should use a two-threaded example, instead of a one-threaded example, to show that although thread $T$ might consistently use mutex $M$ to protect variable $A$, this is no good if thread $U$ accesses variable $A$ without holding $M$.}  \ADComment{If you use multiple letters in math mode, you should use ``mathit'' to get them typeset properly.  E.g., you should write $\mathit{CLS}_T$, not $CLS_T$, and $\mathit{LS}_v$, not $LS_v$.  Can you please address this throughout the paper?  It can be cumbersome to write, making it worth thinking about adding macros.}
 
+Lockset analysis for a concurrent program starts by creating a \emph{current} lockset, $CLS_T$, for each thread $T$ of the program, and a lockset, $LS_v$, for each shared variable $v$ used in the program.
+Initially, $CLS_T$ is empty for every thread $T$, because the threads do not hold any locks on program start.
+The lockset $LS_v$ for each variable $v$ is initialised to the set of all locks manipulated by the program,
+because initially each access to $v$ has (vacuously) been protected by every lock.
+The program is executed as usual (with threads scheduled according to the OS scheduler), except that
+instrumentation is added to update locksets as follows:
+%
 \begin{enumerate}
-\item In each \emph{lock} and \emph{unlock} operation, update ($CLS$) with the currently held locks.
-\item In each shared variable access, update ($LS_A$) with the intersection of the latest ($CLS$) and the ($LS_A$) of the previous statement.
-\item If ($LS_A$) ever becomes empty, then report that the access to $A$ is unprotected.
+\item After each \emph{lock} and \emph{unlock} operation by thread $T$, $CLS_T$ is updated to reflect the locks currently held by $T$.
+\item When thread $T$ accesses shared variable $v$, any locks that are not common to $LS_v$ and $CLS_T$ are removed from $LS_v$.
+If $LS_v$ becomes empty as a result, a warning is issued that the access to $v$ may be unprotected.
 \end{enumerate}
 
-Lockset analysis avoids reasoning about arbitrary thread interleavings, and thus has the potential to scale well in realistic concurrent programs. The technique, though, suffers from imprecision (i.e. can report many false bugs), because a violation of the locking discipline does not always correspond to a real data race~\cite{savage1997eraser, pozniansky2003efficient, o2003hybrid, elmas2007goldilocks, flanagan2009fasttrack}. Furthermore, as a classic dynamic analyzer, Eraser's bug-finding ability is limited to the execution paths that the tool explores. To counter these limitations, we apply the idea of Eraser's lockset analysis in a static verification context.
+In the example of Figure~\ref{fig:locksets}, we analyze only one thread $T$ and one shared variable $A$ and thus there are two locksets: the current lockset for $T$ ($CLS_T$) and the lockset for $A$ ($LS_A$). 
+
+Figure~\ref{fig:locksets} shows an example of applying lockset analysis on a thread of a concurrent program.
+\ADComment{I folded some of the discussion of the example into the above more general description of locksets.  Assuming you do produce a two-threaded example, please put in a brief explanation of it.}
+
+Lockset analysis avoids reasoning about arbitrary thread interleavings \ADComment{is this true of standard lockset analysis?  With Eraser, a single interleaving would indeed provide a lot of information about races, but it would still be necessary to explore lots of interleavings to get high coverage, since the program behaviour may be schedule-dependent}, and thus has the potential to scale well in realistic concurrent programs. The technique, though, suffers from imprecision (i.e. can report many false bugs), because a violation of the locking discipline does not always correspond to a real data race~\cite{savage1997eraser, pozniansky2003efficient, o2003hybrid, elmas2007goldilocks, flanagan2009fasttrack}. Furthermore, as a classic dynamic analyzer, Eraser's bug-finding ability is limited to the execution paths that the tool explores. \ADComment{Perhaps re-phrase this to say that some existing techniques (cite them) have explored the idea of static lock set analysis, based on dataflow analysis, and that we also present a static lockset analysis method, that involves generating verification conditions to be discharged to a theorem prover} To counter these limitations, we apply the idea of Eraser's lockset analysis in a static verification context.

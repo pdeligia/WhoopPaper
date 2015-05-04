@@ -1,3 +1,33 @@
+\ADComment{Please ignore my comments in this section for now.}
+
+We now present \emph{static pairwise lockset analysis}, a novel method for data race analysis in concurrent device drivers.
+In Section~\ref{ } we explain conceptually how the approach works.
+In Section~\ref{ } we describe our implementation of static pairwise lockset analysis in a practical tool,
+Whoop, that can be applied directly to driver source code, to check whether pairs of driver entry points are 
+free from data races.
+
+We demonstrate in Section~\ref{ } both that the Whoop technique and tool has value in its own right as a stand-alone static analyser, and that results from Whoop can be exploited to significantly boost performance of a more precise static analysis for concurrency offered by the CORRAL tool, based on context bounding and stratified inlining.
+
+\subsection{Static pairwise lockset analysis}
+
+\ADComment{Ally: first, let us try to explain really clearly in words how the technique works.}
+
+\ADComment{Second, let's introduce some notation to describe the thing more formally.}
+
+\ADComment{Finally, try to set up some kind of theorem giving the guarantee we think we have.}
+
+
+
+\subsection{Implementation in Whoop}
+
+
+
+
+
+The entry points for 
+
+
+
 We have implemented our approach in \whoop, a static lockset analysis infrastructure that uses state-of-the-art compilation and sequential verification techniques to (i) automatically analyze Linux drivers for potential data races and (ii) exploit the race-related information from the sound static analysis phase to accelerate bug-finding.
 
 \begin{figure*}
