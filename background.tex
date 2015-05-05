@@ -63,7 +63,7 @@ static loff_t nvram_llseek(struct file *file,
 
 Lock-based synchronization is a powerful tool for preventing data races in drivers, but careless use of locks has multiple pitfalls~\cite{sutter2005software}. Coarse-grained locking can hurt performance, because it limits the opportunity for concurrency. On the other hand, fine-grained locking can easily lead to deadlocks. Although the Linux kernel provides sophisticated lock-free synchronization mechanisms~\cite{corbet2005linux}, such as atomic read and write operations, in this work we focus on locks. However, we still treat lock-free operations (e.g. atomics) soundly (see Definition~\ref{definition:datarace}), by not regarding them as providing any protection between threads. This is sound but can potentially introduce false positives.
 
-\ADComment{Can we justify the focus on locks a bit more?  E.g., are you able to survey, via grepping, what percentage of Linux drivers make use of locks (likely 100\%?) vs.\ what percentage also make use of lock-free mechanisms?}
+We believe that our focus in locks is justified, because the majority of Linux drivers still use locks. As a sanity check, we used a simple grep command and found that 68\% of the drivers from the 4.0 Linux kernel distribution use locks, versus 13\% that use atomic operations. We also found that 31\% of the drivers use neither locking nor atomic primitives, which suggests that they are either simple (non-concurrent) drivers or use some other lock-free synchronization primitive.
 
 \subsection{Reasoning about Thread Interleavings}
 \label{bg:happensbefore}
@@ -110,11 +110,7 @@ Lockset analysis for a concurrent program starts by creating a \emph{current} lo
 If $\mathit{LS}_v$ becomes empty as a result, a warning is issued that the access to $v$ may be unprotected.
 \end{enumerate}
 
-In the example of Figure~\ref{fig:locksets}, we analyze only one thread $T$ and one shared variable $A$ and thus there are two locksets: the current lockset for $T$ ($\mathit{CLS}_T$) and the lockset for $A$ ($\mathit{LS}_A$).
-
-Figure~\ref{fig:locksets} shows an example of applying lockset analysis on a concurrent program consisting of two threads $T_1$ and $T_2$, both accessing the shared variable $A$. Thus, we have to analyze three locksets: the current locksets $\mathit{CLS}_1$ and $\mathit{CLS}_2$ for $T_1$ and $T_2$ respectively; and the lockset $\mathit{LS}_A$ for $A$.
-
-\ADComment{I also think you should use a two-threaded example, instead of a one-threaded example, to show that although thread $T$ might consistently use mutex $M$ to protect variable $A$, this is no good if thread $U$ accesses variable $A$ without holding $M$.}
+Figure~\ref{fig:locksets} shows an example of applying lockset analysis on a concurrent program consisting of two threads $T_1$ and $T_2$, both accessing the same shared variable $A$. Thus, we have to track three locksets: the current locksets $\mathit{CLS}_1$ and $\mathit{CLS}_2$ for $T_1$ and $T_2$ respectively; and the lockset $\mathit{LS}_A$ for $A$. Initially, $\mathit{LS}_A$ contains the two locks $M$ and $N$ that the two threads acquire during execution. When $T_1$ terminates, $\mathit{LS}_A$ contains only the lock $N$, because the thread write accessed $A$ without holding $N$. Next, during the execution of $T_2$, the thread write accesses $A$ without holding $M$. Thus, $\mathit{LS}_A$ becomes the empty set. This means that there is a potential data race between the two threads on $A$ as $T_2$ does not consistently protect $A$ with at least one common with $T_1$ lock.
 
 In contrast to analyses based on happens-before, lockset analysis has the potential to scale well, because it does not need to reason about all possible thread interleavings to achieve good code coverage. The technique, though, suffers from imprecision (i.e. can report false bugs), because a violation of the locking discipline does not always correspond to a real data race~\cite{savage1997eraser, pozniansky2003efficient, o2003hybrid, elmas2007goldilocks, flanagan2009fasttrack}. Furthermore, the code coverage in dynamic lockset analyzers, such as Eraser, is limited by the execution paths that are explored under a given scheduler. This is because the tool runs the program in a truly concurrent environment, thus it only gets to see what the thread did on the particular schedule that was followed.
 
