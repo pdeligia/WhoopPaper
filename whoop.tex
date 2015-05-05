@@ -393,8 +393,8 @@ Finally, we assume that the formal parameters of an entry point do not alias, an
 \subsection{Limitations}
 \label{whoop:limitations}
 
-\whoop inherits all limitations of lockset analysis (as discussed in Section~\ref{bg:lockset}): a violation of the locking discipline does not always correspond to a real error (e.g. \whoop does not reasons about lockfree data structures in a special way, it just over-approximates their read accesses); and we do not check for dynamically created locks (or for locks that are provided by external libraries). Because we perform two thread reduction, we also over-approximate the read accesses, which is another source of false positives.
+\whoop inherits all limitations of lockset analysis (as discussed in Section~\ref{bg:lockset}): a violation of the locking discipline does not always correspond to a real error (e.g. \whoop does not reason about lockfree data structures in a special way, it just over-approximates their read accesses); and we do not check for dynamically created locks (or for locks that are provided by external libraries). Because we perform two thread reduction, we also over-approximate the read accesses, which is another source of false positives.
 
 Environmental modeling is another limitation of \whoop. As aforementioned, enriching \whoop with domain-specific knowledge to increase precision is an ongoing manual effort, but requires expertise in the Linux kernel. We argue that further increasing the precision of our models is orthogonal to the contributions of this paper. Moreover, despite unavoidable imprecisions during the sound static data race analysis, \whoop can use the reported information to significantly speedup precise bug-finders for concurrent programs, as seen in Sections~\ref{whoop:bugfinding} and~\ref{evaluation}.
 
-\PDComment{Corral limitations ...}
+Finally, \whoop is unable to verify drivers where the programmer implicitly enforces serialization of entry points that would otherwise race. For example, in the intel\_scu\_wd driver (see Section~\ref{evaluation}) the programmer sets flag $A$ in entry point $ep1$ that that does not allow entry point $ep2$ ... (TODO).

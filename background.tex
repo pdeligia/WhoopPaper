@@ -1,49 +1,69 @@
-\subsection{Concurrency in the Linux Kernel}
+\subsection{Concurrency in Device Drivers}
 \label{bg:concurrency}
 
-\ADComment{I believe that \emph{responsiveness} is a key motivator for concurrency in device drivers: even if there is only a single core, we may wish for driver entry points of distinct processes to run concurrently so that no single process hogs the core.  Can you please consider weaving this into what follows?}
+Nowadays, multicore machines have become mainstream, allowing operating systems to exploit concurrency for \emph{responsiveness} (latency) or \emph{performance} (throughput). In device drivers, responsiveness is important, because even if there is only a single core, entry points of distinct processes should run concurrently so that no single process hogs the core. Likewise, performance is also important: e.g. network drivers should be able to process incoming packages in a timely manner.
 
-Nowadays, multicore architectures have become mainstream, leading to an ever-increasing demand for concurrency in operating systems. Modern Linux kernel distributions address this demand by providing multiple sources of concurrency~\cite{corbet2005linux}: the kernel can invoke an arbitrary number of entry points from the same driver concurrently; a running driver process can block and be replaced by another process in the same driver; hardware interrupts can be handled concurrently; delayed code execution is the norm; and the user can insert or remove hardware components without rebooting the kernel (known as hot-plugging). All these possibilities can easily lead to serious concurrency issues, such as \emph{data races}, which can be defined as follows:
+Modern operating systems address the demand for responsiveness and performance by providing multiple sources of concurrency~\cite{corbet2005linux}: a kernel can invoke an arbitrary number of entry points from the same driver concurrently; a running driver process can block and be replaced by another process in the same driver; hardware interrupts can be handled concurrently; delayed code execution is the norm; and the user can insert or remove hardware components without rebooting the kernel (known as hot-plugging). All these possibilities can easily lead to serious concurrency issues, such as \emph{data races}, which can be defined as follows:
 
 \begin{definition}
 \label{definition:datarace}
 A data race occurs when two distinct threads access a shared memory location, at least one of the accesses modifies the location, at least one of the accesses is non-atomic, and there is no mechanism in place to prevent these accesses from being simultaneous.
 \end{definition}
 
-\ADComment{In the definition, I added the part about at least one of the accesses being non-atomic.  I believe this is important in drivers, since there are cases where people use atomics.  Could you somewhere briefly acknowledge, referring back to Definition~\ref{definition:datarace}, that we treat atomics soundly in whoop, in the sense that we do not regard them as providing any protection between threads?}
+Example~\ref{fig:data_race_example} presents multiple data races that \whoop automatically found in the generic\_nvram Linux char driver (see Section~\ref{evaluation}). The driver can invoke the \texttt{nvram\_llseek} entry point concurrently from two threads $T_1$ and $T_2$, while passing the same \texttt{file} object as a parameter. However, this can lead to multiple possible data races because $T_1$ and $T_2$ can read/write access the \texttt{f\_pos} field of the \texttt{file} object in arbitrary order resulting into nondeterministic behavior.
 
-\ADComment{It would be much more compelling, even if it takes more space, if you could find a small snippet from a real driver such that there is a data race say on a field of a struct.  Could you replace the contrived example with such an example?}  Example~\ref{fig:data_race_example} presents a simple data race between two entry points of a Linux driver. The resource \texttt{dev->resource} is shared between the two entry points \texttt{ep1} and \texttt{ep2}. Entry point \texttt{ep1} writes the value 5 to \texttt{dev->resource}, and entry point \texttt{ep2} writes the value 3 to \texttt{dev->resource} if the value of \texttt{dev->resource} is not 5. A data race can occur if \texttt{ep1} and \texttt{ep2} run concurrently: the read and write accesses to the shared resource may execute in arbitrary order leading to nondeterministic behavior.  \ADComment{If you stick with this example, it would be worth pointing out that a write-write race is also possible.}
-
-\begin{lstlisting}[caption = Simple data race in a Linux driver \ADComment{I think the caption is misleading, since this is clearly not a driver}, label = fig:data_race_example]
-static void ep1 (struct shared *dev) {
-  dev->resource = 5;
-}
-
-static void ep2 (struct shared *dev) {
-  if (dev->resource != 5)
-    dev->resource = 3;
-}
-\end{lstlisting}
-
-The most common technique for eliminating data races is using a \emph{locking} mechanism. Locking a set of program statements that access a shared resource creates a \emph{critical section}, i.e. source code that cannot be executed by more than one thread simultaneously. Example~\ref{fig:lock_example} shows how to use a lock to eliminate the data race in Example~\ref{fig:data_race_example}.
-
-\begin{lstlisting}[caption = Using locks to eliminate the data race, label = fig:lock_example]
-static void ep1 (struct shared *dev) {
-  mutex_lock(&dev->lock);
-  dev->resource = 5;
-  mutex_unlock(&dev->lock);
-}
-
-static void ep2 (struct shared *dev) {
-  mutex_lock(&dev->lock);
-  if (dev->resource != 5)
-    dev->resource = 3;
-  mutex_unlock(&dev->lock);
+\begin{lstlisting}[caption = Data races in the generic\_nvram char driver that \whoop found., label = fig:data_race_example]
+static loff_t nvram_llseek(struct file *file,
+    loff_t offset, int origin) {
+  switch (origin) {
+    case 0:
+      break;
+    case 1:
+      offset += file->f_pos; // racy
+      break;
+    case 2:
+      offset += nvram_len;
+      break;
+    default:
+      offset = -1;
+  }
+  if (offset < 0)
+    return -EINVAL;
+  file->f_pos = offset; // racy
+  return file->f_pos; // racy
 }
 \end{lstlisting}
 
-Lock-based synchronization is a powerful tool for preventing data races in drivers, but careless use of locks has multiple pitfalls~\cite{sutter2005software}. Coarse-grained locking can \ADComment{I removed the word ``severely''.  My PhD supervisor always advised me to avoid using words that are subjective.} hurt performance, because it limits the opportunity for concurrency. On the other hand, fine-grained locking can easily lead to deadlocks.  \ADComment{Removed description of deadlock, as it is well known.}
-\ADComment{Suggestion: expand the following a little to say what one of the lock-free synchronization methods in Linux is.  Perhaps take this opportunity to refer back to the stuff about ``atomic'' I added in the data race definition.}  Although the Linux kernel provides sophisticated lock-free synchronization mechanisms~\cite{corbet2005linux}, in this work we focus on locks.  \ADComment{Can we justify the focus on locks a bit more?  E.g., are you able to survey, via grepping, what percentage of Linux drivers make use of locks (likely 100\%?) vs.\ what percentage also make use of lock-free mechanisms?}
+The most common technique for eliminating data races is using a \emph{locking} mechanism. Locking a set of program statements that access a shared resource creates a \emph{critical section}, i.e. source code that cannot be executed by more than one thread simultaneously. Example~\ref{fig:lock_example} shows how to use a lock to eliminate the data race in Example~\ref{fig:data_race_example}. The example is tricky, because the return statement can potentially race on the \texttt{f\_pos} field. To fix this issue, we store the result in a temporary variable, inside the critical section.
+
+\begin{lstlisting}[caption = Using a lock to eliminate the data races., label = fig:lock_example]
+static loff_t nvram_llseek(struct file *file,
+    loff_t offset, int origin) {
+  mutex_lock(&nvram_mutex); // lock
+  switch (origin) {
+    case 0:
+      break;
+    case 1:
+      offset += file->f_pos;
+      break;
+    case 2:
+      offset += nvram_len;
+      break;
+    default:
+      offset = -1;
+  }
+  if (offset < 0)
+    return -EINVAL;
+  file->f_pos = offset;
+  loff_t res = file->f_pos; // store result
+  mutex_unlock(&nvram_mutex); // unlock
+  return res;
+}
+\end{lstlisting}
+
+Lock-based synchronization is a powerful tool for preventing data races in drivers, but careless use of locks has multiple pitfalls~\cite{sutter2005software}. Coarse-grained locking can hurt performance, because it limits the opportunity for concurrency. On the other hand, fine-grained locking can easily lead to deadlocks. Although the Linux kernel provides sophisticated lock-free synchronization mechanisms~\cite{corbet2005linux}, such as atomic read and write operations, in this work we focus on locks. However, we still treat lock-free operations (e.g. atomics) soundly (see Definition~\ref{definition:datarace}), by not regarding them as providing any protection between threads. This is sound but can potentially introduce false positives.
+
+\ADComment{Can we justify the focus on locks a bit more?  E.g., are you able to survey, via grepping, what percentage of Linux drivers make use of locks (likely 100\%?) vs.\ what percentage also make use of lock-free mechanisms?}
 
 \subsection{Reasoning about Thread Interleavings}
 \label{bg:happensbefore}
