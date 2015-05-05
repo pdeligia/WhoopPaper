@@ -12,7 +12,7 @@ A data race occurs when two distinct threads access a shared memory location, at
 
 Example~\ref{fig:data_race_example} presents multiple data races that \whoop automatically found in the generic\_nvram Linux char driver (see Section~\ref{evaluation}). The driver can invoke the \texttt{nvram\_llseek} entry point concurrently from two threads $T_1$ and $T_2$, while passing the same \texttt{file} object as a parameter. However, this can lead to multiple possible data races, because $T_1$ and $T_2$ can read/write access the \texttt{f\_pos} field of the \texttt{file} object in arbitrary order resulting into nondeterministic behavior.
 
-\begin{lstlisting}[caption = Data races in the generic\_nvram char driver that \whoop found., label = fig:data_race_example]
+\begin{lstlisting}[caption = Data races in a Linux driver that we discovered using \whoop., label = fig:data_race_example]
 static loff_t nvram_llseek(struct file *file,
     loff_t offset, int origin) {
   switch (origin) {
