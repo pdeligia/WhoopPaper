@@ -16,9 +16,14 @@ We demonstrate in Section~\ref{ } both that the Whoop technique and tool has val
 
 We present our approach in a semi-formal manner, in the context of the following simple concurrent programming model.  For ease of presentation only, the model does not features aggregate data types, pointers or dynamic memory allocation.  These \emph{are} handled by our implementation, and in \ADComment{TODO} we discuss interesting practical issues arising from the handling of a full-blown language.  \ADComment{I want to say that we do not treat dynamic thread creation because driver threads do not create further driver threads.  However, I am not sure (a) whether this is true, nor (b) whether even if it is true it would be a problem for us.}
 
-\paragraph{Simple concurrent programming model}
+\paragraph{A simple concurrent programming model}
 
-A \emph{concurrent program} is described by a finite set of \emph{shared} variables, $\sharedvars$, a finite set of mutexes, $\mutexes$, and a finite set of threads, $T_1,\dots,T_n$ (for some $n > 0$).  A thread, $T$, is described by a finite set of procedures, $\procedures{T}$, and a finite set of thread-private variables, $\variables{T}$.  Thread execution commences from a designated procedure $\mainforthread{T} \in \procedures{T}$.  A procedure $P \in \procedures{T}$ is represented by a control flow graph of basic blocks.  Each basic block contains a sequence of statements, where the forms of statement are shown in Figure~\ref{TODO}.  A basic block either has a single successor or a pair of successors.  In the latter case, an \emph{exit condition} over thread-private variables determines, at runtime, the successor to which control should flow on block exit.
+We consider a concurrent programming model in which an unbounded number of threads execute a set of pre-defined \emph{thread templates}.  In the context of device drivers, a thread template corresponds to a driver entry point.  At any given point of execution a certain number of threads are active, each thread executing a particular template.  As in the case of drivers, where multiple distinct entry points as well as multiple instances of the same entry point may run concurrently, two distinct threads in our model may execute according to the same template or according to different templates.  Further threads may be launched at any point during execution, just as in the context of device drivers where the OS may invoke additional driver entry points.
+
+A \emph{concurrent program} is described by a finite set of \emph{shared} variables, $\sharedvars$, a finite set of mutexes, $\mutexes$, and a finite set of thread templates, $T_1,\dots,T_n$ (for some $n > 0$).  A thread template, $T$, is described by a finite set of procedures, $\procedures{T}$, and a finite set of thread-private variables, $\variables{T}$.  A designated procedure, procedure $\mainforthread{T} \in \procedures{T}$, denotes the starting point for execution of a template by a thread.  A procedure $P \in \procedures{T}$ is represented by a control flow graph of basic blocks, where each block contains a sequence of statements.  A basic block either has a single successor or a pair of successors.  In the latter case, an \emph{exit condition} over thread-private variables determines, at runtime, the successor to which control should flow on block exit.
+
+The forms of statements are shown in Figure~\ref{fig:statements}, and include designated statements for reading from and writing to shared variables.  In particular, shared variables may not appear in arbitrary expressions.  This restriction simplifies our presentation of lockset instrumentation, and a program that does not satisfy this restriction can be trivially pre-processed into one that does through the introduction of additional private temporaries to record values read from the shared state.  We do not specify the form of expressions, nor the types of variables, assuming a standard set of data types and operations.
+
 
 \begin{figure}
 \begin{tabular}{lp{5.5cm}}
@@ -33,10 +38,18 @@ $\mutexunlock{m};$ & mutex unlock, where $m \in \mutexes$
 \caption{Forms of statements in our simple programming model}\label{fig:statements}
 \end{figure}
 
-\ADComment{Need to say something clear, but intuitive rather than precise, about the semantics.  Must say what a data race is.  Must address the weak memory issue.}
+
+\ADComment{Say something clear, but intuitive rather than precise, about the semantics.}
+
+\paragraph{Data races}
+
+\ADComment{Say what a data race is, and address the weak memory issue.}
 
 
-\paragraph{Instrumentation}
+\paragraph{Lockset instrumentation}
+
+
+
 
 \begin{figure}
 \begin{tabular}{ll}
