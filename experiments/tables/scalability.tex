@@ -1,26 +1,29 @@
 & \textbf{\whoop}
-& \multicolumn{3}{c}{\textbf{\corral}}
-& \multicolumn{6}{c}{\textbf{\whoop + \corral}}\\
+& \multicolumn{4}{c}{\textbf{\corral}}
+& \multicolumn{8}{c}{\textbf{\whoop + \corral}}\\
 \cmidrule(lr){2-2}
-\cmidrule(lr){3-5}
-\cmidrule(lr){6-11}
+\cmidrule(lr){3-6}
+\cmidrule(lr){7-14}
 
 & \multirow{2}{*}{\textbf{Time}}
-& \multicolumn{3}{c}{\textbf{\yieldall\xspace --- Time (sec)}}
-& \multicolumn{3}{c}{\textbf{\yieldcoarse\xspace --- Time (sec)}}
-& \multicolumn{3}{c}{\textbf{\yieldmr\xspace --- Time (sec)}}\\
-\cmidrule(lr){3-5}
-\cmidrule(lr){6-8}
-\cmidrule(lr){9-11}
+& \multicolumn{4}{c}{\textbf{\yieldall\xspace --- Time (sec)}}
+& \multicolumn{4}{c}{\textbf{\yieldcoarse\xspace --- Time (sec)}}
+& \multicolumn{4}{c}{\textbf{\yieldmr\xspace --- Time (sec)}}\\
+\cmidrule(lr){3-6}
+\cmidrule(lr){7-10}
+\cmidrule(lr){11-14}
 
 \textbf{Benchmarks}
 & \textbf{\textbf{(sec)}}
+& \multicolumn{1}{r}{\textbf{\#Y}}
 & \multicolumn{1}{r}{\textbf{csb = 2}}
 & \multicolumn{1}{r}{\textbf{csb = 5}}
 & \multicolumn{1}{r}{\textbf{csb = 9}}
+& \multicolumn{1}{r}{\textbf{\#Y}}
 & \multicolumn{1}{r}{\textbf{csb = 2}}
 & \multicolumn{1}{r}{\textbf{csb = 5}}
 & \multicolumn{1}{r}{\textbf{csb = 9}}
+& \multicolumn{1}{r}{\textbf{\#Y}}
 & \multicolumn{1}{r}{\textbf{csb = 2}}
 & \multicolumn{1}{r}{\textbf{csb = 5}}
 & \multicolumn{1}{r}{\textbf{csb = 9}}\\[0.3em]
@@ -29,153 +32,192 @@
 
 generic\_nvram
 & \multicolumn{1}{r}{2.6}
-& \multicolumn{1}{r}{29.0}
-& \multicolumn{1}{r}{39.2}
-& \multicolumn{1}{r}{158.8}
+& \multicolumn{1}{r}{615}
+& \multicolumn{1}{r}{32.0}
+& \multicolumn{1}{r}{67.7}
+& \multicolumn{1}{r}{3555.4}
+& \multicolumn{1}{r}{47}
 & \multicolumn{1}{r}{17.7}
 & \multicolumn{1}{r}{24.2}
 & \multicolumn{1}{r}{132.1}
+& \multicolumn{1}{r}{29}
 & \multicolumn{1}{r}{13.5}
 & \multicolumn{1}{r}{16.9}
 & \multicolumn{1}{r}{49.3}\\
 
 pc8736x\_gpio
 & \multicolumn{1}{r}{4.7}
-& \multicolumn{1}{r}{156.7}
-& \multicolumn{1}{r}{507.8}
+& \multicolumn{1}{r}{3379}
+& \multicolumn{1}{r}{167.7}
+& \multicolumn{1}{r}{333.2}
 & \multicolumn{1}{r}{22656.5}
+& \multicolumn{1}{r}{500}
 & \multicolumn{1}{r}{92.2}
 & \multicolumn{1}{r}{432.4}
 & \multicolumn{1}{r}{22556.0}
-& \multicolumn{1}{r}{41.0}
+& \multicolumn{1}{r}{167}
+& \multicolumn{1}{r}{41.3}
 & \multicolumn{1}{r}{79.4}
 & \multicolumn{1}{r}{1343.2}\\
 
 machzwd
 & \multicolumn{1}{r}{3.0}
+& \multicolumn{1}{r}{333}
 & \multicolumn{1}{r}{37.9}
 & \multicolumn{1}{r}{45.6}
 & \multicolumn{1}{r}{78.4}
+& \multicolumn{1}{r}{51}
 & \multicolumn{1}{r}{26.1}
 & \multicolumn{1}{r}{31.2}
 & \multicolumn{1}{r}{55.2}
+& \multicolumn{1}{r}{22}
 & \multicolumn{1}{r}{15.7}
 & \multicolumn{1}{r}{17.3}
 & \multicolumn{1}{r}{23.9}\\
 
 ssu100
 & \multicolumn{1}{r}{3.1}
+& \multicolumn{1}{r}{694}
 & \multicolumn{1}{r}{11.1}
 & \multicolumn{1}{r}{13.8}
 & \multicolumn{1}{r}{37.3}
+& \multicolumn{1}{r}{\xmark}
 & \multicolumn{1}{r}{3.1}
 & \multicolumn{1}{r}{3.1}
 & \multicolumn{1}{r}{3.2}
+& \multicolumn{1}{r}{\xmark}
 & \multicolumn{1}{r}{3.1}
 & \multicolumn{1}{r}{3.1}
 & \multicolumn{1}{r}{3.1}\\
 
 intel\_scu\_wd
 & \multicolumn{1}{r}{2.8}
+& \multicolumn{1}{r}{808}
 & \multicolumn{1}{r}{22.8}
 & \multicolumn{1}{r}{130.3}
 & \multicolumn{1}{r}{1571.7}
+& \multicolumn{1}{r}{217}
 & \multicolumn{1}{r}{14.7}
 & \multicolumn{1}{r}{70.0}
 & \multicolumn{1}{r}{748.0}
+& \multicolumn{1}{r}{196}
 & \multicolumn{1}{r}{13.5}
 & \multicolumn{1}{r}{66.1}
 & \multicolumn{1}{r}{689.3}\\
 
 ds1286
 & \multicolumn{1}{r}{}
+& \multicolumn{1}{r}{308}
 & \multicolumn{1}{r}{35.0}
 & \multicolumn{1}{r}{40.2}
 & \multicolumn{1}{r}{51.8}
+& \multicolumn{1}{r}{183}
 & \multicolumn{1}{r}{22.3}
 & \multicolumn{1}{r}{25.7}
 & \multicolumn{1}{r}{33.0}
+& \multicolumn{1}{r}{114}
 & \multicolumn{1}{r}{14.5}
 & \multicolumn{1}{r}{16.1}
 & \multicolumn{1}{r}{19.3}\\
 
 dtlk
 & \multicolumn{1}{r}{}
+& \multicolumn{1}{r}{2524}
 & \multicolumn{1}{r}{182.6}
 & \multicolumn{1}{r}{263.7}
 & \multicolumn{1}{r}{793.0}
+& \multicolumn{1}{r}{664}
 & \multicolumn{1}{r}{91.2}
 & \multicolumn{1}{r}{150.7}
 & \multicolumn{1}{r}{633.2}
+& \multicolumn{1}{r}{286}
 & \multicolumn{1}{r}{41.6}
 & \multicolumn{1}{r}{52.9}
 & \multicolumn{1}{r}{104.6}\\
 
 fs3270
 & \multicolumn{1}{r}{}
+& \multicolumn{1}{r}{1385}
 & \multicolumn{1}{r}{77.5}
 & \multicolumn{1}{r}{438.8}
 & \multicolumn{1}{r}{}
+& \multicolumn{1}{r}{239}
 & \multicolumn{1}{r}{62.6}
 & \multicolumn{1}{r}{405.7}
 & \multicolumn{1}{r}{}
+& \multicolumn{1}{r}{211}
 & \multicolumn{1}{r}{40.7}
 & \multicolumn{1}{r}{295.3}
 & \multicolumn{1}{r}{}\\
 
 gdrom
 & \multicolumn{1}{r}{}
+& \multicolumn{1}{r}{}
 & \multicolumn{1}{r}{388.0}
 & \multicolumn{1}{r}{390.8}
 & \multicolumn{1}{r}{392.1}
+& \multicolumn{1}{r}{}
 & \multicolumn{1}{r}{104.0}
 & \multicolumn{1}{r}{105.5}
 & \multicolumn{1}{r}{107.1}
+& \multicolumn{1}{r}{}
 & \multicolumn{1}{r}{99.2}
 & \multicolumn{1}{r}{102.4}
 & \multicolumn{1}{r}{107.6}\\
 
 swim
 & \multicolumn{1}{r}{}
+& \multicolumn{1}{r}{5268}
 & \multicolumn{1}{r}{271.0}
 & \multicolumn{1}{r}{}
 & \multicolumn{1}{r}{}
+& \multicolumn{1}{r}{732}
 & \multicolumn{1}{r}{164.9}
 & \multicolumn{1}{r}{}
 & \multicolumn{1}{r}{}
+& \multicolumn{1}{r}{565}
 & \multicolumn{1}{r}{95.5}
 & \multicolumn{1}{r}{}
 & \multicolumn{1}{r}{}\\
 
 intel\_nfcsim
 & \multicolumn{1}{r}{}
+& \multicolumn{1}{r}{3444}
 & \multicolumn{1}{r}{39.8}
 & \multicolumn{1}{r}{85.0}
 & \multicolumn{1}{r}{1539.9}
+& \multicolumn{1}{r}{302}
 & \multicolumn{1}{r}{44.4}
 & \multicolumn{1}{r}{89.6}
 & \multicolumn{1}{r}{1,543.4}
+& \multicolumn{1}{r}{178}
 & \multicolumn{1}{r}{21.0}
 & \multicolumn{1}{r}{32.0}
 & \multicolumn{1}{r}{278.0}\\
 
 ps3vram
 & \multicolumn{1}{r}{}
+& \multicolumn{1}{r}{491}
 & \multicolumn{1}{r}{99.6}
 & \multicolumn{1}{r}{1816.7}
 & \multicolumn{1}{r}{}
+& \multicolumn{1}{r}{108}
 & \multicolumn{1}{r}{96.2}
 & \multicolumn{1}{r}{1807.3}
 & \multicolumn{1}{r}{}
+& \multicolumn{1}{r}{102}
 & \multicolumn{1}{r}{55.8}
 & \multicolumn{1}{r}{1834.6}
 & \multicolumn{1}{r}{}\\
 
 sonypi
 & \multicolumn{1}{r}{}
+& \multicolumn{1}{r}{11740}
+& \multicolumn{1}{r}{1966.5}
 & \multicolumn{1}{r}{}
 & \multicolumn{1}{r}{}
-& \multicolumn{1}{r}{}
+& \multicolumn{1}{r}{1351}
+& \multicolumn{1}{r}{1924.4}
 & \multicolumn{1}{r}{}
 & \multicolumn{1}{r}{}
 & \multicolumn{1}{r}{}
@@ -186,35 +228,44 @@ sonypi
 sx8
 & \multicolumn{1}{r}{}
 & \multicolumn{1}{r}{}
+& \multicolumn{1}{r}{14.4}
+& \multicolumn{1}{r}{23.5}
+& \multicolumn{1}{r}{699.8}
 & \multicolumn{1}{r}{}
+& \multicolumn{1}{r}{16.1}
+& \multicolumn{1}{r}{18.5}
+& \multicolumn{1}{r}{24.6}
 & \multicolumn{1}{r}{}
-& \multicolumn{1}{r}{}
-& \multicolumn{1}{r}{}
-& \multicolumn{1}{r}{}
-& \multicolumn{1}{r}{}
-& \multicolumn{1}{r}{}
-& \multicolumn{1}{r}{}\\
+& \multicolumn{1}{r}{15.9}
+& \multicolumn{1}{r}{18.5}
+& \multicolumn{1}{r}{24.3}\\
 
 8139too
 & \multicolumn{1}{r}{}
 & \multicolumn{1}{r}{}
+& \multicolumn{1}{r}{548.2}
+& \multicolumn{1}{r}{2423.4}
+& \multicolumn{1}{r}{12726.3}
+& \multicolumn{1}{r}{}
+& \multicolumn{1}{r}{474.7}
 & \multicolumn{1}{r}{}
 & \multicolumn{1}{r}{}
 & \multicolumn{1}{r}{}
-& \multicolumn{1}{r}{}
-& \multicolumn{1}{r}{}
-& \multicolumn{1}{r}{}
+& \multicolumn{1}{r}{359.8}
 & \multicolumn{1}{r}{}
 & \multicolumn{1}{r}{}\\
 
 r8169
 & \multicolumn{1}{r}{228.1}
+& \multicolumn{1}{r}{}
 & \multicolumn{1}{r}{T.O.}
 & \multicolumn{1}{r}{T.O.}
 & \multicolumn{1}{r}{T.O.}
+& \multicolumn{1}{r}{}
 & \multicolumn{1}{r}{28755.2}
 & \multicolumn{1}{r}{T.O.}
 & \multicolumn{1}{r}{T.O.}
+& \multicolumn{1}{r}{}
 & \multicolumn{1}{r}{26939.4}
 & \multicolumn{1}{r}{T.O.}
 & \multicolumn{1}{r}{T.O.}\\

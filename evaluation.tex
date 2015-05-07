@@ -14,9 +14,10 @@
 \begin{table*}[t]
 \small
 \centering
-\caption{Runtime comparison with different yield instrumentation granularities and context-switch bounds.}
+\setlength{\tabcolsep}{0.5em}
+\caption{Comparison with different yield instrumentation granularities and context-switch bounds.}
 \label{tab:results}
-\begin{tabular}{l rrr rrr rr r r}
+\begin{tabular}{l r rrrr rrrr rrrr}
 \centering
 \input{experiments/tables/scalability.tex}
 \end{tabular}
@@ -40,7 +41,7 @@ Most of the data races that \whoop and \corral found can be classified in two ca
 It is worthwhile to mention that we did not discover any additional data races with larger context switch bounds. This might mean that most races in these drivers require only a small amount of context-switches to manifest, or that \corral run out of resources before discovering the deeper bug.
 
 \noindent
-\textbf{Granularity of Context-Switches}\xspace\xspace Table~\ref{tab:results} presents runtime results from using \whoop, \corral and \whoop + \corral to analyze our benchmarks. All reported times are in seconds and averages of three runs. \corral was given a time budget of 8 hours (T.O. denotes a tool timeout) and a context-switch bound (csb) of 2, 5 and 9. By default, \corral instruments context-switches (i.e. \texttt{yield}) in all visible operations (denoted by \yieldall in the table). \whoop + \corral, instead, uses two different context-switch instrumentation granularities (see Section~\ref{whoop:bugfinding}): \yieldcoarse and \yieldmr.
+\textbf{Granularity of Context-Switches}\xspace\xspace Table~\ref{tab:results} presents runtime results from using \whoop, \corral and \whoop + \corral to analyze our benchmarks. All reported times are in seconds and averages of three runs. \corral was given a time budget of 8 hours (T.O. denotes a tool timeout) and a context-switch bound (csb) of 2, 5 and 9. By default, \corral instruments context-switches (i.e. \texttt{yield}) in all visible operations (denoted by \yieldall in the table). \whoop + \corral, instead, uses two different context-switch instrumentation granularities, \yieldcoarse and \yieldmr (see Section~\ref{whoop:bugfinding}), and also uses all the optimisations discussed in Section~\ref{whoop:optimizations}.
 
 A higher context switch bound results into deeper interleavings being explored and thus a larger sequentialized program. Intuitively, this means that we see even greater speedups using information from \whoop, when exploring deeper interleavings.
 

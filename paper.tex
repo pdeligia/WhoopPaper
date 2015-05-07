@@ -386,7 +386,7 @@
 %
 % paper title
 % can use linebreaks \\ within to get better formatting as desired
-\title{Fast and Precise Static Analysis of \\ Concurrency Bugs in Device Drivers}
+\title{Fast and Precise Symbolic Analysis of \\ Concurrency Bugs in Device Drivers}
 
 % author names and affiliations
 % use a multiple column layout for up to three different
@@ -447,7 +447,7 @@ emphstyle=\bfseries}
 \maketitle
 
 \begin{abstract}
-Device drivers are notoriously hard to develop and even harder to debug. This has a negative impact in hardware product releases, as time-to-market is commonly dominated by driver development, verification and validation schedules. Even after a driver has shipped, it is typically prone to many serious issues such as data races. In this paper, we present \whoop, a new automatic approach that statically analyzes drivers for data races. \whoop is empowered by \emph{static pairwise lockset analysis}, a novel analysis that can soundly detect all \emph{potential} data races in a driver. Our analysis avoids reasoning about thread interleavings and thus can scale well. Exploiting the race-freedom guarantees provided by our analysis, we achieve a sound partial-order reduction that can significantly accelerate \corral, a state-of-the-art precise bug-finder for concurrent programs. Using \whoop we analyzed \sizeOfBenchmarks drivers available in the 4.0 Linux kernel distribution, showing that our approach is efficient for race-checking.
+Device drivers are notoriously hard to develop and even harder to debug. This has a negative impact in hardware product releases, as time-to-market is commonly dominated by driver development, verification and validation schedules. Even after a driver has shipped, it is typically prone to many serious issues such as data races. In this paper, we present \whoop, a new automatic approach that statically analyzes drivers for data races. \whoop is empowered by \emph{symbolic pairwise lockset analysis}, a novel analysis that can soundly detect all potential data races in a driver. Our analysis avoids reasoning about thread interleavings and thus can scale well. Exploiting the race-freedom guarantees provided by our analysis, we achieve a sound partial-order reduction that can significantly accelerate \corral, a state-of-the-art precise bug-finder for concurrent programs. Using \whoop we analyzed \sizeOfBenchmarks drivers from the 4.0 Linux kernel distribution, showing that our approach is efficient for race-checking.
 \end{abstract}
 
 % IEEEtran.cls defaults to using nonbold math in the Abstract.
