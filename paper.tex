@@ -443,6 +443,22 @@ emph={mutex_lock, mutex_unlock},
 emphstyle=\bfseries}
 
 
+\newcommand{\sharedvars}{V_s}
+\newcommand{\mutexes}{M}
+\newcommand{\procedures}[1]{\mathit{procs}_{#1}}
+\newcommand{\variables}[1]{V_{#1}}
+\newcommand{\mainforthread}[1]{\mathit{main}_{#1}}
+\newcommand{\mutexlock}[1]{\mathsf{lock}(#1)}
+\newcommand{\mutexunlock}[1]{\mathsf{unlock}(#1)}
+\newcommand{\instrument}[2]{#1_{#2}}
+\newcommand{\hasbeenwritten}[1]{\mathit{W}_{#1}}
+\newcommand{\hasbeenread}[1]{\mathit{R}_{#1}}
+\newcommand{\lockset}[2]{\mathit{LS}_{#1,#2}}
+\newcommand{\currentlockset}[1]{\mathit{CLS}_{#1}}
+\newcommand{\havoc}[1]{\mathsf{havoc}({#1})}
+
+
+
 % make the title area
 \maketitle
 

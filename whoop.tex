@@ -14,6 +14,49 @@ We demonstrate in Section~\ref{ } both that the Whoop technique and tool has val
 
 \ADComment{Second, let's introduce some notation to describe the thing more formally.}
 
+We present our approach in a semi-formal manner, in the context of the following simple concurrent programming model.  For ease of presentation only, the model does not features aggregate data types, pointers or dynamic memory allocation.  These \emph{are} handled by our implementation, and in \ADComment{TODO} we discuss interesting practical issues arising from the handling of a full-blown language.  \ADComment{I want to say that we do not treat dynamic thread creation because driver threads do not create further driver threads.  However, I am not sure (a) whether this is true, nor (b) whether even if it is true it would be a problem for us.}
+
+\paragraph{Simple concurrent programming model}
+
+A \emph{concurrent program} is described by a finite set of \emph{shared} variables, $\sharedvars$, a finite set of mutexes, $\mutexes$, and a finite set of threads, $T_1,\dots,T_n$ (for some $n > 0$).  A thread, $T$, is described by a finite set of procedures, $\procedures{T}$, and a finite set of thread-private variables, $\variables{T}$.  Thread execution commences from a designated procedure $\mainforthread{T} \in \procedures{T}$.  A procedure $P \in \procedures{T}$ is represented by a control flow graph of basic blocks.  Each basic block contains a sequence of statements, where the forms of statement are shown in Figure~\ref{TODO}.  A basic block either has a single successor or a pair of successors.  In the latter case, an \emph{exit condition} over thread-private variables determines, at runtime, the successor to which control should flow on block exit.
+
+\begin{figure}
+\begin{tabular}{lp{5.5cm}}
+\textbf{Statement form} & \textbf{Notes} \\\hline
+$x = e;$ & private assignment, where $x \in \variables{T}$ and $e$ is an expression over $\variables{T}$ \\\hline
+$x = f(\overline{e});$ & procedure call, where $x \in \variables{T}$, $\overline{e}$ is a sequence of expressions over $\variables{T}$, $f$ is the name of a procedure in $\procedures{T}$ \\\hline
+$s = e;$ & shared write, where $s \in \sharedvars$ and $e$ is an expression over $\variables{T}$ \\\hline
+$x = s;$ & shared read,  where $x \in \variables{T}$ and $s \in \sharedvars$ \\\hline
+$\mutexlock{m};$   & mutex lock, where $m \in \mutexes$ \\\hline
+$\mutexunlock{m};$ & mutex unlock, where $m \in \mutexes$
+\end{tabular}
+\caption{Forms of statements in our simple programming model}\label{fig:statements}
+\end{figure}
+
+\ADComment{Need to say something clear, but intuitive rather than precise, about the semantics.  Must say what a data race is.  Must address the weak memory issue.}
+
+
+\paragraph{Instrumentation}
+
+\begin{figure}
+\begin{tabular}{ll}
+\textbf{Original statement} & \textbf{Instrumented statement} \\\hline
+$x = e;$                & $\instrument{x}{i} = \instrument{e}{i}$;  \\\hline
+$x = f(\overline{e});$ & $\instrument{x}{i} = \instrument{f}{i}(\instrument{\overline{e}}{i});$ \\\hline
+$s = e;$ & $\hasbeenwritten{i} = \hasbeenwritten{i} \cup \{ s \};$ \\
+         & $\lockset{s}{i} = \lockset{s}{i} \cap \currentlockset{i};$ \\\hline
+$x = s;$ & $\hasbeenread{i} = \hasbeenread{i} \cup \{ s \};$ \\
+         & $\lockset{s}{i} = \lockset{s}{i} \cap \currentlockset{i};$ \\
+         & $\havoc{\instrument{x}{i}};$ \\\hline
+$\mutexlock{m};$   & $\currentlockset{i} = \currentlockset{i} \cup \{ m \};$ \\\hline
+$\mutexunlock{m};$ & $\currentlockset{i} = \currentlockset{i} \setminus \{ m \};$ \\\hline
+\end{tabular}
+\caption{Instrumenting statements for static lockset analysis}\label{fig:instrumentation}
+\end{figure}
+
+
+
+
 \ADComment{Finally, try to set up some kind of theorem giving the guarantee we think we have.}
 
 
