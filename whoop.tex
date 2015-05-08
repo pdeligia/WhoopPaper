@@ -13,17 +13,52 @@ Our experimental evaluation (Section~\ref{evaluation}) demonstrates that the Who
 
 \subsection{Symbolic pairwise lockset analysis}\label{sec:symbolicpairwise}
 
-In short, symbolic pairwise lockset analysis works by considering, for a given device driver, every pair of entry points that can potentially execute concurrently.  For each such pair, we use symbolic verification to check whether it is possible for the pair to race, accounting for the effects of additional entry points by treating the driver shared state abstractly so that when an entry point reads from the shared state, a nondeterministic value is returned.  Symbolic verification of an entry point pair works by instrumenting each entry point with additional state to record locksets (see Section~\ref{bg:lockset}), and attempting to verify a sequential program that executes the instrumented entry points in sequence, and subsequently asserts that the lockset for each shared variable is non-empty.  Verification of the resulting sequential program can be undertaken using any sound method; in practice we employ the Boogie verification engine, which requires procedure specifications and loop invariants to be generated, after which verification conditions are generated and discharged to an automated theorem prover.
+Symbolic pairwise lockset analysis works by considering, for a given device driver, every pair of entry points that can potentially execute concurrently.  For each such pair, we use symbolic verification to check whether it is possible for the pair to race, accounting for the effects of additional entry points by treating the driver shared state abstractly so that when an entry point reads from the shared state, a nondeterministic value is returned.  Symbolic verification of an entry point pair works by instrumenting each entry point with additional state to record locksets (see Section~\ref{bg:lockset}), and attempting to verify a sequential program that executes the instrumented entry points in sequence, and subsequently asserts that the lockset for each shared variable is non-empty.  Verification of the resulting sequential program can be undertaken using any sound method; in practice we employ the Boogie verification engine~\cite{barnett2006boogie}, which requires procedure specifications and loop invariants to be generated, after which verification conditions are generated and discharged to an automated theorem prover.
 
 We now detail the approach in a semi-formal manner, in the context of a simple concurrent programming model.
 
-\paragraph{A simple concurrent programming model}
+\medskip\noindent\textbf{Concurrent programming model }
+%
+We consider a simple concurrent programming model in which an
+unbounded number of threads execute a set of pre-defined \emph{thread
+  templates}.  At any given point of execution a certain number of
+threads are active, each thread executing a particular template.  In
+the context of device drivers, a thread template corresponds to a
+driver entry point, and multiple instances of the same thread template
+may execute concurrently, just as multiple invocations of a single
+driver entry point may be concurrent.  Further threads may be launched
+at any point during execution; in the context of device drivers this
+corresponds to the OS invoking additional driver entry points.  For
+ease of presentation only, our model does not feature aggregate data
+types, pointers or dynamic memory allocation.  These \emph{are}
+handled by our implementation, and in
+Section~\ref{sec:whoopimplementation} we discuss interesting practical
+issues arising from the handling of a full-blown language.
 
-We consider a concurrent programming model in which an unbounded number of threads execute a set of pre-defined \emph{thread templates}.  In the context of device drivers, a thread template corresponds to a driver entry point.  At any given point of execution a certain number of threads are active, each thread executing a particular template.  As in the case of drivers, where multiple distinct entry points as well as multiple instances of the same entry point may run concurrently, two distinct threads in our model may execute according to the same template or according to different templates.  Further threads may be launched at any point during execution, just as in the context of device drivers where the OS may invoke additional driver entry points.  For ease of presentation only, our model does not feature aggregate data types, pointers or dynamic memory allocation.  These \emph{are} handled by our implementation, and in Section~\ref{sec:whoopimplementation} we discuss interesting practical issues arising from the handling of a full-blown language.
+A \emph{concurrent program} is described by a finite set of
+\emph{shared} variables, $\sharedvars$, a finite set of mutexes,
+$\mutexes$, and a finite set of \emph{thread templates}.  A thread
+template, $T$, consists of a finite set of procedures,
+$\procedures{T}$, and a finite set of private variables,
+$\variables{T}$.  A designated procedure, procedure $\mainforthread{T}
+\in \procedures{T}$, denotes the starting point for execution of a
+template by a thread.  A procedure $P \in \procedures{T}$ is
+represented by a control flow graph of basic blocks, where each block
+contains a sequence of statements.  A basic block either has a single
+successor or a pair of successors.  In the latter case, an \emph{exit
+  condition} over thread-private variables determines, at runtime, the
+successor to which control should flow on block exit.
 
-A \emph{concurrent program} is described by a finite set of \emph{shared} variables, $\sharedvars$, a finite set of mutexes, $\mutexes$, and a finite set of thread templates, $T_1,\dots,T_n$ (for some $n > 0$).  A thread template, $T$, is described by a finite set of procedures, $\procedures{T}$, and a finite set of thread-private variables, $\variables{T}$.  A designated procedure, procedure $\mainforthread{T} \in \procedures{T}$, denotes the starting point for execution of a template by a thread.  A procedure $P \in \procedures{T}$ is represented by a control flow graph of basic blocks, where each block contains a sequence of statements.  A basic block either has a single successor or a pair of successors.  In the latter case, an \emph{exit condition} over thread-private variables determines, at runtime, the successor to which control should flow on block exit.
-
-The forms of statements are shown in Figure~\ref{fig:statements}, and include designated statements for reading from and writing to shared variables.  In particular, shared variables may not appear in arbitrary expressions.  This restriction simplifies our presentation of lockset instrumentation, and a program that does not satisfy this restriction can be trivially pre-processed into one that does through the introduction of additional private temporaries to record values read from the shared state.  We do not specify the form of expressions, nor the types of variables, assuming a standard set of data types and operations.
+The forms of statements are shown in Figure~\ref{fig:statements}, and
+include designated statements for reading from and writing to shared
+variables.  In particular, shared variables may not appear in
+arbitrary expressions.  This restriction simplifies our presentation
+of lockset instrumentation, below, and a program that does not satisfy
+this restriction can be trivially pre-processed into one that does
+through the introduction of additional private temporaries to record
+values read from the shared state.  We do not specify the form of
+expressions, nor the types of variables, assuming a standard set of
+data types and operations.
 
 
 \begin{figure}
@@ -39,16 +74,56 @@ $\mutexunlock{m};$ & mutex unlock, where $m \in \mutexes$
 \caption{Forms of statements in our simple programming model}\label{fig:statements}
 \end{figure}
 
+\medskip\noindent\textbf{Semantics} Let $\ids$ be an infinite set from
+which dynamic thread ids will be drawn.  The state of a running
+concurrent program consists of: a valuation of the shared variables,
+$\sharedvars$; a mapping that associates each mutex in $\mutexes$ with
+an id from $\ids$, recording which thread currently holds the mutex,
+or with a special value $\bot \notin \ids$ to indicate that the
+mutex is not held by any thread; a list of \emph{threads}.  Each
+thread consists of an id, drawn from $\ids$, a thread template, $T$,
+an index indicating the next statement of the template $T$ to be
+executed by the thread, and a valuation of the thread private
+variables, $\variables{T}$.  If multiple threads are instances of the
+same template $T$, then each thread carries a \emph{separate}
+valuation of the private variables for this template.
 
-\ADComment{Say something clear, but intuitive rather than precise, about the semantics.}
+At the start of execution the valuation of shared variables is
+arbitrary, no mutexes are held (i.e.\ each mutex maps to $\bot$),
+and the list of threads is empty.
 
-\paragraph{Data races}
+At any point of execution, a new thread may be added to the list of
+thread states.  This involves selecting an id $i \in \ids$ that has
+not been previously used during program execution and a thread
+template $T$, setting the point of execution for the new thread to be
+the first statement of $\mainforthread{T}$, and choosing an arbitrary
+valuation for the private variables $\variables{T}$.
 
-\ADComment{Say what a data race is, and address the weak memory issue.}
+We consider a standard interleaving model of concurrency: at any
+execution point, a thread may execute its current statement, unless
+that statement has the form $\mutexlock(m)$ and mutex $m$ is already held
+by some thread.  Executing a statement causes the state of the thread,
+and the shared state, to be updated in a standard manner.  For
+example, if a thread following template $T$ executes $s = e$, where $s
+\in \sharedvars$ and $e$ is an expression over $\variables{T}$, the
+shared variable valuation is updated so that $s$ has the value
+determined by evaluating $e$ in the context of the thread's private
+variable valuation.  The thread's next statement is updated according
+to the control flow graph of the current procedure.
 
+A thread terminates if it reaches the end of $\mainforthread{T}$; in this
+case the thread is removed from the list of threads.  Because we are
+interested in the analysis of device drivers, which are
+\emph{reactive} concurrent programs, we do not consider the notion of
+global program termination.
 
-\paragraph{Lockset instrumentation}
+\medskip\noindent\textbf{Data races } \ADComment{We now need to define
+what a data race is.  This could be done using happens-before.  I am undecided as to whether
+we should refer back to the happens-before material in the background section, or whether
+we should move that material here, so that we explain what happens-before means, and then
+explain what a data races is.  My preference is for the latter: doing it all here.}
 
+\medskip\noindent\textbf{Lockset instrumentation} \ADComment{This is as far as I have gotten with the writing.  I now want to explain formally and somewhat abstractly how our lockset instrumentation works.}
 
 
 
