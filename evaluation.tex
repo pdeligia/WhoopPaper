@@ -23,6 +23,20 @@
 \end{tabular}
 \end{table*}
 
+\begin{figure}
+\centering
+\includegraphics[width=.99\linewidth]{experiments/figures/yieldmr_vs_yieldall.pdf}
+\caption{draft}
+\label{fig:plot1}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=.99\linewidth]{experiments/figures/correlation.pdf}
+\caption{draft}
+\label{fig:plot2}
+\end{figure}
+
 We performed experiments to validate the usefulness of the \whoop approach (see Section~\ref{whoop}). We first present race-checking results from running \whoop and \corral on \sizeOfBenchmarks drivers taken from the 4.0 Linux kernel distribution\footnote{https://www.kernel.org}. We then evaluate the runtime performance and scalability of \corral and \whoop + \corral with different yield instrumentation granularities and context-switch bounds, to show that \whoop can efficiently accelerate bug-finding with \corral.
 
 \noindent
