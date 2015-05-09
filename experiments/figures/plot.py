@@ -29,7 +29,7 @@ y2 = [197.5, 36000, 78.4, 37.3   , 51.8, 793.0,   392.1, 36000, 1539.9,         
 
 # setup a figure
 pp = PdfPages(OUTPUT)
-fig, ax = plt.subplots(figsize=(8,8))
+fig, ax = plt.subplots(figsize=(6,6))
 
 # plot the data (csb = 2)
 ax.scatter(x0, y0, s=80, color='b', zorder = 10, marker='$2$', label='csb = 2')
