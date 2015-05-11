@@ -51,19 +51,19 @@ ax.plot(xyline, xyline, 'k--')
 
 x2sp = np.logspace(math.log(0.00425,10), math.log(20500,10))
 y2sp = np.logspace(math.log(0.0085,10), math.log(40000,10))
-ax.plot(x2sp, y2sp, 'm-.', label='2x speedup')
+ax.plot(x2sp, y2sp, 'c-.', label='2x speedup')
 
-x5sp = np.logspace(math.log(0.0017,10), math.log(8200,10))
-y5sp = np.logspace(math.log(0.0085,10), math.log(41000,10))
-ax.plot(x5sp, y5sp, 'c-.', label='5x speedup')
+# x5sp = np.logspace(math.log(0.0017,10), math.log(8200,10))
+# y5sp = np.logspace(math.log(0.0085,10), math.log(41000,10))
+# ax.plot(x5sp, y5sp, 'g-.', label='5x speedup')
 
 x10sp = np.logspace(math.log(0.00085,10), math.log(4100,10))
 y10sp = np.logspace(math.log(0.0085,10), math.log(41000,10))
-ax.plot(x10sp, y10sp, 'g-.', label='10x speedup')
+ax.plot(x10sp, y10sp, 'm-.', label='10x speedup')
 
-x20sp = np.logspace(math.log(0.000425,10), math.log(2050,10))
-y20sp = np.logspace(math.log(0.0085,10), math.log(41000,10))
-ax.plot(x20sp, y20sp, 'y-.', label='20x speedup')
+# x20sp = np.logspace(math.log(0.000425,10), math.log(2050,10))
+# y20sp = np.logspace(math.log(0.0085,10), math.log(41000,10))
+# ax.plot(x20sp, y20sp, 'y-.', label='20x speedup')
 
 # setup log scales
 ax.set_xscale('log')
