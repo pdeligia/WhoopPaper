@@ -47,50 +47,20 @@ $\mutexunlock{m};$ & mutex unlock, where $m \in \mutexes$\\
 \caption{Forms of statements in our simple programming model}\label{fig:statements}
 \end{figure}
 
-\medskip\noindent\textbf{Semantics} Let $\ids$ be an infinite set from
-which dynamic thread ids will be drawn.  The state of a running
-concurrent program consists of: a valuation of the shared variables,
-$\sharedvars$; a mapping that associates each mutex in $\mutexes$ with
-an id from $\ids$, recording which thread currently holds the mutex,
-or with a special value $\bot \notin \ids$ to indicate that the
-mutex is not held by any thread; a list of \emph{threads}.  Each
-thread consists of an id, drawn from $\ids$, a thread template, $T$,
-an index indicating the next statement of the template $T$ to be
-executed by the thread, and a valuation of the thread private
-variables, $\variables{T}$.  If multiple threads are instances of the
-same template $T$, then each thread carries a \emph{separate}
-valuation of the private variables for this template.
+\medskip\noindent\textbf{Semantics }
+%
+Let $\ids$ be an infinite set from which dynamic thread ids will be drawn.  The state of a running concurrent program consists of: a valuation of the shared variables, $\sharedvars$; a mapping that associates each mutex in $\mutexes$ with an id from $\ids$, recording which thread currently holds the mutex, or with a special value $\bot \notin \ids$ to indicate that the mutex is not held by any thread; and a list of \emph{threads}.  Each thread consists of an id, drawn from $\ids$, a thread template, $T$, an index indicating the next statement of $T$ to be executed by the thread, and a valuation of the thread private variables, $\variables{T}$.  If multiple threads are instances of the same template $T$, then each thread carries a \emph{separate} valuation of the private variables for this template.
 
-At the start of execution the valuation of shared variables is
-arbitrary, no mutexes are held (i.e.\ each mutex maps to $\bot$),
-and the list of threads is empty.
+At the start of execution the valuation of shared variables is arbitrary, no mutexes are held (i.e.\ each mutex maps to $\bot$), and the list of threads is empty.
 
-At any point of execution, a new thread may be added to the list of
-thread states.  This involves selecting an id $i \in \ids$ that has
-not been previously used during program execution and a thread
-template $T$, setting the point of execution for the new thread to be
-the first statement of $\mainforthread{T}$, and choosing an arbitrary
-valuation for the private variables $\variables{T}$.
+At any point of execution, a new thread may be added to the list of thread states.  This involves selecting an id $i \in \ids$ that has not been previously used during program execution and a thread template $T$, setting the point of execution for the new thread to be the first statement of $\mainforthread{T}$, and choosing an arbitrary valuation for the private variables $\variables{T}$.
 
-We consider a standard interleaving model of concurrency: at any
-execution point, a thread may execute its current statement, unless
-that statement has the form $\mutexlock{m}$ and mutex $m$ is already held
-by some thread.  Executing a statement causes the state of the thread,
-and the shared state, to be updated in a standard manner.  For
-example, if a thread following template $T$ executes $s = e$, where $s
-\in \sharedvars$ and $e$ is an expression over $\variables{T}$, the
-shared variable valuation is updated so that $s$ has the value
-determined by evaluating $e$ in the context of the thread's private
-variable valuation.  The thread's next statement is updated according
-to the control flow graph of the current procedure.
+We consider a standard interleaving model of concurrency: at any execution point, a thread may execute its current statement, unless that statement has the form $\mutexlock{m}$ and mutex $m$ is already held by some thread.  Executing a statement causes the state of the thread, and the shared state, to be updated in a standard manner.  For example, if a thread following template $T$ executes $s = e$, where $s \in \sharedvars$ and $e$ is an expression over $\variables{T}$, the shared variable valuation is updated so that $s$ has the value determined by evaluating $e$ in the context of the thread's private variable valuation.  The thread's next statement is updated \PDComment{Do you mean execute?} according to the control flow graph of the current procedure.
 
-A thread terminates if it reaches the end of $\mainforthread{T}$; in this
-case the thread is removed from the list of threads.  Because we are
-interested in the analysis of device drivers, which are
-\emph{reactive} concurrent programs, we do not consider the notion of
-global program termination.
+A thread terminates if it reaches the end of $\mainforthread{T}$; in this case the thread is removed from the list of threads.  Because we are interested in the analysis of device drivers, which are \emph{reactive} concurrent programs, we do not consider the notion of global program termination.
 
 \medskip\noindent\textbf{Lockset instrumentation }
+%
 Suppose that $S$ and $T$ are thread templates for a concurrent program, including the possibly that $S=T$.
 We wish to check whether it is possible for a thread that is an instance of $S$ to race with a thread that is
 an instance of $T$, in the presence of arbitrarily many further threads.
