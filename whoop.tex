@@ -146,7 +146,7 @@ The simple concurrent programming model discussed in Section~\ref{sec:symbolicpa
 
 \medskip\noindent\textbf{Architecture }
 %
-Figure~\ref{fig:whoop} depicts the \whoop toolchain. Initially, \whoop accepts a Linux driver written in C, together with an environmental model\footnote{Stub header files that model the Linux kernel APIs.} that is required to ``close'' the driver and allow it to be subsequently analyzed for data races. Both the driver and the Linux model are passed to the translation phase of \whoop (see Figure~\ref{fig:whoop} -- A), which uses three LLVM\footnote{\url{http://llvm.org}}-based tools, Chauffeur\footnote{\url{https://github.com/mc-imperial/chauffeur}}, Clang\footnote{\url{http://clang.llvm.org}} and SMACK\footnote{\url{https://github.com/smackers/smack}}~\cite{rakamaric2014smack}, to translate the original driver into an abstract program written in the Boogie intermediate verification language (IVL)~\cite{deline2005boogiepl}, a simple imperative language with well-defined verification-focused semantics that is used as the input to a number of cutting-edge verifiers (e.g. Boogie and \corral).
+Figure~\ref{fig:whoop} depicts the \whoop toolchain. Initially, \whoop accepts a Linux driver written in C, together with an environmental model\footnote{Stub header files that model the Linux kernel APIs.} that is required to ``close'' the driver and allow it to be subsequently analyzed for data races. Both the driver and the Linux model are passed to the translation phase of \whoop (see Figure~\ref{fig:whoop} -- A), which uses three LLVM\footnote{\url{http://llvm.org}}-based tools, Chauffeur\footnote{\url{https://github.com/mc-imperial/chauffeur}}, Clang\footnote{\url{http://clang.llvm.org}} and SMACK\footnote{\url{https://github.com/smackers/smack}}~\cite{rakamaric2014smack}, to translate the original driver into an abstract program written in the Boogie intermediate verification language (IVL)~\cite{deline2005boogiepl}, a simple imperative language with well-defined verification-focused semantics that is used as the input to a number of cutting-edge verifiers (e.g.\ Boogie and \corral).
 
 Next, \whoop instruments and sequentializes the program to perform symbolic pairwise lockset analysis (see Figure~\ref{fig:whoop} -- B and Section~\ref{sec:symbolicpairwise}) using the Boogie verification engine. After the verification phase ends, \whoop can exploit any inferred race-freedom guarantees to accelerate precise race-checking with \corral (see Figure~\ref{fig:whoop} -- C and Section~\ref{corral}).
 
@@ -173,30 +173,19 @@ The second task is to instrument the original driver with a function that calls 
 
 \medskip\noindent\textbf{Translation for Verification }
 %
-The rewritten driver is compiled by Clang to LLVM-IR~\cite{lattner2004llvm}, a low-level assembly-like language in single static assignment (SSA) form. Function calls (e.g. for locking and unlocking) are preserved in this translation, which is useful for our lockset instrumentation.
+The rewritten driver is compiled by Clang to LLVM-IR~\cite{lattner2004llvm}, a low-level assembly-like language in single static assignment (SSA) form. Function calls (e.g.\ for locking and unlocking) are preserved in this translation, which is useful for our lockset instrumentation.
 
 SMACK then translates the driver from LLVM-IR to Boogie IVL, which is the input language of \whoop. An important feature of SMACK is that it leverages the pointer-alias analyses of LLVM to efficiently model the heap manipulation operations of C programs in Boogie IVL. This means that \whoop does not need to directly deal with pointers and alias analysis, a hard problem on its own, allowing us to reuse proven existing techniques and focus instead on verification efforts.
 
-To achieve scalability, SMACK is using a split-memory model instead of a monolithic one that would be difficult for backend verifiers to reason about~\cite{rakamaric2009scalable}. This split memory model is based on \emph{memory regions}, which are maps of integers that model the heap. A benefit of using this model is that memory regions denote disjoint sections of the heap (i.e. pointers that cannot alias). We leverage this knowledge inside \whoop to guide and optimize our lockset instrumentation and analysis, and to create a fine-grained granularity of context-switch instrumentation as discussed in Section~\ref{corral}.
+To achieve scalability, SMACK is using a split-memory model instead of a monolithic one that would be difficult for backend verifiers to reason about~\cite{rakamaric2009scalable}. This split memory model is based on \emph{memory regions}, which are maps of integers that model the heap. A benefit of using this model is that memory regions denote disjoint sections of the heap (i.e.\ pointers that cannot alias). We leverage this knowledge inside \whoop to guide and optimize our lockset instrumentation and analysis, and to create a fine-grained granularity of context-switch instrumentation as discussed in Section~\ref{corral}.
 
-In reality, SMACK is unsound ... (e.g. integers), but for our work we assume it is sound.
+In reality, SMACK is unsound ... (e.g.\ integers), but for our work we assume it is sound.
 
 \medskip\noindent\textbf{Identifying Set of Locks }
 %
-\whoop performs a static analysis (on the Boogie IVL code) to identify all lock identifiers and rewrite them to a unique constant Boogie variable, e.g. the following call to \texttt{mutex\_lock()}:
+When the instrumentation phase begins, \whoop performs an inter-procedural static analysis (on the Boogie IVL source code of each entry point) to identify all available locks and rewrite each one (both at declaration and at all access sites) to a unique constant Boogie variable. The reason behind this transformation, is that representing all locks statically, instead of their original SMACK pointer-based representation, helps \whoop perform various internal instrumentation and optimization passes.
 
-\begin{boogie}
-call mutex_lock($p3);
-\end{boogie}
-
-Will be rewritten to:
-
-\begin{boogie}
-const {:lock} unique lock$0: int;
-call mutex_lock(lock$0);
-\end{boogie}
-
-If \whoop cannot infer a lock it will exit with a warning. A limitation of lockset analysis is that it cannot understand external locking mechanisms (\whoop currently only supports Linux kernel mutexes and spinlocks). It is relatively straightforward to enhance \whoop, though, with new locking primitives. \whoop will also exit with a warning if it detects ``improper'' use of locks (e.g. dynamic lock creation). The reason behind this is twofold: first, it is arguably infeasible to detect such locks using static analysis; and second, because we want to advocate the use of good locking practices when developing drivers for the Linux kernel.
+Currently, \whoop only supports mutexes and spinlocks from the Linux kernel APIs. However, it is relatively easy to enhance our tool with knowledge of other locking primitives. If \whoop cannot infer a lock, e.g. because it was created dynamically or was indexed from an array of locks, it will exit with a warning. The reason behind this is twofold: (i) it is arguably hard to detect such locks using static analysis; and (ii) we want to advocate the use of good locking practices when developing drivers for the Linux kernel.
 
 \ADComment{Explain how we avoid quantifiers in performing race analysis}
 
@@ -353,7 +342,7 @@ Early on during the development of \whoop, we realized that scalability would be
 
 Watchdog summarization uses the Houdini~\cite{flanagan2001houdini} invariant inference algorithm (available inside Boogie) to automatically compute summaries (pre- and post-conditions and loop invariants) from a pool of \emph{candidate} invariants. The reason we need loop invariants is that we over-approximate loops using loop-cutting (also available inside Boogie).
 
-The candidate invariants are based on the global variables that \whoop instruments to perform lockset analysis and race-checking (see Section~\ref{whoop:method}). The key idea behind watchdog summarization is that we automatically generate candidate invariants for each memory region in the granularity of watched accesses. This reduces the false positives from reporting errors if only e.g. a field in memory region \texttt{\$M.0} is racing, but the rest of the fields are not. An example of watchdog-based candidate post-conditions is the following:
+The candidate invariants are based on the global variables that \whoop instruments to perform lockset analysis and race-checking (see Section~\ref{whoop:method}). The key idea behind watchdog summarization is that we automatically generate candidate invariants for each memory region in the granularity of watched accesses. This reduces the false positives from reporting errors if only e.g.\ a field in memory region \texttt{\$M.0} is racing, but the rest of the fields are not. An example of watchdog-based candidate post-conditions is the following:
 
 \begin{boogie}
 procedure foo$ep1(dev: int);
@@ -403,10 +392,10 @@ Finally, we assume that the formal parameters of an entry point do not alias, an
 
 \medskip\noindent\textbf{Limitations }
 %
-\whoop is based on lockset analysis and thus can report false bugs, because a violation of the locking discipline does not always correspond to a real data race (e.g. when lockfree synchronization is used instead of locking). \whoop also uses over-approximation (e.g. when reading from the shared state) and summarization, which can be sources of false positives. Furthermore, the tool does not currently check for dynamically created locks or for locks that are provided by external libraries, although the later could be addressed by providing a mechanism for users to declare custom locks.
+\whoop is based on lockset analysis and thus can report false bugs, because a violation of the locking discipline does not always correspond to a real data race (e.g.\ when lockfree synchronization is used instead of locking). \whoop also uses over-approximation (e.g.\ when reading from the shared state) and summarization, which can be sources of false positives. Furthermore, the tool does not currently check for dynamically created locks or for locks that are provided by external libraries, although the later could be addressed by providing a mechanism for users to declare custom locks.
 
 \PDComment{briefly mention interrupts}
 
-Another limitation of \whoop is that it is unable to verify drivers that are designed to be accessed by a single process at a time. This \emph{single-open device}~\cite{corbet2005linux} mode can be enforced by atomically testing (at the beginning of each entry point) a flag that indicates device availability: if the flag is set to true, then the respective entry point executes, else it blocks. Because \whoop performs pair-wise analysis, it over-approximates this flag, and regards a pair of entry points as running concurrently, even if this is not the case. However,~\cite{corbet2005linux} advises against serializing drivers in this way, as it hinders user ingenuity (e.g. a user might expect that a device can be accessed concurrently for performance). Because using single-open device mode is considered bad practice, we thus burden the developer with disregarding any related false bug reports.
+Another limitation of \whoop is that it is unable to verify drivers that are designed to be accessed by a single process at a time. This \emph{single-open device}~\cite{corbet2005linux} mode can be enforced by atomically testing (at the beginning of each entry point) a flag that indicates device availability: if the flag is set to true, then the respective entry point executes, else it blocks. Because \whoop performs pair-wise analysis, it over-approximates this flag, and regards a pair of entry points as running concurrently, even if this is not the case. However,~\cite{corbet2005linux} advises against serializing drivers in this way, as it hinders user ingenuity (e.g.\ a user might expect that a device can be accessed concurrently for performance). Because using single-open device mode is considered bad practice, we thus burden the developer with disregarding any related false bug reports.
 
 Statically analyzing system-level software, such as drivers, requires to ``close'' the environment by abstracting away the low level implementation details. In this work, we developed a simple environmental model for the Linux kernel that consists of (nondeterministic) stub functions. A limitation of our model is that it can, and will, ultimately result in decreased precision and, thus, false positives. However, because we currently only focus on finding data races, we can get away with over-approximating a lot of the underlying Linux kernel functionality, without losing too much precision. Enriching our model with domain-specific knowledge to make it more precise is an ongoing manual effort, but requires Linux expertise. We argue that further increasing the precision is orthogonal to the contributions of this paper. Moreover, even if the symbolic lockset analysis results in false positives, \whoop can still use any race-freedom guarantees to significantly speedup a more precise bug-finder, as seen in Sections~\ref{corral} and~\ref{evaluation}.
