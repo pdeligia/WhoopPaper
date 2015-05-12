@@ -173,9 +173,11 @@ The second task is to instrument the original driver with a function that calls 
 
 \medskip\noindent\textbf{Translation for Verification }
 %
-The rewritten, by Chauffeur, driver is compiled by Clang to LLVM-IR~\cite{lattner2004llvm}, a low-level assembly-like language in single static assignment (SSA) form. SMACK then translates the LLVM-IR to Boogie IVL. Function calls (e.g. to lock and unlock a mutex) are preserved in this translation, which is useful for the lockset instrumentation performed by \whoop.
+The rewritten driver is compiled by Clang to LLVM-IR~\cite{lattner2004llvm}, a low-level assembly-like language in single static assignment (SSA) form. Function calls (e.g. for locking and unlocking) are preserved in this translation, which is useful for our lockset instrumentation.
 
-SMACK leverages the pointer-alias analyses of LLVM to efficiently model the heap manipulation operations of C programs in Boogie IVL. To achieve scalability, SMACK is using a split-memory model instead of a monolithic one that would be difficult for backend verifiers to reason about~\cite{rakamaric2009scalable}. This split memory model is based on \emph{memory regions}, which are maps of integers that model the heap.
+Next, SMACK translates the LLVM-IR to Boogie IVL. An important feature of SMACK is that it leverages the pointer-alias analyses of LLVM to efficiently model the heap manipulation operations of C programs in Boogie IVL. This means that \whoop does not need to directly deal with pointers and alias analysis, allowing us to reuse existing proven techniques.
+
+To achieve scalability, SMACK is using a split-memory model instead of a monolithic one that would be difficult for backend verifiers to reason about~\cite{rakamaric2009scalable}. This split memory model is based on \emph{memory regions}, which are maps of integers that model the heap.
 
 A benefit of using this SMACK model is that memory regions denote disjoint sections of the heap (i.e. pointers that cannot alias). We leverage this knowledge inside \whoop to guide and optimize our instrumentation and analysis. In reality, this memory model is unsound ... (e.g. integers, overflow?), but for our work we assume it is sound.
 
