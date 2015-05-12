@@ -61,14 +61,11 @@ A thread terminates if it reaches the end of $\mainforthread{T}$; in this case t
 
 \medskip\noindent\textbf{Lockset instrumentation }
 %
-Suppose that $S$ and $T$ are thread templates for a concurrent program, including the possibly that $S=T$.
-We wish to check whether it is possible for a thread that is an instance of $S$ to race with a thread that is
-an instance of $T$, in the presence of arbitrarily many further threads.
+Suppose that $S$ and $T$ are thread templates for a concurrent program, including the possibility that $S$ and $T$ are equal. We wish to check whether it is possible for a thread that is an instance of $S$ to race with a thread that is an instance of $T$, in the presence of arbitrarily many further threads that may execute concurrently.
 
-The first phase in achieving this is to \emph{instrument} a thread template to enable lockset analysis.  Given an arbitrary symbol, $i$, we define the instrumentation of a
-template $T$ with respect to $i$, denoted $\instrument{T}{i}$.  There are two aspects to instrumentation, \emph{renaming} and \emph{lockset instrumentation}.
+To achieve this, we first \emph{instrument} a thread template for lockset analysis.  Given an arbitrary symbol, $i$, we define the instrumentation of a template $T$ with respect to $i$, denoted $\instrument{T}{i}$.  There are two aspects to this instrumentation phase: \emph{renaming} and \emph{lockset instrumentation}.
 
-Renaming is simple: every private variable $x \in \variables{T}$ used in $T$ is replaced with a renamed variable $\instrument{x}{i}$ in $\instrument{T}{i}$, and every procedure $f \in \procedures{T}$ is renamed (both at declaration site and at all call sites) to $\instrument{f}{i}$ in $\instrument{T}{i}$.  The purpose of renaming is to ensure that when we analyse a pair of templates, $S$ and $T$, we ensure that $S$ and $T$ execute distinct procedures and operate on distinct private data.  Shared variables and mutexes are \emph{not} renamed, because these are indeed shared across templates.
+Renaming is straightforward: every private variable $x \in \variables{T}$ used in $T$ is replaced with a renamed variable $\instrument{x}{i}$ in $\instrument{T}{i}$, and every procedure $f \in \procedures{T}$ is renamed (both at its declaration site and at all call sites) to $\instrument{f}{i}$ in $\instrument{T}{i}$.  The purpose of renaming is to ensure that when we analyze a pair of templates, $S$ and $T$, both templates execute distinct procedures and operate on distinct private data.  Shared variables and mutexes are \emph{not} renamed, because these are shared across templates.
 
 \begin{figure}
 \begin{tabular}{ll}
@@ -90,14 +87,15 @@ $\mutexlock{m};$   & $\currentlockset{i} = \currentlockset{i} \cup \{ m \};$ \\
 $\mutexunlock{m};$ & $\currentlockset{i} = \currentlockset{i} \setminus \{ m \};$ \\
 \bottomrule
 \end{tabular}
-\caption{Instrumenting statements for static lockset analysis}\label{fig:instrumentation}
+\caption{Instrumenting statements for lockset analysis}\label{fig:instrumentation}
 \end{figure}
 
-Lockset instrumentation first requires the introduction of sets to track those variables that have been read from and written to, the mutexes that have been consistently used to protect each variable, and the set of current locks held by a thread.  To this end, when instrumenting template $T$ with respect to symbol $i$, we add a sets $\hasbeenread{i} \subseteq \powerset{\sharedvars}$ and $\hasbeenwritten{i} \subseteq \powerset{\sharedvars}$ to track those shared variables that have been read from and written to, respectively, by the thread executing $T$.  We add a current lock set, $\currentlockset{i} \subseteq \powerset{\mutexes}$, to record the mutexes that are currently held by the thread, and for each shared variable $s \in \sharedvars$ we add a lock set, $\lockset{s}{i}$, to record the mutexes that are consistently held when the thread accesses $s$.
+Lockset instrumentation first requires the introduction of sets to track those variables that have been read from and written to, the mutexes that have been consistently used to protect each variable, and the set of current locks held by a thread.  To this end, when instrumenting template $T$ with respect to symbol $i$, we add sets $\hasbeenread{i} \subseteq \powerset{\sharedvars}$ and $\hasbeenwritten{i} \subseteq \powerset{\sharedvars}$ to track those shared variables that have been read from and written to, respectively, by the thread executing $T$.  We add a current lock set, $\currentlockset{i} \subseteq \powerset{\mutexes}$, to record the mutexes that are currently held by the thread, and for each shared variable $s \in \sharedvars$ we add a lock set, $\lockset{s}{i}$, to record the mutexes that are consistently held when the thread accesses $s$.
 
 The statements of each procedure in $\instrument{T}{i}$ that manipulate shared variables and mutexes are then instrumented to take account of lock sets.  This transformation is described in Figure~\ref{fig:instrumentation}, where for an expression $e$ we use $\instrument{e}{i}$ to denote $e$ after renaming with respect to $i$.  A shared variable assignment, $s = e$, is instrumented by recording in $\hasbeenwritten{i}$ that $s$ has been written to, and updating the lock set for $s$, $\lockset{s}{i}$, to eliminate any mutexes that are not currently held (i.e.\ those mutexes that are not in $\currentlockset{i}$).  Notice that in the instrumented form, the shared variable $s$ is no longer assigned to.  We discuss the reasons for this when we describe \emph{shared state abstraction} below.  A shared variable read, $x = s$ operates analogously, except for the additional $\havockeyword$ command applied to the receiving private variable $x$; again this relates to shared state abstraction and is discussed below.  Instrumentation of mutex manipulation commands, $\mutexlock{m}$ and $\mutexunlock{m}$, involves updating the current lock set, $\currentlockset{i}$, to add and remove mutex $m$, respectively.
 
 \medskip\noindent\textbf{Shared state abstraction }
+%
 Recall that while our aim is to perform race analysis for pairs of threads, we must be sure to account
 for possible side-effects due to other threads that are running concurrently.  The instrumentation
 of Figure~\ref{fig:instrumentation} achieves this via \emph{nondeterminism}: when reading from a shared variable $s$,
@@ -105,11 +103,12 @@ a nondeterministic value is returned.  This is reflected by the use of a $\havoc
 which sets its argument to an arbitrary value.  Because all shared state accesses are abstracted in
 this fashion, it is possible to completely dispense with the shared variables after instrumentation
 has been performed.  As a result, when instrumenting a shared variable write, the effect of the write
-is not explicitly modelled.
+is not explicitly modeled.
 
 \medskip\noindent\textbf{Sequentialisation }
-The psuedocode of Figure~\ref{fig:sequentialization} shows the sequential program that we
-analyse in order to prove race-freedom for a pair of thread templates $T$ and $U$.
+%
+The pseudocode of Figure~\ref{fig:sequentialization} shows the sequential program that we
+analyze in order to prove race-freedom for a pair of thread templates $T$ and $U$.
 Assuming that $T$ and $U$ have been instrumented using distinct symbols $i$ and $j$, yielding
 $\instrument{T}{i}$ and $\instrument{U}{j}$, the sequential program operates as follows.
 First, the read, write and current locksets for $\instrument{T}{i}$ and $\instrument{U}{j}$ are
@@ -145,6 +144,7 @@ $\quad\quad \lockset{s}{i} \cap \lockset{s}{j} \neq \emptyset;$ \\
 
 
 \medskip\noindent\textbf{Soundness }
+%
 We sketch an argument that if the program of Figure~\ref{fig:sequentialization} is correct,
 it is impossible for a thread executing template $T$ to race with a thread executing template $U$,
 under the assumption that the threads are guaranteed to terminate.
