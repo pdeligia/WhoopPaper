@@ -126,26 +126,16 @@ explain what a data races is.  My preference is for the latter: doing it all her
 \medskip\noindent\textbf{Lockset instrumentation }
 Suppose that $S$ and $T$ are thread templates for a concurrent program, including the possibly that $S=T$.
 We wish to check whether it is possible for a thread that is an instance of $S$ to race with a thread that is
-an instance of $T$.
+an instance of $T$, in the presence of arbitrarily many further threads.
 
-We achieve this in the following manner.  Given an arbitrary symbol, $i$, we define the \emph{instrumentation} of a
+The first phase in achieving this is to \emph{instrument} a thread template to enable lockset analysis.  Given an arbitrary symbol, $i$, we define the instrumentation of a
 template $T$ with respect to $i$, denoted $\instrument{T}{i}$.  There are two aspects to instrumentation, \emph{renaming} and \emph{lockset instrumentation}.
 
 Renaming is simple: every private variable $x \in \variables{T}$ used in $T$ is replaced with a renamed variable $\instrument{x}{i}$ in $\instrument{T}{i}$, and every procedure $f \in \procedures{T}$ is renamed (both at declaration site and at all call sites) to $\instrument{f}{i}$ in $\instrument{T}{i}$.  The purpose of renaming is to ensure that when we analyse a pair of templates, $S$ and $T$, we ensure that $S$ and $T$ execute distinct procedures and operate on distinct private data.  Shared variables and mutexes are \emph{not} renamed, because these are indeed shared across templates.
 
-\ADComment{Next up: describe lockset instrumentation with respect to Figure~\ref{ }.  This involves explaining what the sets $W$, $R$, $\mathit{LS}$ and $\mathit{CLS}$ are, and explaining how the instrumentation works.}
-
-\ADComment{Finally, explain the main program that we check, which initializes the sets and runs the mains of each template.}
-
-\ADComment{Last of all, pay attention to termination.}
-
-
-
 \begin{figure}
 \begin{tabular}{ll}
 \textbf{Original statement} & \textbf{Instrumented statement} \\\hline
-$x = e;$                & $\instrument{x}{i} = \instrument{e}{i}$;  \\\hline
-$x = f(\overline{e});$ & $\instrument{x}{i} = \instrument{f}{i}(\instrument{\overline{e}}{i});$ \\\hline
 $s = e;$ & $\hasbeenwritten{i} = \hasbeenwritten{i} \cup \{ s \};$ \\
          & $\lockset{s}{i} = \lockset{s}{i} \cap \currentlockset{i};$ \\\hline
 $x = s;$ & $\hasbeenread{i} = \hasbeenread{i} \cup \{ s \};$ \\
@@ -157,11 +147,19 @@ $\mutexunlock{m};$ & $\currentlockset{i} = \currentlockset{i} \setminus \{ m \};
 \caption{Instrumenting statements for static lockset analysis}\label{fig:instrumentation}
 \end{figure}
 
+Lockset instrumentation first requires the introduction of sets to track those variables that have been read from and written to, the mutexes that have been consistently used to protect each variable, and the set of current locks held by a thread.  To this end, when instrumenting template $T$ with respect to symbol $i$, we add a sets $\hasbeenread{i} \subseteq \powerset{\sharedvars}$ and $\hasbeenwritten{i} \subseteq \powerset{\sharedvars}$ to track those shared variables that have been read from and written to, respectively, by the thread executing $T$.  We add a current lock set, $\currentlockset{i} \subseteq \powerset{\mutexes}$, to record the mutexes that are currently held by the thread, and for each shared variable $s \in \sharedvars$ we add a lock set, $\lockset{s}{i}$, to record the mutexes that are consistently held when the thread accesses $s$.
+
+The statements of each procedure in $\instrument{T}{i}$ that manipulate shared variables and mutexes are then instrumented to take account of lock sets.  This transformation is described in Figure~\ref{fig:instrumentation}, where for an expression $e$ we use $\instrument{e}{i}$ to denote $e$ after renaming with respect to $i$.  A shared variable assignment, $s = e$, is instrumented by recording in $\hasbeenwritten{i}$ that $s$ has been written to, and updating the lock set for $s$, $\lockset{s}{i}$, to eliminate any mutexes that are not currently held (i.e.\ those mutexes that are not in $\currentlockset{i}$).  Notice that in the instrumented form, the shared variable $s$ is no longer assigned to.  We discuss the reasons for this when we describe \emph{shared state abstraction} below.  A shared variable read, $x = s$ operates analogously, except for the additional $\havockeyword$ command applied to the receiving private variable $x$; again this relates to shared state abstraction and is discussed below.  Instrumentation of mutex manipulation commands, $\mutexlock{m}$ and $\mutexunlock{m}$, involves updating the current lock set, $\currentlockset{i}$, to add and remove mutex $m$, respectively.
+
+\medskip\noindent\textbf{Shared state abstraction }
+\ADComment{Explain why the shared variables are gone.}
 
 
+\medskip\noindent\textbf{Sequentialisation }
+\ADComment{Show what we actually check.}
 
-\ADComment{Finally, try to set up some kind of theorem giving the guarantee we think we have.}
 
+\ADComment{Now state the theoretical result, paying attention to termination.}
 
 
 \subsection{Implementation in Whoop}\label{sec:whoopimplementation}
