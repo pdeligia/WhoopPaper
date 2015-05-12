@@ -1,9 +1,9 @@
 \subsection{Concurrency in Device Drivers}
 \label{bg:concurrency}
 
-Nowadays, multicore machines have become mainstream, allowing operating systems to exploit concurrency for \emph{responsiveness} (latency) or \emph{performance} (throughput). In drivers, responsiveness is important (even if there is only a single core), because entry points of distinct processes should run concurrently so that no single process hogs the core. Likewise, performance is also important: e.g.\ network drivers should be able to process incoming packages in a timely manner.
+Nowadays, multicore machines have become mainstream, allowing operating systems to exploit concurrency for \emph{responsiveness} (latency) or \emph{performance} (throughput). In drivers, responsiveness is important (even if there is only a single core available), because entry points of distinct processes should run concurrently so that no single process hogs the core. Likewise, performance is important, as drivers should be able to timely process incoming requests (e.g.\ network packages).
 
-Modern operating systems address the demand for responsiveness and performance by providing multiple sources of concurrency~\cite{corbet2005linux}: a kernel can invoke an arbitrary number of entry points from the same driver concurrently; a running driver process can block and be replaced by another process in the same driver; hardware interrupts can be handled concurrently; delayed code execution is the norm; and the user can insert or remove hardware components without rebooting the kernel (known as hot-plugging). All these possibilities can easily lead to serious concurrency issues, such as \emph{data races}, which can be defined as follows:
+Modern operating systems address the demand for responsiveness and performance by providing multiple sources of concurrency~\cite{corbet2005linux}: a kernel can invoke an arbitrary number of entry points from the same driver concurrently; a running driver process can block and be replaced by another process in the same driver; hardware interrupts can be handled concurrently; delayed code execution is the norm; and the user can insert or remove hardware components without rebooting the kernel (known as hot-plugging). All these possibilities can easily lead to \emph{data races}, which can be defined as follows:
 
 \begin{definition}
 \label{definition:datarace}

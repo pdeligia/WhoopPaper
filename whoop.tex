@@ -1,7 +1,7 @@
 
 We now present \emph{symbolic pairwise lockset analysis}, a novel method for data race analysis in device drivers.  In Section~\ref{sec:symbolicpairwise} we describe how the approach works in a semi-formal manner, with respect to a simple concurrent programming model.  In Section~\ref{sec:whoopimplementation} we explain how we have implemented symbolic pairwise lockset analysis in a practical tool, \whoop, that can be applied directly to driver source code, to check whether pairs of driver entry points can race with one another.
 
-Our experimental evaluation (Section~\ref{evaluation}) demonstrates that the \whoop technique has value as a stand-alone analyzer, and that results from \whoop can be exploited to significantly boost the performance of a more precise symbolic analysis for concurrency offered by the \corral tool, based on context bounding and stratified inlining; we discuss the latter approach in Section~\ref{corral}.
+Our experimental evaluation (Section~\ref{evaluation}) demonstrates that the \whoop technique has value as a stand-alone analyzer, and that results from \whoop can be exploited to significantly boost the performance of a more precise symbolic analysis for concurrency, based on context bounding and stratified inlining, offered by the \corral~\cite{lal2012corral} tool; we discuss the latter approach in Section~\ref{corral}.
 
 \subsection{Symbolic Pairwise Lockset Analysis}\label{sec:symbolicpairwise}
 
