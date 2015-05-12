@@ -100,18 +100,7 @@ Recall that while our aim is to perform race analysis for pairs of threads, we m
 
 \medskip\noindent\textbf{Sequentialisation }
 %
-The pseudocode of Figure~\ref{fig:sequentialization} shows the sequential program that we
-analyze in order to prove race-freedom for a pair of thread templates $T$ and $U$.
-Assuming that $T$ and $U$ have been instrumented using distinct symbols $i$ and $j$, yielding
-$\instrument{T}{i}$ and $\instrument{U}{j}$, the sequential program operates as follows.
-First, the read, write and current locksets for $\instrument{T}{i}$ and $\instrument{U}{j}$ are
-initialized to be empty, and for each shared variable $s$, the locksets $\lockset{s}{i}$ and
-$\lockset{s}{j}$ are initialized to the full set of mutexes, $\mutexes$.  The main procedures
-of the instrumented thread templates, $\mainforthread{\instrument{T}{i}}$ and
-$\mainforthread{\instrument{U}{j}}$ are then executed in turn.  Finally, an assertion checks
-for consistent use of mutexes: if a shared variables is written during execution of $\instrument{T}{i}$
-and accessed during execution of $\instrument{U}{j}$, or vice-versa, then the locksets $\lockset{s}{i}$
-and $\lockset{s}{j}$ must contain a common mutex.
+The pseudocode of Figure~\ref{fig:sequentialization} shows the sequential program that we analyze in order to prove race-freedom for a pair of thread templates $T$ and $U$. Assuming that $T$ and $U$ have been instrumented using distinct symbols $i$ and $j$, yielding $\instrument{T}{i}$ and $\instrument{U}{j}$, the sequential program operates as follows. First, the read, write and current locksets for $\instrument{T}{i}$ and $\instrument{U}{j}$ are initialized to be empty, and for each shared variable $s$, the locksets $\lockset{s}{i}$ and $\lockset{s}{j}$ are initialized to the full set of mutexes, $\mutexes$.  The main procedures of the instrumented thread templates, $\mainforthread{\instrument{T}{i}}$ and $\mainforthread{\instrument{U}{j}}$, are then executed in turn (the order does not matter, due to renaming). Finally, an assertion checks for consistent use of mutexes: if $s$ is written during execution of $\instrument{T}{i}$ and accessed during execution of $\instrument{U}{j}$, or vice-versa, then the locksets $\lockset{s}{i}$ and $\lockset{s}{j}$ must contain at least one common mutex.
 
 \begin{figure}
 \begin{tabular}{l}
