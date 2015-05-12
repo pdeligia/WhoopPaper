@@ -17,30 +17,9 @@ We now detail the approach in a semi-formal manner, in the context of a simple c
 %
 We consider a simple concurrent programming model in which an unbounded number of threads execute a set of pre-defined \emph{thread templates}.  At any given point of execution a certain number of threads are active, each thread executing a particular template.  In the context of device drivers, a thread template corresponds to a driver entry point, and multiple instances of the same thread template may execute concurrently, just as multiple invocations of a single driver entry point may be concurrent.  Further threads may be launched at any point during execution; in the context of device drivers this corresponds to the OS invoking additional driver entry points.  For ease of presentation only, our model does not feature aggregate data types, pointers or dynamic memory allocation.  These \emph{are} handled by our implementation, and in Section~\ref{sec:whoopimplementation} we discuss interesting practical issues arising from the handling of a full-blown language.
 
-A \emph{concurrent program} is described by a finite set of
-\emph{shared} variables, $\sharedvars$, a finite set of mutexes,
-$\mutexes$, and a finite set of \emph{thread templates}.  A thread
-template, $T$, consists of a finite set of procedures,
-$\procedures{T}$, and a finite set of private variables,
-$\variables{T}$.  A designated procedure, procedure $\mainforthread{T}
-\in \procedures{T}$, denotes the starting point for execution of a
-template by a thread.  A procedure in $\procedures{T}$ is
-represented by a control flow graph of basic blocks, where each block
-contains a sequence of statements.  A basic block either has a single
-successor or a pair of successors.  In the latter case, an \emph{exit
-  condition} over thread-private variables determines, at runtime, the
-successor to which control should flow on block exit.
+A \emph{concurrent program} is described by a finite set of \emph{shared} variables, $\sharedvars$, a finite set of mutexes, $\mutexes$, and a finite set of \emph{thread templates}.  A thread template, $T$, consists of a finite set of procedures, $\procedures{T}$, and a finite set of private variables, $\variables{T}$.  A designated procedure, $\mainforthread{T} \in \procedures{T}$, denotes the starting point for execution of a template by a thread.  A procedure in $\procedures{T}$ is represented by a control flow graph of basic blocks, where each block contains a sequence of statements.  A basic block either has a single successor or a pair of successors.  In the latter case, an \emph{exit condition} over thread-private variables determines, at runtime, the successor to which control should flow on block exit.
 
-The forms of statements are shown in Figure~\ref{fig:statements}, and
-include designated statements for reading from and writing to shared
-variables.  In particular, shared variables may not appear in
-arbitrary expressions.  This restriction simplifies our presentation
-of lockset instrumentation, below, and a program that does not satisfy
-this restriction can be trivially pre-processed into one that does
-through the introduction of additional private temporaries to record
-values read from the shared state.  We do not specify the form of
-expressions, nor the types of variables, assuming a standard set of
-data types and operations.
+The forms of statements are shown in Figure~\ref{fig:statements}, and include designated statements for reading from and writing to shared variables.  In particular, shared variables may not appear in arbitrary expressions.  This restriction simplifies our presentation of lockset instrumentation, below, and a program that does not satisfy this restriction can be trivially pre-processed into one that does via the introduction of additional private temporary variables to record values read from the shared state.  We do not specify the form of expressions, nor the types of variables, assuming a standard set of data types and operations.
 
 \begin{figure}
 \begin{tabular}{lp{5.5cm}}
