@@ -181,13 +181,9 @@ To achieve scalability, SMACK is using a split-memory model instead of a monolit
 
 In reality, SMACK is unsound ... (e.g. integers), but for our work we assume it is sound.
 
-\ADComment{Explain how we identify mutexes (inside our Boogie-based analysis)}
-
-\ADComment{Explain how we avoid quantifiers in performing race analysis}
-
-\medskip\noindent\textbf{Instrumentation and Analysis }
+\medskip\noindent\textbf{Identifying Set of Locks }
 %
-The core \whoop tool (see Figure~\ref{fig:whoop} -- B) is responsible for parsing, instrumenting and sequentializing the abstract Boogie program. During the initial parsing, \whoop performs a static analysis (on the Boogie IVL code) to identify all lock identifiers and rewrite them to a unique constant Boogie variable, e.g. the following call to \texttt{mutex\_lock()}:
+\whoop performs a static analysis (on the Boogie IVL code) to identify all lock identifiers and rewrite them to a unique constant Boogie variable, e.g. the following call to \texttt{mutex\_lock()}:
 
 \begin{boogie}
 call mutex_lock($p3);
@@ -202,8 +198,10 @@ call mutex_lock(lock$0);
 
 If \whoop cannot infer a lock it will exit with a warning. A limitation of lockset analysis is that it cannot understand external locking mechanisms (\whoop currently only supports Linux kernel mutexes and spinlocks). It is relatively straightforward to enhance \whoop, though, with new locking primitives. \whoop will also exit with a warning if it detects ``improper'' use of locks (e.g. dynamic lock creation). The reason behind this is twofold: first, it is arguably infeasible to detect such locks using static analysis; and second, because we want to advocate the use of good locking practices when developing drivers for the Linux kernel.
 
-When the lock rewriting finishes, \whoop traverses the Boogie IVL code, uses the information extracted by Chauffeur and separates each independent entry point call-graph from the rest of the program. To achieve this, it duplicates helper functions and renames them accordingly: e.g. for entry point \texttt{ep1}, a helper function \texttt{foo} will be renamed to \texttt{foo\$ep1}. This allows \whoop to perform entry point sensitive instrumentation and analysis. Although the program can potentially become much larger, this does not affect the analysis as discussed later.
+\ADComment{Explain how we avoid quantifiers in performing race analysis}
 
+\medskip\noindent\textbf{Instrumentation and Analysis }
+%
 Next, \whoop instruments the program with global variables for lockset analysis and race-checking per entry point. For example, for entry point \texttt{ep1}, \whoop instruments:
 
 \begin{boogie}
