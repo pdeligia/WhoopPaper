@@ -59,36 +59,10 @@ static loff_t nvram_llseek(struct file *file,
 \caption{Using a lock to eliminate the data races}\label{fig:lock_example}
 \end{figure}
 
-
-\subsection{Reasoning about Thread Interleavings}
-\label{bg:happensbefore}
-
-\ADComment{I am unsure as to whether we need this background, but I'm undecided as I'm still getting on top of the rest of the material.}
-
-A fundamental concept in concurrency analysis is Lamport's \emph{happens-before} relation~\cite{lamport1978time}, which denotes a partial-order between all events during the execution of a concurrent program. Happens-before can be defined as follows:
-
-\begin{definition}
-\label{definition:datarace}
-Let $E_1$ and $E_2$ be two events during a program's concurrent execution. If $E_1$ and $E_2$ are in the same thread and $E_1$ occurs before $E_2$, or if $E_1$ and $E_2$ are in different threads and there is a synchronization mechanism (e.g. locking) that prevents a thread schedule in which $E_2$ occurs before $E_1$, then $E_1 \rightarrow E_2$, where the symbol $\rightarrow$ denotes the happens-before relation.
-\end{definition}
-
-Happens-before is transitive, i.e. for any three events $E_1$, $E_2$ and $E_3$, if $E_1 \rightarrow E_2$ and $E_2 \rightarrow E_3$, then $E_1 \rightarrow E_3$. If two events $E_1$ and $E_2$ occur in different threads, and neither $E_1 \rightarrow E_2$, nor $E_2 \rightarrow E_1$ holds, then $E_1$ and $E_2$ happen concurrently, which indicates a data race if the two events access the same shared resource and at least one of the accesses is a modifier.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=1\linewidth]{img/happens_before.pdf}
-\caption{Applying happens-before in two concurrently running threads}
-\label{fig:happens_before}
-\end{figure}
-
-Figure~\ref{fig:happens_before} shows an example of applying happens-before reasoning in two concurrently running entry points. Each of the three statements $\{A, B, C\}$ in thread 1 is executed before the next one, and thus all of them are ordered by the happens-before relation. The same applies for each of the four statements $\{D, E, F, G\}$ in thread 2. Statement $C$ in thread 1 releases the lock, and subsequently allows $D$ in thread 2 to acquire the same lock. Thus, $C \rightarrow D$. This means that for this specific thread interleaving the set of statements $\{A, B, C\}$ happens before the set of statements $\{D, E, F, G\}$.
-
-The above example also showcases the main limitation of happens-before. If the technique explores \emph{only} this specific thread interleaving, it will miss a potential data race between statements $B$ and $G$, because $B \rightarrow G$ in this specific schedule. Thus, a tool based on happens-before requires a scheduler that produces as many different thread interleavings as possible to increase execution path coverage~\cite{savage1997eraser}. Achieving full coverage with tools based on happens-before is infeasible though, because of the exponential number of possible thread interleavings in realistic concurrent programs. Moreover, attempting to explore a large number of thread schedules quickly leads to scalability issues~\cite{musuvathi2008finding}, a problem known as state space explosion. Thus, previous work based on happens-before typically explore paths under a certain bound, such as the number of allowed context switches~\cite{qadeer2004kiss}.
-
-\subsection{Reasoning about Locksets}
+\subsection{Lockset analysis}
 \label{bg:lockset}
 
-An alternative approach to happens-before, known as \emph{lockset analysis}, resolves around reasoning about the locking behavior of concurrent programs. Lockset analysis was proposed in the context of Eraser~\cite{savage1997eraser}, a dynamic data race detector that tracks the set of locks that \emph{consistently} protect a memory location during program execution. If that lockset ever becomes empty, the analysis reports a potential data race on that memory location. \ADComment{This could be better explained, I think.} This is because an inconsistent lockset suggests that a memory location \emph{may} be accessed simultaneously by two or more threads.
+Lockset analysis is a lightweight race detection method proposed in the context of Eraser~\cite{savage1997eraser}, a dynamic data race detector.  The idea is to track the set of locks that are \emph{consistently} used to protect a memory location during program execution. If that lockset ever becomes empty, the analysis reports a potential data race on that memory location. This is because an inconsistent lockset suggests that a memory location \emph{may} be accessed simultaneously by two or more threads.  
 
 \begin{figure}[htbp]
 \centering
@@ -107,6 +81,6 @@ If $\mathit{LS}_v$ becomes empty as a result, a warning is issued that the acces
 
 Figure~\ref{fig:locksets} shows an example of applying lockset analysis on a concurrent program consisting of two threads $T_1$ and $T_2$, both accessing a global variable $A$. Initially, $\mathit{LS}_A$, which is the lockset for A, contains all possible locks in the program: $M$ and $N$. During execution of $T_1$, the thread writes $A$ without holding $N$, and thus $N$ is removed from $\mathit{LS}_A$. Next, during execution of $T_2$, the thread writes $A$ without holding $M$, and thus $\mathit{LS}_A$ becomes empty. Finally, a warning is reported because the two threads do not consistently protect $A$.
 
-In contrast to analyses based on happens-before, lockset analysis has the potential to scale well, because it does not need to reason about all possible thread interleavings to achieve good code coverage. The technique, though, suffers from imprecision (i.e. can report false bugs), because a violation of the locking discipline does not always correspond to a real data race~\cite{savage1997eraser, pozniansky2003efficient, o2003hybrid, elmas2007goldilocks, flanagan2009fasttrack}. Furthermore, the code coverage in dynamic lockset analyzers, such as Eraser, is limited by the execution paths that are explored under a given scheduler. This is because the tool runs the program in a truly concurrent environment, thus it only gets to see what the thread did on the particular schedule that was followed.
+In contrast to more sophisticated race analyses that encode a \emph{happens-before} relation between threads~\cite{TODO} (e.g.\ using vector clocks), lockset analysis is easy to implement, lightweight, and thus has the potential to scale well.  The technique, though, suffers from imprecision (i.e.\ can report false bugs), because a violation of the locking discipline does not always correspond to a real data race~\cite{savage1997eraser, pozniansky2003efficient, o2003hybrid, elmas2007goldilocks, flanagan2009fasttrack}. Furthermore, the code coverage in dynamic lockset analyzers, such as Eraser, is limited by the execution paths that are explored under a given scheduler. This is because the tool runs the program in a truly concurrent environment, thus it only gets to see what the thread did on the particular schedule that was followed.
 
 To counter the above limitations, techniques such as Locksmith~\cite{pratikakis2006locksmith} and RELAY~\cite{voung2007relay} have explored the idea of applying lockset analysis in a static context, using dataflow analysis. In this paper, we present a novel symbolic lockset analysis method that involves generating verification conditions, which are then discharged to a theorem prover.
