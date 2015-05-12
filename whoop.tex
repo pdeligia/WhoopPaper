@@ -42,7 +42,7 @@ template, $T$, consists of a finite set of procedures,
 $\procedures{T}$, and a finite set of private variables,
 $\variables{T}$.  A designated procedure, procedure $\mainforthread{T}
 \in \procedures{T}$, denotes the starting point for execution of a
-template by a thread.  A procedure $P \in \procedures{T}$ is
+template by a thread.  A procedure in $\procedures{T}$ is
 represented by a control flow graph of basic blocks, where each block
 contains a sequence of statements.  A basic block either has a single
 successor or a pair of successors.  In the latter case, an \emph{exit
@@ -101,7 +101,7 @@ valuation for the private variables $\variables{T}$.
 
 We consider a standard interleaving model of concurrency: at any
 execution point, a thread may execute its current statement, unless
-that statement has the form $\mutexlock(m)$ and mutex $m$ is already held
+that statement has the form $\mutexlock{m}$ and mutex $m$ is already held
 by some thread.  Executing a statement causes the state of the thread,
 and the shared state, to be updated in a standard manner.  For
 example, if a thread following template $T$ executes $s = e$, where $s
@@ -123,7 +123,21 @@ we should refer back to the happens-before material in the background section, o
 we should move that material here, so that we explain what happens-before means, and then
 explain what a data races is.  My preference is for the latter: doing it all here.}
 
-\medskip\noindent\textbf{Lockset instrumentation} \ADComment{This is as far as I have gotten with the writing.  I now want to explain formally and somewhat abstractly how our lockset instrumentation works.}
+\medskip\noindent\textbf{Lockset instrumentation }
+Suppose that $S$ and $T$ are thread templates for a concurrent program, including the possibly that $S=T$.
+We wish to check whether it is possible for a thread that is an instance of $S$ to race with a thread that is
+an instance of $T$.
+
+We achieve this in the following manner.  Given an arbitrary symbol, $i$, we define the \emph{instrumentation} of a
+template $T$ with respect to $i$, denoted $\instrument{T}{i}$.  There are two aspects to instrumentation, \emph{renaming} and \emph{lockset instrumentation}.
+
+Renaming is simple: every private variable $x \in \variables{T}$ used in $T$ is replaced with a renamed variable $\instrument{x}{i}$ in $\instrument{T}{i}$, and every procedure $f \in \procedures{T}$ is renamed (both at declaration site and at all call sites) to $\instrument{f}{i}$ in $\instrument{T}{i}$.  The purpose of renaming is to ensure that when we analyse a pair of templates, $S$ and $T$, we ensure that $S$ and $T$ execute distinct procedures and operate on distinct private data.  Shared variables and mutexes are \emph{not} renamed, because these are indeed shared across templates.
+
+\ADComment{Next up: describe lockset instrumentation with respect to Figure~\ref{ }.  This involves explaining what the sets $W$, $R$, $\mathit{LS}$ and $\mathit{CLS}$ are, and explaining how the instrumentation works.}
+
+\ADComment{Finally, explain the main program that we check, which initializes the sets and runs the mains of each template.}
+
+\ADComment{Last of all, pay attention to termination.}
 
 
 
