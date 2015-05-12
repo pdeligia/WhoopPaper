@@ -15,21 +15,7 @@ We now detail the approach in a semi-formal manner, in the context of a simple c
 
 \medskip\noindent\textbf{Concurrent Programming Model }
 %
-We consider a simple concurrent programming model in which an
-unbounded number of threads execute a set of pre-defined \emph{thread
-  templates}.  At any given point of execution a certain number of
-threads are active, each thread executing a particular template.  In
-the context of device drivers, a thread template corresponds to a
-driver entry point, and multiple instances of the same thread template
-may execute concurrently, just as multiple invocations of a single
-driver entry point may be concurrent.  Further threads may be launched
-at any point during execution; in the context of device drivers this
-corresponds to the OS invoking additional driver entry points.  For
-ease of presentation only, our model does not feature aggregate data
-types, pointers or dynamic memory allocation.  These \emph{are}
-handled by our implementation, and in
-Section~\ref{sec:whoopimplementation} we discuss interesting practical
-issues arising from the handling of a full-blown language.
+We consider a simple concurrent programming model in which an unbounded number of threads execute a set of pre-defined \emph{thread templates}.  At any given point of execution a certain number of threads are active, each thread executing a particular template.  In the context of device drivers, a thread template corresponds to a driver entry point, and multiple instances of the same thread template may execute concurrently, just as multiple invocations of a single driver entry point may be concurrent.  Further threads may be launched at any point during execution; in the context of device drivers this corresponds to the OS invoking additional driver entry points.  For ease of presentation only, our model does not feature aggregate data types, pointers or dynamic memory allocation.  These \emph{are} handled by our implementation, and in Section~\ref{sec:whoopimplementation} we discuss interesting practical issues arising from the handling of a full-blown language.
 
 A \emph{concurrent program} is described by a finite set of
 \emph{shared} variables, $\sharedvars$, a finite set of mutexes,
@@ -56,16 +42,28 @@ values read from the shared state.  We do not specify the form of
 expressions, nor the types of variables, assuming a standard set of
 data types and operations.
 
-
 \begin{figure}
 \begin{tabular}{lp{5.5cm}}
-\textbf{Statement form} & \textbf{Notes} \\\hline
-$x = e;$ & private assignment, where $x \in \variables{T}$ and $e$ is an expression over $\variables{T}$ \\\hline
-$x = f(\overline{e});$ & procedure call, where $x \in \variables{T}$, $\overline{e}$ is a sequence of expressions over $\variables{T}$, $f$ is the name of a procedure in $\procedures{T}$ \\\hline
-$s = e;$ & shared write, where $s \in \sharedvars$ and $e$ is an expression over $\variables{T}$ \\\hline
-$x = s;$ & shared read,  where $x \in \variables{T}$ and $s \in \sharedvars$ \\\hline
-$\mutexlock{m};$   & mutex lock, where $m \in \mutexes$ \\\hline
-$\mutexunlock{m};$ & mutex unlock, where $m \in \mutexes$
+\textbf{Statement Form} & \textbf{Notes} \\
+\toprule
+
+$x = e;$ & private assignment, where $x \in \variables{T}$ and $e$ is an expression over $\variables{T}$ \\
+\midrule
+
+$x = f(\overline{e});$ & procedure call, where $x \in \variables{T}$, $\overline{e}$ is a sequence of expressions over $\variables{T}$, $f$ is the name of a procedure in $\procedures{T}$ \\
+\midrule
+
+$s = e;$ & shared write, where $s \in \sharedvars$ and $e$ is an expression over $\variables{T}$ \\
+\midrule
+
+$x = s;$ & shared read,  where $x \in \variables{T}$ and $s \in \sharedvars$ \\
+\midrule
+
+$\mutexlock{m};$   & mutex lock, where $m \in \mutexes$ \\
+\midrule
+
+$\mutexunlock{m};$ & mutex unlock, where $m \in \mutexes$\\
+\bottomrule
 \end{tabular}
 \caption{Forms of statements in our simple programming model}\label{fig:statements}
 \end{figure}
@@ -125,14 +123,23 @@ Renaming is simple: every private variable $x \in \variables{T}$ used in $T$ is 
 
 \begin{figure}
 \begin{tabular}{ll}
-\textbf{Original statement} & \textbf{Instrumented statement} \\\hline
+\textbf{Original Statement} & \textbf{Instrumented Statement} \\
+\toprule
+
 $s = e;$ & $\hasbeenwritten{i} = \hasbeenwritten{i} \cup \{ s \};$ \\
-         & $\lockset{s}{i} = \lockset{s}{i} \cap \currentlockset{i};$ \\\hline
+         & $\lockset{s}{i} = \lockset{s}{i} \cap \currentlockset{i};$ \\
+\midrule
+         
 $x = s;$ & $\hasbeenread{i} = \hasbeenread{i} \cup \{ s \};$ \\
          & $\lockset{s}{i} = \lockset{s}{i} \cap \currentlockset{i};$ \\
-         & $\havoc{\instrument{x}{i}};$ \\\hline
-$\mutexlock{m};$   & $\currentlockset{i} = \currentlockset{i} \cup \{ m \};$ \\\hline
-$\mutexunlock{m};$ & $\currentlockset{i} = \currentlockset{i} \setminus \{ m \};$ \\\hline
+         & $\havoc{\instrument{x}{i}};$ \\
+\midrule
+         
+$\mutexlock{m};$   & $\currentlockset{i} = \currentlockset{i} \cup \{ m \};$ \\
+\midrule
+
+$\mutexunlock{m};$ & $\currentlockset{i} = \currentlockset{i} \setminus \{ m \};$ \\
+\bottomrule
 \end{tabular}
 \caption{Instrumenting statements for static lockset analysis}\label{fig:instrumentation}
 \end{figure}
