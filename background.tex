@@ -12,20 +12,15 @@ A data race occurs when two distinct threads access a shared memory location, at
 
 Example~\ref{fig:data_race_example} presents multiple data races that \whoop automatically found in the generic\_nvram Linux char driver (see Section~\ref{evaluation}). The driver can invoke the \texttt{nvram\_llseek} entry point concurrently from two threads $T_1$ and $T_2$, while passing the same \texttt{file} object as a parameter. However, this can lead to multiple possible data races, because $T_1$ and $T_2$ can read/write access the \texttt{f\_pos} field of the \texttt{file} object in arbitrary order resulting into nondeterministic behavior.
 
-\begin{lstlisting}[caption = Data races in a Linux driver that we discovered using \whoop., label = fig:data_race_example]
+\begin{figure}[t]
+\begin{lstlisting}
 static loff_t nvram_llseek(struct file *file,
     loff_t offset, int origin) {
   switch (origin) {
-    case 0:
-      break;
-    case 1:
-      offset += file->f_pos; // racy
-      break;
-    case 2:
-      offset += nvram_len;
-      break;
-    default:
-      offset = -1;
+    case 0: break;
+    case 1: offset += file->f_pos; break; // racy
+    case 2: offset += nvram_len; break;
+    default: offset = -1;
   }
   if (offset < 0)
     return -EINVAL;
@@ -33,24 +28,25 @@ static loff_t nvram_llseek(struct file *file,
   return file->f_pos; // racy
 }
 \end{lstlisting}
+\caption{Data races in a Linux driver that we discovered using \whoop}\label{fig:data_race_example}
+\end{figure}
 
-The most common technique for eliminating data races is using a \emph{locking} mechanism. Locking a set of program statements that access a shared resource creates a \emph{critical section}, i.e. source code that cannot be executed by more than one thread simultaneously. Example~\ref{fig:lock_example} shows how to use a lock to eliminate the data race in Example~\ref{fig:data_race_example}. The example is tricky, because the return statement can potentially race on the \texttt{f\_pos} field. To fix this issue, we store the result in a temporary variable, inside the critical section.
+The most common technique for eliminating data races is using a \emph{locking} mechanism. Locking a set of program statements that access a shared resource creates a \emph{critical section}, i.e. source code that cannot be executed by more than one thread simultaneously. Figure~\ref{fig:lock_example} shows how to use a lock to eliminate the data race in Figure~\ref{fig:data_race_example}. The example is tricky, because the return statement can potentially race on the \texttt{f\_pos} field. To fix this issue, we store the result in a temporary variable, inside the critical section.
 
-\begin{lstlisting}[caption = Using a lock to eliminate the data races., label = fig:lock_example]
+Lock-based synchronization is a powerful tool for preventing data races in drivers, but careless use of locks has multiple pitfalls~\cite{sutter2005software}. Coarse-grained locking can hurt performance, because it limits the opportunity for concurrency. On the other hand, fine-grained locking can easily lead to deadlocks. Although the Linux kernel provides sophisticated lock-free synchronization mechanisms~\cite{corbet2005linux}, such as atomic read and write operations, in this work we focus on locks. However, we still treat lock-free operations (e.g. atomics) soundly (see Definition~\ref{definition:datarace}), by not regarding them as providing any protection between threads. This is sound but can potentially introduce false positives.
+
+We believe that our focus in locks is justified, because the majority of Linux drivers still use locks. As a sanity check, we used a simple grep command and found that 68\% of the drivers from the 4.0 Linux kernel distribution use locks, versus 13\% that use atomic operations. We also found that 31\% of the drivers use neither locking nor atomic primitives, which suggests that they are either simple (non-concurrent) drivers or use some other lock-free synchronization primitive.
+
+\begin{figure}[t]
+\begin{lstlisting}
 static loff_t nvram_llseek(struct file *file,
     loff_t offset, int origin) {
   mutex_lock(&nvram_mutex); // lock
   switch (origin) {
-    case 0:
-      break;
-    case 1:
-      offset += file->f_pos;
-      break;
-    case 2:
-      offset += nvram_len;
-      break;
-    default:
-      offset = -1;
+    case 0: break;
+    case 1: offset += file->f_pos; break;
+    case 2: offset += nvram_len; break;
+    default: offset = -1;
   }
   if (offset < 0)
     return -EINVAL;
@@ -60,10 +56,9 @@ static loff_t nvram_llseek(struct file *file,
   return res;
 }
 \end{lstlisting}
+\caption{Using a lock to eliminate the data races}\label{fig:lock_example}
+\end{figure}
 
-Lock-based synchronization is a powerful tool for preventing data races in drivers, but careless use of locks has multiple pitfalls~\cite{sutter2005software}. Coarse-grained locking can hurt performance, because it limits the opportunity for concurrency. On the other hand, fine-grained locking can easily lead to deadlocks. Although the Linux kernel provides sophisticated lock-free synchronization mechanisms~\cite{corbet2005linux}, such as atomic read and write operations, in this work we focus on locks. However, we still treat lock-free operations (e.g. atomics) soundly (see Definition~\ref{definition:datarace}), by not regarding them as providing any protection between threads. This is sound but can potentially introduce false positives.
-
-We believe that our focus in locks is justified, because the majority of Linux drivers still use locks. As a sanity check, we used a simple grep command and found that 68\% of the drivers from the 4.0 Linux kernel distribution use locks, versus 13\% that use atomic operations. We also found that 31\% of the drivers use neither locking nor atomic primitives, which suggests that they are either simple (non-concurrent) drivers or use some other lock-free synchronization primitive.
 
 \subsection{Reasoning about Thread Interleavings}
 \label{bg:happensbefore}
