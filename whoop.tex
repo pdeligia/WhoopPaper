@@ -61,7 +61,7 @@ We consider a standard interleaving model of concurrency: at any execution point
 
 A thread terminates if it reaches the end of $\mainforthread{T}$; in this case the thread is removed from the list of threads.  Because we are interested in the analysis of device drivers, which are \emph{reactive} concurrent programs, we do not consider the notion of global program termination.
 
-\medskip\noindent\textbf{Lockset instrumentation }
+\medskip\noindent\textbf{Lockset Instrumentation }
 %
 Suppose that $S$ and $T$ are thread templates for a concurrent program, including the possibility that $S$ and $T$ are equal. We wish to check whether it is possible for a thread that is an instance of $S$ to race with a thread that is an instance of $T$, in the presence of arbitrarily many further threads that may execute concurrently.
 
@@ -97,7 +97,7 @@ Initially, lockset instrumentation introduces sets that track: the shared variab
 
 The statements of each procedure in $\instrument{T}{i}$ that manipulate shared variables and mutexes are then instrumented to take account of the above sets.  This transformation is described in Figure~\ref{fig:instrumentation}, where for an expression $e$ we use $\instrument{e}{i}$ to denote $e$ after renaming with respect to $i$.  A shared variable assignment, $s = e$, is instrumented by recording in $\hasbeenwritten{i}$ that $s$ has been written to, and updating the lockset for $s$, $\lockset{s}{i}$, to eliminate any mutexes that are not currently held (i.e.\ those mutexes that are not in $\currentlockset{i}$).  Notice that in the instrumented form, the shared variable $s$ is no longer assigned to.  We discuss the reasons for this when we describe \emph{shared state abstraction} below.  A shared variable read, $x = s$ operates analogously, except for the additional $\havockeyword$ command applied to the receiving private variable $x$; again this relates to shared state abstraction and is discussed below.  Instrumentation of mutex manipulation commands, $\mutexlock{m}$ and $\mutexunlock{m}$, involves updating the current lockset, $\currentlockset{i}$, to add and remove mutex $m$, respectively.
 
-\medskip\noindent\textbf{Shared state abstraction }
+\medskip\noindent\textbf{Shared State Abstraction }
 %
 Recall that while our aim is to perform race analysis for pairs of threads, we must be sure to account for possible side-effects due to other threads that are running concurrently.  The instrumentation of Figure~\ref{fig:instrumentation} achieves this via \emph{nondeterminism}: when reading from a shared variable $s$, a nondeterministic value is returned.  This is reflected by the use of a $\havockeyword$ command, which sets its argument to an arbitrary value.  Because all shared state accesses are abstracted in this fashion, it is possible to completely dispense with the shared variables after the lockset instrumentation has been performed.  As a result, when instrumenting a shared variable write, the effect of the write is not explicitly modeled.
 
@@ -107,7 +107,6 @@ The pseudocode of Figure~\ref{fig:sequentialization} shows the sequential progra
 
 \begin{figure}
 \begin{tabular}{l}
-
 $\currentlockset{i} = \emptyset;$ $\hasbeenread{i} = \emptyset;$ $\hasbeenwritten{i} = \emptyset;$ \\
 $\currentlockset{j} = \emptyset;$ $\hasbeenread{j} = \emptyset;$ $\hasbeenwritten{j} = \emptyset;$ \\
 \texttt{for} $s \in \sharedvars$ \texttt{do} $\lockset{s}{i} = \mutexes;$ $\lockset{s}{j} = \mutexes;$ \medskip
@@ -147,62 +146,45 @@ The simple concurrent programming model discussed in Section~\ref{sec:symbolicpa
 
 \medskip\noindent\textbf{Architecture }
 %
-Figure~\ref{fig:whoop} depicts the \whoop toolchain. Initially, \whoop accepts a Linux driver written in C, together with an environmental model\footnote{Stub header files that model the Linux kernel APIs.} that is required to ``close'' the driver and allow it to be subsequently analyzed for data races. Both the driver and the Linux model are passed to the translation phase of \whoop (see Figure~\ref{fig:whoop} -- A), which uses three LLVM\footnote{\url{http://llvm.org}}-based tools, Chauffeur\footnote{\url{https://github.com/mc-imperial/chauffeur}}, Clang\footnote{\url{http://clang.llvm.org}} and SMACK\footnote{\url{https://github.com/smackers/smack}}~\cite{rakamaric2014smack}, to translate the original driver into an abstract program written in the Boogie intermediate verification language (IVL)~\cite{deline2005boogiepl}. Next, \whoop instruments and sequentializes the program to perform symbolic pairwise lockset analysis (see Figure~\ref{fig:whoop} -- B and Section~\ref{sec:symbolicpairwise}) using the Boogie verification engine. After the verification phase ends, \whoop can exploit any inferred race-freedom guarantees to accelerate precise race-checking with \corral (see Figure~\ref{fig:whoop} -- C and Section~\ref{corral}).
+Figure~\ref{fig:whoop} depicts the \whoop toolchain. Initially, \whoop accepts a Linux driver written in C, together with an environmental model\footnote{Stub header files that model the Linux kernel APIs.} that is required to ``close'' the driver and allow it to be subsequently analyzed for data races. Both the driver and the Linux model are passed to the translation phase of \whoop (see Figure~\ref{fig:whoop} -- A), which uses three LLVM\footnote{\url{http://llvm.org}}-based tools, Chauffeur\footnote{\url{https://github.com/mc-imperial/chauffeur}}, Clang\footnote{\url{http://clang.llvm.org}} and SMACK\footnote{\url{https://github.com/smackers/smack}}~\cite{rakamaric2014smack}, to translate the original driver into an abstract program written in the Boogie intermediate verification language (IVL)~\cite{deline2005boogiepl}, a simple imperative language with well-defined verification-focused semantics that is used as the input to a number of cutting-edge verifiers (e.g. Boogie and \corral).
 
-We decided to reuse industrial-strength tools in this work, because (i) we do not want to reinvent the wheel and (ii) these tools are robust and already battle-proven.
+Next, \whoop instruments and sequentializes the program to perform symbolic pairwise lockset analysis (see Figure~\ref{fig:whoop} -- B and Section~\ref{sec:symbolicpairwise}) using the Boogie verification engine. After the verification phase ends, \whoop can exploit any inferred race-freedom guarantees to accelerate precise race-checking with \corral (see Figure~\ref{fig:whoop} -- C and Section~\ref{corral}).
 
-\ADComment{Explain how we identify entry points (Chauffer)}
+In this work, we decided to reuse industrial-strength tools, because (i) we did not want to ``reinvent the wheel'' and (ii) these tools are already robust and battle-proven.
+
+\medskip\noindent\textbf{Extracting Entry Point Information }
+%
+We have developed Chauffeur, a Clang-frontend that performs two important tasks. The first is to traverse (using a Clang visitor pass) the abstract syntax tree (AST) of the original driver and extract all entry point identifier names, together with the identifier names of their corresponding kernel API functions. Linux drivers define entry points in a standard way (see Figure~\ref{fig:entrypoints} for an example of how the generic\_nvram driver defines the entry points for the \texttt{file\_operations} API); Chauffeur identifies these definitions in the AST and outputs the relevant information in an XML file, which is subsequently parsed by \whoop.
+
+\begin{figure}[t]
+\begin{lstlisting}
+const struct file_operations nvram_fops = {
+  .llseek = nvram_llseek,
+  .read = read_nvram,
+  .write = write_nvram,
+  .unlocked_ioctl = nvram_unlocked_ioctl,
+};
+\end{lstlisting}
+\caption{Entry points definitions in the generic\_nvram driver}
+\label{fig:entrypoints}
+\end{figure}
+
+The second task is to instrument the original driver with a function that calls all entry points, one after the other, passing them parameters of arbitrary value (to over-approximate kernel behavior for soundness). This function effectively acts as the \emph{main} function of the driver and is required so that Clang does not compile away any uncalled entry points (because we closed the environment using stub functions). This simple rewriting does not alter the semantics of the original driver, as \whoop only uses this function to create checker functions and instrument them with calls to entry points (see Figure~\ref{fig:sequentialization} for the pseudocode of such checker function). Chauffeur outputs the rewritten driver in a C file.
 
 \ADComment{Explain how pointers get handled (SMACK) -- be brief, talk about memory regions, don't show Boogie code.}
+
+\medskip\noindent\textbf{Translation to Boogie IVL }
+%
+Next, the rewritten program is passed to Clang which compiles it to LLVM-IR~\cite{lattner2004llvm}, a low-level assembly-like language in single static assignment (SSA) form. SMACK then translates the LLVM-IR to Boogie IVL. SMACK leverages the pointer-alias analyses of LLVM to efficiently model the heap manipulation operations of the original program in Boogie IVL. To achieve scalability, SMACK is using a split-memory model instead of a monolithic one that would be difficult for backend verifiers to reason about~\cite{rakamaric2009scalable}.
+
+The function \texttt{\$pa} models pointer arithmetic, while the map \texttt{\$M.0} is a memory region that typically denotes a shared resource. Notice that function calls (e.g. to lock and unlock a mutex) are preserved in the translation.
 
 \ADComment{Explain how we identify mutexes (inside our Boogie-based analysis)}
 
 \ADComment{Explain how we avoid quantifiers in performing race analysis}
 
-\ADComment{Briefly talk about how we tried inlining and do summarisation instead}
-
-\ADComment{Discuss optimizations and assumptions.  Bring these to before the Corral stuff.}
-
-\medskip\noindent\textbf{Translation to Boogie IVL }
+\medskip\noindent\textbf{Instrumentation and Analysis }
 %
-The aim of this phase (see Figure~\ref{fig:whoop} -- A) is to take an input Linux driver written in C, together with an environmental model, and output an over-approximated version of the program in Boogie IVL, a simple imperative language with well-defined verification-focused semantics used as the input to a number of cutting-edge verifiers (e.g. Boogie and \corral). To achieve this translation, \whoop uses three LLVM\footnote{\url{http://llvm.org}}-based tools: Chauffeur\footnote{\url{https://github.com/mc-imperial/chauffeur}}, Clang\footnote{\url{http://clang.llvm.org}} and SMACK\footnote{\url{https://github.com/smackers/smack}}~\cite{rakamaric2014smack}.
-
-First, \whoop runs Chauffeur, a Clang-frontend that we developed to perform two tasks: (i) visit the abstract syntax tree (AST) of the original program and extract all available entry point identifier names in the given driver, together with the identifier names of their corresponding kernel callbacks; and (ii) instrument the original program with a function that calls all available entry points. This function acts as the main entry point to the driver after the latter has been registered with the kernel. This simple rewriting does not alter the semantics of the original program, is required so that Clang does not compile away any uncalled entry points (because we closed the environment using stub functions) and is also later used by \whoop to help instrument asynchronous calls to entry points and create checker procedures (see Sections~\ref{whoop:method} and~\ref{corral}). The output is a file that contains information regarding the entry points and a file with the rewritten program.
-
-Next, the rewritten program is passed to Clang which compiles it to LLVM-IR~\cite{lattner2004llvm}, a low-level assembly-like language in single static assignment (SSA) form. SMACK then translates the LLVM-IR to Boogie IVL. SMACK leverages the pointer-alias analyses of LLVM to efficiently model the heap manipulation operations of the original program in Boogie IVL. To achieve scalability, SMACK is using a split-memory model instead of a monolithic one that would be difficult for backend verifiers to reason about~\cite{rakamaric2009scalable}.
-
-\begin{lstlisting}[caption = Simple networking entry point in C, label = fig:original_program]
-static void ep1(struct net_device *dev) {
-  struct shared *tp = netdev_priv(dev);
-  mutex_lock(&tp->wk.mutex);
-  tp->resource = 4;
-  mutex_unlock(&tp->wk.mutex);
-}
-\end{lstlisting}
-
-Example~\ref{fig:original_program} shows a simple program in C and Example~\ref{fig:smack_translation} shows its corresponding translation in Boogie IVL using SMACK. The function \texttt{\$pa} models pointer arithmetic, while the map \texttt{\$M.0} is a memory region that typically denotes a shared resource. Notice that function calls (e.g. to lock and unlock a mutex) are preserved in the translation.
-
-\begin{boogie}[caption = Translation to Boogie IVL using SMACK, label = fig:smack_translation]
-procedure ep1(dev: int) modifies $M.0; {
-  var $p0, $p1, $p2, $p3, $p4, $p5, $p6: int;
-  $bb0:
-    $p0 := dev;
-    $p1 := $pa($p0, 32, 1);
-    $p2 := $pa($pa($p1, 0, 24), 12, 1);
-    $p3 := $pa($pa($p2, 0, 12), 0, 1);
-    call mutex_lock($p3);
-    $p4 := $pa($pa($p1, 0, 24), 4, 1);
-    $M.0[$p4] := 4;
-    $p5 := $pa($pa($p1, 0, 24), 12, 1);
-    $p6 := $pa($pa($p5, 0, 12), 0, 1);
-    call mutex_unlock($p6);
-    return;
-}
-\end{boogie}
-
-\subsection{Instrumentation and Analysis}
-\label{whoop:method}
-
 The core \whoop tool (see Figure~\ref{fig:whoop} -- B) is responsible for parsing, instrumenting and sequentializing the abstract Boogie program. During the initial parsing, \whoop performs a static analysis (on the Boogie IVL code) to identify all lock identifiers and rewrite them to a unique constant Boogie variable, e.g. the following call to \texttt{mutex\_lock()}:
 
 \begin{boogie}
@@ -363,9 +345,10 @@ foo.c: error: potential write-write race:
     shared->resource = 5;
 \end{lstlisting}
 
-\subsection{Watchdog Summarization}
-\label{whoop:summarization}
+\ADComment{Briefly talk about how we tried inlining and do summarization instead}
 
+\medskip\noindent\textbf{Watchdog Summarization }
+%
 Early on during the development of \whoop, we realized that scalability would be a serious issue. When we tried to apply \whoop on the r8169 RealTek ethernet driver (8000 lines of C code) with all functions fully inlined, we were running out of memory. One reason was that the C to Boogie translation produced hundreds of thousands of Boogie IVL code, which could not fit in memory. Another reason was that some entry points recursively call helper functions. Inherently, recursion does not work with inlining. To tackle these issues we developed \emph{watchdog summarization}, a novel summarization technique that allows us to analyze Linux drivers in a scalable fashion, but without destroying precision.
 
 Watchdog summarization uses the Houdini~\cite{flanagan2001houdini} invariant inference algorithm (available inside Boogie) to automatically compute summaries (pre- and post-conditions and loop invariants) from a pool of \emph{candidate} invariants. The reason we need loop invariants is that we over-approximate loops using loop-cutting (also available inside Boogie).
@@ -404,9 +387,8 @@ procedure foo$ep1(dev: int);
   ...
 \end{boogie}
 
-\subsection{Optimizations and Assumptions}
-\label{whoop:optimizations}
-
+\medskip\noindent\textbf{Optimizations and Assumptions }
+%
 To increase precision we enhance \whoop with domain-specific knowledge of how the Linux kernel interacts with its drivers. This is an ongoing manual effort: the more drivers we study, the more domain-specific properties we discover, which we then exploit to make \whoop more precise.
 
 In our experience, one of the most effective precision optimizations is to enrich \whoop with information regarding kernel-imposed serialization. The Linux kernel can serialize calls to entry points, thus forcing them to not run concurrently with each other. An an example, a large number of networking and ethernet entry points are mutually serialized with RTNL, a network-specific kernel lock. \whoop exploits this knowledge and does not create pairs for entry points that are serialized.
@@ -419,9 +401,8 @@ Another optimization \whoop uses is to soundly reduce the checked memory locatio
 
 Finally, we assume that the formal parameters of an entry point do not alias, and thus cannot race. This is a potentially unsound feature that can be turned off using a command line option. In our experience so far, though, we have not missed any data races because of this assumption. We also assume that our environmental model and domain-specific knowledge are correct and do not cause any bugs to be missed.
 
-\subsection{Limitations}
-\label{whoop:limitations}
-
+\medskip\noindent\textbf{Limitations }
+%
 \whoop is based on lockset analysis and thus can report false bugs, because a violation of the locking discipline does not always correspond to a real data race (e.g. when lockfree synchronization is used instead of locking). \whoop also uses over-approximation (e.g. when reading from the shared state) and summarization, which can be sources of false positives. Furthermore, the tool does not currently check for dynamically created locks or for locks that are provided by external libraries, although the later could be addressed by providing a mechanism for users to declare custom locks.
 
 \PDComment{briefly mention interrupts}
