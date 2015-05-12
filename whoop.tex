@@ -136,9 +136,20 @@ We require the threads to terminate because in the presence of non-termination t
 \subsection{Implementation in \whoop}
 \label{sec:implementation}
 
-The simple concurrent programming model discussed in Section~\ref{sec:symbolicpairwise} is deliberately idealistic to describe our symbolic verification technique. In practice, the Linux drivers we analyze are written in the C language, we do not know upfront which are the entry points for a driver, we do not have a named set of locks, and rather than having a given set of named shared variables, we have arbitrary memory accesses via pointers. We now explain how we have taken the conceptual ideas from Section~\ref{sec:symbolicpairwise} and used them to build a practical tool for soundly detecting data races in drivers.
+The simple concurrent programming model discussed in Section~\ref{sec:symbolicpairwise} is deliberately idealistic to describe our symbolic verification technique. In practice, the Linux drivers we analyze are written in the C language, we do not know upfront which are the entry points for a driver, we do not have a named set of locks, and rather than having a given set of named shared variables, we have arbitrary memory accesses via pointers. We now explain how we have taken the conceptual ideas from Section~\ref{sec:symbolicpairwise} and used them to build \whoop, a practical tool for soundly detecting data races in drivers.
 
-\ADComment{Explain briefly the architecture, and specifically introduce Chauffer, SMACK and Boogie.}
+\begin{figure*}
+\centering
+\includegraphics[width=.99\linewidth]{img/whoop.pdf}
+\caption{The \whoop architecture, empowered by state-of-the-art compilation (Clang/LLVM and SMACK) and verification (Boogie and \corral) tools}
+\label{fig:whoop}
+\end{figure*}
+
+\medskip\noindent\textbf{Architecture }
+%
+Figure~\ref{fig:whoop} depicts the \whoop toolchain. Initially, \whoop accepts a Linux driver written in C, together with an environmental model\footnote{Stub header files that model the Linux kernel APIs.} that is required to ``close'' the driver and allow it to be subsequently analyzed for data races. Both the driver and the Linux model are passed to the translation phase of \whoop (see Figure~\ref{fig:whoop} -- A), which uses three LLVM\footnote{\url{http://llvm.org}}-based tools, Chauffeur\footnote{\url{https://github.com/mc-imperial/chauffeur}}, Clang\footnote{\url{http://clang.llvm.org}} and SMACK\footnote{\url{https://github.com/smackers/smack}}~\cite{rakamaric2014smack}, to translate the original driver into an abstract program written in the Boogie intermediate verification language (IVL)~\cite{deline2005boogiepl}. Next, \whoop instruments and sequentializes the program to perform symbolic pairwise lockset analysis (see Figure~\ref{fig:whoop} -- B and Section~\ref{sec:symbolicpairwise}) using the Boogie verification engine. After the verification phase ends, \whoop can exploit any inferred race-freedom guarantees to accelerate precise race-checking with \corral (see Figure~\ref{fig:whoop} -- C and Section~\ref{corral}).
+
+We decided to reuse industrial-strength tools in this work, because (i) we do not want to reinvent the wheel and (ii) these tools are robust and already battle-proven.
 
 \ADComment{Explain how we identify entry points (Chauffer)}
 
@@ -152,40 +163,8 @@ The simple concurrent programming model discussed in Section~\ref{sec:symbolicpa
 
 \ADComment{Discuss optimizations and assumptions.  Bring these to before the Corral stuff.}
 
-
-
-\ADComment{Note, unrelated to structure: put mention of interrupts in limitations}
-
-
-
-
-
-
-
-
-
-The entry points for 
-
-
-
-We have implemented our approach in \whoop, a static lockset analysis infrastructure that uses state-of-the-art compilation and sequential verification techniques to (i) automatically analyze Linux drivers for potential data races and (ii) exploit the race-related information from the sound static analysis phase to accelerate bug-finding.
-
-\begin{figure*}
-\centering
-\includegraphics[width=.99\linewidth]{img/whoop.pdf}
-\caption{The \whoop infrastructure, empowered by state-of-the-art compilation (Clang/LLVM and SMACK) and verification (Boogie and \corral) tools}
-\label{fig:whoop}
-\end{figure*}
-
-The key idea behind our novel static analysis is that we can verify absence of data races by (i) deriving a sound \emph{sequential} model that \emph{over-approximates} the originally concurrent program, (ii) instrumenting it for lockset analysis and race-checking, and (iii) asserting that all write/read accesses to the same shared resource are consistently protected by at least one common lock. The immediate benefit is that our approach not only avoids reasoning about thread interleavings, and thus has the potential to scale well, but also allows the reuse of existing sequential verification techniques.
-
-Figure~\ref{fig:whoop} depicts the \whoop toolchain. Initially, \whoop accepts a Linux driver written in C, together with a Linux environmental model\footnote{Stub header files that model the Linux kernel APIs.}, which is required to ``close'' the driver and allow it to be subsequently over-approximated and analyzed. Both the driver and the environmental model are passed to the translation phase of \whoop (see Section~\ref{whoop:translation}), which outputs an over-approximated program written in the Boogie intermediate verification language (IVL)~\cite{deline2005boogiepl}. Next, \whoop performs \emph{static pairwise lockset analysis} to detect all potential data races in the abstract program. The proof sketch behind our static lockset analysis is given in Section~\ref{whoop:proof}. The instrumentation and analysis is described in more detail in Section~\ref{whoop:method}. The summarization that we perform to achieve scalability is presented in Section~\ref{whoop:summarization}. After the static lockset analysis phase, \whoop exploits the race-related information to accelerate bug-finding with \corral (see Section~\ref{corral})
-
-Finally, we discuss optimizations and assumptions in Section~\ref{whoop:optimizations}, and limitations of our technique in Section~\ref{whoop:limitations}.
-
-\subsection{Translation to Boogie IVL}
-\label{whoop:translation}
-
+\medskip\noindent\textbf{Translation to Boogie IVL }
+%
 The aim of this phase (see Figure~\ref{fig:whoop} -- A) is to take an input Linux driver written in C, together with an environmental model, and output an over-approximated version of the program in Boogie IVL, a simple imperative language with well-defined verification-focused semantics used as the input to a number of cutting-edge verifiers (e.g. Boogie and \corral). To achieve this translation, \whoop uses three LLVM\footnote{\url{http://llvm.org}}-based tools: Chauffeur\footnote{\url{https://github.com/mc-imperial/chauffeur}}, Clang\footnote{\url{http://clang.llvm.org}} and SMACK\footnote{\url{https://github.com/smackers/smack}}~\cite{rakamaric2014smack}.
 
 First, \whoop runs Chauffeur, a Clang-frontend that we developed to perform two tasks: (i) visit the abstract syntax tree (AST) of the original program and extract all available entry point identifier names in the given driver, together with the identifier names of their corresponding kernel callbacks; and (ii) instrument the original program with a function that calls all available entry points. This function acts as the main entry point to the driver after the latter has been registered with the kernel. This simple rewriting does not alter the semantics of the original program, is required so that Clang does not compile away any uncalled entry points (because we closed the environment using stub functions) and is also later used by \whoop to help instrument asynchronous calls to entry points and create checker procedures (see Sections~\ref{whoop:method} and~\ref{corral}). The output is a file that contains information regarding the entry points and a file with the rewritten program.
@@ -220,20 +199,6 @@ procedure ep1(dev: int) modifies $M.0; {
     return;
 }
 \end{boogie}
-
-\subsection{Static Lockset Analysis Proof Sketch}
-\label{whoop:proof}
-
-We now formalize our approach to verifying data race freedom in a driver by statically analyzing its locksets. Let $\{\mathit{ep}_{1}, \mathit{ep}_{2}, \dotsc, \mathit{ep}_{n}\}$ be all the entry points of a driver, and let $\{\ell_{1}, \ell_{2}, \dotsc, \ell_{k}\}$ be all the locks used by this driver. Although we assume that the number of locks is finite and with a known bound, we argue that this assumption is realistic: all drivers that we have studied so far in the Linux kernel have only a small number of locks (typically one). Indeed, the Linux device driver book~\cite{corbet2005linux} advocates the use of as few locks as possible to avoid introducing unnecessary complexity and synchronization bugs that arise from careless fine-grained locking. Note that the actual Linux kernel employs sophisticated fine-grained locking, but this is part of the environment which is abstracted away in our models.
-
-For each entry point $\mathit{ep}_{i}$, we compute its lockset $\mathit{LS}_{i}$ that associates each memory location $m$ to the set of locks that are always held when $m$ is accessed during the execution of $\mathit{ep}_{i}$. Furthermore, for each entry point $\mathit{ep}_{i}$, we compute its read-set $R_{i}\lbrack m\rbrack \rightarrow \{true, false\}$ and its write-set $W_{i}\lbrack m\rbrack \rightarrow \{true, false\}$, which map each $m$ to true if and only if $\mathit{ep}_{i}$ reads or writes respectively to $m$ during some execution. In the actual implementation we avoid the use of quantifiers by using a different lockset, read-set and write-set for each shared memory location.
-
-\begin{theorem}
-\label{theorem:locksets}
-For each pair of entry points $\mathit{ep}_{i}, \mathit{ep}_{j}\in \{\mathit{ep}_{1}, \mathit{ep}_{2}, ..., \mathit{ep}_{n}\}$, where $i$ may be equal to $j$, and for each memory location $m$, if $(W_{i}\lbrack m\rbrack \vee W_{j}\lbrack m\rbrack) \wedge (W_{i}\lbrack m\rbrack \vee R_{j}\lbrack m\rbrack) \wedge (R_{i}\lbrack m\rbrack \vee W_{j}\lbrack m\rbrack) \implies (\mathit{LS}_{i}\lbrack m\rbrack \cap \mathit{LS}_{j}\lbrack m\rbrack \not= \varnothing)$, then the driver with entry points $\{\mathit{ep}_{1}, \mathit{ep}_{2}, \dotsc, \mathit{ep}_{n}\}$ is free from data races.
-\end{theorem}
-
-A sketch of how the above theorem can be proved is as follows. Suppose there are in fact entry points $\mathit{ep}_{i}$ and $\mathit{ep}_{j}$ that can race on a memory location $m$. By our hypothesis, there exists at least one lock, say $\ell$, which belongs to both $\mathit{LS}_{i}$ and $\mathit{LS}_{j}$. By the definition of a lockset, this means that $\ell$ is held during the access to $m$ by both $ep_1$ and $ep_2$. As a result, $m$ \emph{must} be unlocked and locked between the two accesses, which contradicts that the pair of accesses is racing.
 
 \subsection{Instrumentation and Analysis}
 \label{whoop:method}
@@ -458,6 +423,8 @@ Finally, we assume that the formal parameters of an entry point do not alias, an
 \label{whoop:limitations}
 
 \whoop is based on lockset analysis and thus can report false bugs, because a violation of the locking discipline does not always correspond to a real data race (e.g. when lockfree synchronization is used instead of locking). \whoop also uses over-approximation (e.g. when reading from the shared state) and summarization, which can be sources of false positives. Furthermore, the tool does not currently check for dynamically created locks or for locks that are provided by external libraries, although the later could be addressed by providing a mechanism for users to declare custom locks.
+
+\PDComment{briefly mention interrupts}
 
 Another limitation of \whoop is that it is unable to verify drivers that are designed to be accessed by a single process at a time. This \emph{single-open device}~\cite{corbet2005linux} mode can be enforced by atomically testing (at the beginning of each entry point) a flag that indicates device availability: if the flag is set to true, then the respective entry point executes, else it blocks. Because \whoop performs pair-wise analysis, it over-approximates this flag, and regards a pair of entry points as running concurrently, even if this is not the case. However,~\cite{corbet2005linux} advises against serializing drivers in this way, as it hinders user ingenuity (e.g. a user might expect that a device can be accessed concurrently for performance). Because using single-open device mode is considered bad practice, we thus burden the developer with disregarding any related false bug reports.
 
