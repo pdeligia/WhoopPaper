@@ -44,7 +44,8 @@ $\mutexlock{m};$   & mutex lock, where $m \in \mutexes$ \\
 $\mutexunlock{m};$ & mutex unlock, where $m \in \mutexes$\\
 \bottomrule
 \end{tabular}
-\caption{Forms of statements in our simple programming model}\label{fig:statements}
+\caption{Forms of statements in our simple programming model}
+\label{fig:statements}
 \end{figure}
 
 \medskip\noindent\textbf{Semantics }
@@ -87,7 +88,8 @@ $\mutexlock{m};$   & $\currentlockset{i} = \currentlockset{i} \cup \{ m \};$ \\
 $\mutexunlock{m};$ & $\currentlockset{i} = \currentlockset{i} \setminus \{ m \};$ \\
 \bottomrule
 \end{tabular}
-\caption{Instrumenting statements for lockset analysis}\label{fig:instrumentation}
+\caption{Instrumenting statements for lockset analysis}
+\label{fig:instrumentation}
 \end{figure}
 
 Initially, lockset instrumentation introduces sets that track: the shared variables that have been read from and written to; the mutexes that have been consistently used to protect each variable; and the mutexes that are currently held by a thread.  To this end, when instrumenting template $T$ with respect to symbol $i$, we add the sets $\hasbeenread{i} \subseteq \powerset{\sharedvars}$ and $\hasbeenwritten{i} \subseteq \powerset{\sharedvars}$ to track the shared variables that have been read from and written to, respectively, by the thread executing $T$. For each shared variable $s \in \sharedvars$ we add a lockset, $\lockset{s}{i}$, to record the mutexes that are consistently held when the thread accesses $s$. Finally, we add a current lockset, $\currentlockset{i} \subseteq \powerset{\mutexes}$, to record the mutexes that are currently held by the thread.
@@ -120,32 +122,15 @@ $\quad s \in \hasbeenwritten{i} \cap (\hasbeenread{j} \cup \hasbeenwritten{j}) \
 $\quad\quad \lockset{s}{i} \cap \lockset{s}{j} \neq \emptyset;$ \\
 
 \end{tabular}
-\caption{The sequential program to be analysed in order to prove race-freedom for a pair of thread templates}
+\caption{The sequential program to be analyzed in order to prove race-freedom for a pair of thread templates}
 \label{fig:sequentialization}
 \end{figure}
 
-
 \medskip\noindent\textbf{Soundness }
 %
-We sketch an argument that if the program of Figure~\ref{fig:sequentialization} is correct,
-it is impossible for a thread executing template $T$ to race with a thread executing template $U$,
-under the assumption that the threads are guaranteed to terminate.
-Let us assume that the program of Figure~\ref{fig:sequentialization} is correct,
-and suppose (by way of contradition) that a thread executing $T$ can in fact race with a thread
-executing $U$, on some shared variable $s$.  By our hypothesis that the program
-of Figure~\ref{fig:sequentialization} is correct, and that the threads terminate,
-the assertion checked at the end of the program guarantees at least one mutex, $m$ say,
-belongs to both $\lockset{s}{i}$ and $\lockset{s}{j}$.  By the definition of a lockset
-(and according to the manner in which shared accesses are instrumented in Figure~\ref{ }),
-this means that $m$ is held during every access to $s$ by both $\instrument{T}{i}$ and $\instrument{U}{j}$.
-As a result, $m$ must be unlocked and locked between the two accesses, which
-contradicts that the pair of accesses is racing.
+We sketch an argument that if the program of Figure~\ref{fig:sequentialization} is correct, it is impossible for a thread executing template $T$ to race with a thread executing template $U$, under the assumption that the threads are guaranteed to terminate. Let us assume that the program of Figure~\ref{fig:sequentialization} is correct, and suppose (by way of contradiction) that a thread executing $T$ can in fact race with a thread executing $U$, on some shared variable $s$.  By our hypothesis that the program of Figure~\ref{fig:sequentialization} is correct, and that the threads terminate, the assertion checked at the end of the program guarantees at least one mutex, say $m$, belongs to both $\lockset{s}{i}$ and $\lockset{s}{j}$.  By the definition of a lockset (and according to the manner in which shared accesses are instrumented in Figure~\ref{fig:instrumentation}), this means that $m$ is held during every access to $s$ by both $\instrument{T}{i}$ and $\instrument{U}{j}$. As a result, $m$ must be unlocked and locked between the two accesses, which contradicts that the pair of accesses is racing.
 
-We require the threads to terminate becauase in the presence of non-termination the assertion
-at the end of Figure~\ref{fig:sequentialization} may not be reached.  The termination analysis
-problem for device drivers has been widely studied, notably in the context of the Terminator tool~\cite{cook2006termination}.
-In the remainder of the paper we do not consider termination issues, assuming that the drivers we analyse
-in our experimental evaluation (Section~\ref{evaluation}) are terminating.
+We require the threads to terminate because in the presence of non-termination the assertion at the end of Figure~\ref{fig:sequentialization} may not be reached.  The termination analysis problem for device drivers has been widely studied, notably in the context of the Terminator tool~\cite{cook2006termination}. In the remainder of the paper we do not consider termination issues, assuming that the drivers we analyze in our experimental evaluation (see Section~\ref{evaluation}) are indeed terminating.
 
 
 \subsection{Implementation in \whoop}\label{sec:whoopimplementation}
