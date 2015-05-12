@@ -1,9 +1,10 @@
 
-We now present \emph{symbolic pairwise lockset analysis}, a novel method for data race analysis in device drivers.  In Section~\ref{sec:symbolicpairwise} we describe how the approach works in a semi-formal manner, with respect to a simple concurrent programming model.  In Section~\ref{sec:whoopimplementation} we explain how we have implemented symbolic pairwise lockset analysis in a practical tool, \whoop, that can be applied directly to driver source code, to check whether pairs of driver entry points can race with one another.
+We now present \emph{symbolic pairwise lockset analysis}, a novel method for data race analysis in device drivers.  In Section~\ref{sec:symbolicpairwise} we describe how the approach works in a semi-formal manner, with respect to a simple concurrent programming model.  In Section~\ref{sec:implementation} we explain how we have implemented symbolic pairwise lockset analysis in a practical tool, \whoop, that can be applied directly to driver source code, to check whether pairs of driver entry points can race with one another.
 
 Our experimental evaluation (Section~\ref{evaluation}) demonstrates that the \whoop technique has value as a stand-alone analyzer, and that results from \whoop can be exploited to significantly boost the performance of a more precise symbolic analysis for concurrency, based on context bounding and stratified inlining, offered by the \corral~\cite{lal2012corral} tool; we discuss the latter approach in Section~\ref{corral}.
 
-\subsection{Symbolic Pairwise Lockset Analysis}\label{sec:symbolicpairwise}
+\subsection{Symbolic Pairwise Lockset Analysis}
+\label{sec:symbolicpairwise}
 
 \ADComment{Top level question about this section: is the motivation super-clear?  Is it obvious why we go for the pairwise approach?}
 
@@ -15,7 +16,7 @@ We now detail the approach in a semi-formal manner, in the context of a simple c
 
 \medskip\noindent\textbf{Concurrent Programming Model }
 %
-We consider a simple concurrent programming model in which an unbounded number of threads execute a set of pre-defined \emph{thread templates}.  At any given point of execution a certain number of threads are active, each thread executing a particular template.  In the context of device drivers, a thread template corresponds to a driver entry point, and multiple instances of the same thread template may execute concurrently, just as multiple invocations of a single driver entry point may be concurrent.  Further threads may be launched at any point during execution; in the context of device drivers this corresponds to the OS invoking additional driver entry points.  For ease of presentation only, our model does not feature aggregate data types, pointers or dynamic memory allocation.  These \emph{are} handled by our implementation, and in Section~\ref{sec:whoopimplementation} we discuss interesting practical issues arising from the handling of a full-blown language.
+We consider a simple concurrent programming model in which an unbounded number of threads execute a set of pre-defined \emph{thread templates}.  At any given point of execution a certain number of threads are active, each thread executing a particular template.  In the context of device drivers, a thread template corresponds to a driver entry point, and multiple instances of the same thread template may execute concurrently, just as multiple invocations of a single driver entry point may be concurrent.  Further threads may be launched at any point during execution; in the context of device drivers this corresponds to the OS invoking additional driver entry points.  For ease of presentation only, our model does not feature aggregate data types, pointers or dynamic memory allocation.  These \emph{are} handled by our implementation, and in Section~\ref{sec:implementation} we discuss interesting practical issues arising from the handling of a full-blown language.
 
 A \emph{concurrent program} is described by a finite set of \emph{shared} variables, $\sharedvars$, a finite set of mutexes, $\mutexes$, and a finite set of \emph{thread templates}.  A thread template, $T$, consists of a finite set of procedures, $\procedures{T}$, and a finite set of private variables, $\variables{T}$.  A designated procedure, $\mainforthread{T} \in \procedures{T}$, denotes the starting point for execution of a template by a thread.  A procedure in $\procedures{T}$ is represented by a control flow graph of basic blocks, where each block contains a sequence of statements.  A basic block either has a single successor or a pair of successors.  In the latter case, an \emph{exit condition} over thread-private variables determines, at runtime, the successor to which control should flow on block exit.
 
@@ -132,10 +133,10 @@ We sketch an argument that if the program of Figure~\ref{fig:sequentialization} 
 
 We require the threads to terminate because in the presence of non-termination the assertion at the end of Figure~\ref{fig:sequentialization} may not be reached.  The termination analysis problem for device drivers has been widely studied, notably in the context of the Terminator tool~\cite{cook2006termination}. In the remainder of the paper we do not consider termination issues, assuming that the drivers we analyze in our experimental evaluation (see Section~\ref{evaluation}) are indeed terminating.
 
+\subsection{Implementation in \whoop}
+\label{sec:implementation}
 
-\subsection{Implementation in \whoop}\label{sec:whoopimplementation}
-
-\ADComment{Acknowledge very clearly that the simple concurrent programming model of Section~\ref{...} is deliberately idealistic.  In practice, we do not know upfront what the entry points for a driver are, we don't have named set of locks, and rather than a given set of named shared variables, we have arbitrary memory accesses via pointers.  We now explain how we have taken the conceptual ideas from Section~\ref{...} and used them to build a practical tool.}
+The simple concurrent programming model discussed in Section~\ref{sec:symbolicpairwise} is deliberately idealistic to describe our symbolic verification technique. In practice, the Linux drivers we analyze are written in the C language, we do not know upfront which are the entry points for a driver, we do not have a named set of locks, and rather than having a given set of named shared variables, we have arbitrary memory accesses via pointers. We now explain how we have taken the conceptual ideas from Section~\ref{sec:symbolicpairwise} and used them to build a practical tool for soundly detecting data races in drivers.
 
 \ADComment{Explain briefly the architecture, and specifically introduce Chauffer, SMACK and Boogie.}
 

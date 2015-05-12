@@ -12,7 +12,7 @@ In this paper, we present \whoop, a new fully automatic approach that (i) static
 
 We then show that by exploiting the race-freedom guarantees that our symbolic analysis provides, we can achieve a sound partial-order reduction that significantly accelerates \corral~\cite{lal2012corral}, a state-of-the-art bug-finder that is used by Microsoft to analyze device drivers, as well as other concurrent programs. Using \whoop and \corral we analyzed \sizeOfBenchmarks drivers available in the 4.0 Linux kernel distribution.
 
-\whoop currently supports only Linux drivers, but the approach is generic enough and thus we believe that it can be used to analyze drivers from other operating systems (e.g.\ Windows) as well as other concurrent programs with similar structure (e.g.\ filesystems).
+\whoop currently supports only Linux drivers, but the approach is generic, and thus we believe that it can be used to analyze drivers from other operating systems (e.g.\ Windows) as well as other concurrent programs that use a similar programming model (e.g.\ filesystems).
 
 To summarize, our contributions are as follows:
 \begin{itemize}
