@@ -177,7 +177,9 @@ The rewritten driver is compiled by Clang to LLVM-IR~\cite{lattner2004llvm}, a l
 
 SMACK then translates the driver from LLVM-IR to Boogie IVL, which is the input language of \whoop. An important feature of SMACK is that it leverages the pointer-alias analyses of LLVM to efficiently model the heap manipulation operations of C programs in Boogie IVL. This means that \whoop does not need to directly deal with pointers and alias analysis, a hard problem on its own, allowing us to reuse proven existing techniques and focus instead on verification efforts.
 
-To achieve scalability, SMACK is using a split-memory model instead of a monolithic one that would be difficult for backend verifiers to reason about~\cite{rakamaric2009scalable}. This split memory model is based on \emph{memory regions}, which are maps of integers that model the heap. A benefit of using this model is that memory regions denote disjoint sections of the heap (i.e. pointers that cannot alias). We leverage this knowledge inside \whoop to guide and optimize our instrumentation and analysis. In reality, this memory model is unsound ... (e.g. integers, overflow?), but for our work we assume it is sound.
+To achieve scalability, SMACK is using a split-memory model instead of a monolithic one that would be difficult for backend verifiers to reason about~\cite{rakamaric2009scalable}. This split memory model is based on \emph{memory regions}, which are maps of integers that model the heap. A benefit of using this model is that memory regions denote disjoint sections of the heap (i.e. pointers that cannot alias). We leverage this knowledge inside \whoop to guide and optimize our lockset instrumentation and analysis, and to create a fine-grained granularity of context-switch instrumentation as discussed in Section~\ref{corral}.
+
+In reality, SMACK is unsound ... (e.g. integers), but for our work we assume it is sound.
 
 \ADComment{Explain how we identify mutexes (inside our Boogie-based analysis)}
 
