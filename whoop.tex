@@ -133,7 +133,7 @@ We require the threads to terminate because in the presence of non-termination t
 \subsection{Implementation in \whoop}
 \label{sec:implementation}
 
-The simple concurrent programming model of \S\ref{sec:symbolicpairwise} is deliberately idealistic to make it easy to describe our symbolic verification technique. In practice, Linux drivers are written in C, we do not know up-front which are the entry points for a driver, drivers do not work with a cleanly specified set of named locks, and rather than having a given set of named shared variables, we have arbitrary memory accesses via pointers. We now explain how we have taken the conceptual ideas from \S\ref{sec:symbolicpairwise} and used them to build \whoop, a practical, fully automatic tool for soundly detecting data races in drivers.
+The simple concurrent programming model of \S\ref{sec:symbolicpairwise} is deliberately idealistic to make it easy to describe our symbolic verification technique. In practice, Linux drivers are written in C, we do not know up-front which are the entry points for a driver, drivers do not work with a cleanly specified set of named locks, and rather than having a given set of named shared variables, we have arbitrary memory accesses via pointers. We now explain how we have taken the conceptual ideas from \S\ref{sec:symbolicpairwise} and used them to build \whoop, a practical, fully automatic tool for detecting data races in drivers.
 
 \begin{figure*}
 \centering
@@ -231,23 +231,11 @@ Second, we soundly reduce the number of memory regions that are analyzed for rac
 
 \medskip\noindent\textbf{Practical Assumptions Related to Soundness}
 %
-\whoop is ``soundy''\footnote{http://soundiness.org/}~\cite{soundiness}: the tool aims in principle to perform a sound analysis
-that can prove absence of races, but suffers from some known sources of unsoundness
-which we now comment on.
+\whoop is ``soundy''\footnote{http://soundiness.org/}~\cite{soundiness}: the tool aims in principle to perform a sound analysis that can prove absence of races, but suffers from some known sources of unsoundness which we now comment on.
 
 We assume that the formal parameters of an entry point do not alias, and thus cannot race. This is a potentially unsound feature that can be turned off using a command line option, but without this assumption the false alarm rate of the tool is very high. In our experience so far we have not missed any races by assuming non-overlapping parameters.  We also realy on the soundness of our best-effort environmental model, and on the domain-specific knowledge exploit related to entry point serialization.
 
-As well as inheriting soundness issues arising from currently unknown bugs in 
-\whoop and in the external tools that \whoop relies on,
-we acknowledge that the SMACK translator is subject to sources of
-unsoundness (for example, SMACK models integers as an infinite set,
-rather than as a finite set of bitvectors), and that the combination
-of Clang and SMACK commits our approach to specific choices related to
-undefined and implementation-defined aspects of the C language when
-translating to Boogie.  However, \whoop makes no fundamental
-assumptions related to these translation decisions, meaning that a
-more accurate C-to-Boogie translation would automatically lead to a
-more accurate analysis with \whoop.
+As well as inheriting soundness issues arising from currently unknown bugs in \whoop and in the external tools that \whoop relies on, we acknowledge that the SMACK translator is subject to sources of unsoundness (for example, SMACK models integers as an infinite set, rather than as a finite set of bitvectors), and that the combination of Clang and SMACK commits our approach to specific choices related to undefined and implementation-defined aspects of the C language when translating to Boogie.  However, \whoop makes no fundamental assumptions related to these translation decisions, meaning that a more accurate C-to-Boogie translation would automatically lead to a more accurate analysis with \whoop.
 
 \medskip\noindent\textbf{Limitations }
 %
