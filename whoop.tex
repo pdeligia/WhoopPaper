@@ -8,6 +8,8 @@ Our experimental evaluation (Section~\ref{evaluation}) demonstrates that the \wh
 
 \ADComment{Top level question about this section: is the motivation super-clear?  Is it obvious why we go for the pairwise approach?}
 
+\PDComment{Mention this somewhere (it was in my previous implementation text)? Two-thread reduction is not a new idea, it has been used before in GPU kernel verification~\cite{bardsley2014engineering} and in model checking of cache coherence protocols~\cite{mcmillan1999verification}.}
+
 Our approach considers, for a given driver, every pair of entry points that can potentially execute concurrently.  For each such pair, we use symbolic verification to check whether it is possible for the pair to race in a shared variable. We soundly model the effects of additional entry points by treating the driver shared state abstractly: when an entry point reads from the shared state, a nondeterministic value is returned.  
 
 Symbolic verification of a pair of entry points works by (i) instrumenting each entry point with additional state to record locksets, and (ii) attempting to verify a sequential program that executes the instrumented entry points in sequence and then asserts that the lockset for each shared variable is non-empty.  Verification of the resulting sequential program can be undertaken using any sound method; in practice we employ the Boogie verification engine~\cite{barnett2006boogie}, which requires procedure specifications and loop invariants to be generated, after which verification conditions are generated and discharged to an automated theorem prover.
@@ -181,7 +183,7 @@ To achieve scalability, SMACK is using a split-memory model instead of a monolit
 
 In reality, SMACK is unsound ... (e.g.\ integers), but for our work we assume it is sound.
 
-\medskip\noindent\textbf{Identifying Set of Locks }
+\medskip\noindent\textbf{Identifying Set of All Locks }
 %
 When the instrumentation phase begins, \whoop performs an inter-procedural static analysis (on the Boogie IVL source code of each entry point) to identify all available locks and rewrite each one (both at declaration and at all access sites) to a unique constant Boogie variable. The reason behind this transformation, is that representing all locks statically, instead of their original SMACK pointer-based representation, helps \whoop perform various internal instrumentation and optimization passes.
 
@@ -189,7 +191,7 @@ Currently, \whoop only supports mutexes and spinlocks from the Linux kernel APIs
 
 \ADComment{Explain how we avoid quantifiers in performing race analysis}
 
-\medskip\noindent\textbf{Instrumentation and Analysis }
+\medskip\noindent\textbf{Watchdog Race-Checking }
 %
 Next, \whoop instruments the program with global variables for lockset analysis and race-checking per entry point. For example, for entry point \texttt{ep1}, \whoop instruments:
 
@@ -207,122 +209,6 @@ const {:watchdog} WATCHED_ACCESS_$M.0: int;
 \end{boogie}
 
 The above instrumented variables represent the follows: \texttt{lock\$0\_in\_CLS\_\$ep1} is the current lockset (CLS) of \texttt{ep1}; \texttt{WATCHED\_ACCESS\_\$M.0} is an \emph{unconstrained} constant representing the offset to memory region \texttt{\$M.0} that should be checked for races; \texttt{lock\$0\_in\_LS\_\$M.0\_\$ep1} is the lockset for \texttt{\$M.0}; \texttt{WRITTEN\_\$M.0\_\$ep1} is the write-set for \texttt{\$M.0}; and \texttt{READ\_\$M.0\_\$ep1} is the read-set for \texttt{\$M.0}. Verification involves proving that two entry points cannot race at the watched offset of every memory region. The arbitrary watched offset implies that every offset of each memory region is race-free. Watchdog race-checking has been used before for verifying GPU kernels~\cite{bardsley2014engineering}.
-
-\whoop proceeds by instrumenting each entry point call-graph for lockset analysis by replacing each call to a locking or unlocking function with a \whoop-specific lock and unlock functions. This means that Example~\ref{fig:smack_translation} will become:
-
-\begin{boogie}
-procedure ep1(dev: int) modifies $M.0; {
-  var $p0, $p1, $p2, $p3, $p4, $p5, $p6: int;
-  $bb0:
-    $p0 := dev;
-    $p1 := $pa($p0, 32, 1);
-    $p2 := $pa($pa($p1, 0, 24), 12, 1);
-    $p3 := $pa($pa($p2, 0, 12), 0, 1);
-    call _UPDATE_CLS_$ep1(lock$0, true);
-    $p4 := $pa($pa($p1, 0, 24), 4, 1);
-    $M.0[$p4] := 4;
-    $p5 := $pa($pa($p1, 0, 24), 12, 1);
-    $p6 := $pa($pa($p5, 0, 12), 0, 1);
-    call _UPDATE_CLS_$ep1(lock$0, false);
-    return;
-}
-\end{boogie}
-
-The \texttt{\_UPDATE\_CLS\_\$ep1()} is a special function that updates the CLS global variable to either true or false, if the lock is held or released by \texttt{ep1} accordingly:
-
-\begin{boogie}
-procedure {:inline 1} _UPDATE_CLS_$ep1(lock: int,
-    isLocked: bool);
-  modifies lock$0_in_CLS_$ep1;
-
-implementation {:inline 1} _UPDATE_CLS_$ep1(
-    lock: int, isLocked: bool) {
-  _UPDATE:
-    lock$0_in_CLS_$ep1 := (if lock == lock$0 then
-      isLocked else lock$0_in_CLS_$ep1);
-  return;
-}
-\end{boogie}
-
-Next, \whoop replaces every write and read access in each entry point call-graph with a \whoop-specific function:
-
-\begin{boogie}
-procedure ep1(dev: int) modifies $M.0; {
-  var $p0, $p1, $p2, $p3, $p4, $p5, $p6: int;
-  $bb0:
-    $p0 := dev;
-    $p1 := $pa($p0, 32, 1);
-    $p2 := $pa($pa($p1, 0, 24), 12, 1);
-    $p3 := $pa($pa($p2, 0, 12), 0, 1);
-    call _UPDATE_CLS_$ep1(lock$0, true);
-    $p4 := $pa($pa($p1, 0, 24), 4, 1);
-    call _WRITE_LS_$M.0_$ep1($p4);
-    $p5 := $pa($pa($p1, 0, 24), 12, 1);
-    $p6 := $pa($pa($p5, 0, 12), 0, 1);
-    call _UPDATE_CLS_$ep1(lock$0, false);
-    return;
-}
-\end{boogie}
-
-The \texttt{\_WRITE\_LS\_\$M.0\_\$ep1()} is a special function that computes the intersection of the CLS and the lockset of \texttt{\$M.0} (see Section~\ref{bg:lockset}). It also updates the write-set of \texttt{\$M.0} to true, because there was a write access by \texttt{ep1}:
-
-\begin{boogie}
-procedure {:inline 1} _WRITE_LS_$M.0_$ep1(
-    ptr: int);
-  modifies lock$0_in_LS_$M.0_$ep1,
-    WRITTEN_$M.0_$ep1;
-
-implementation {:inline 1} _WRITE_LS_$M.0_$ep1(
-    ptr: int) {
-  _WRITE:
-    goto anon1_Then, anon1_Else;
-
-  anon1_Then:
-    assume {:partition} WATCHED_ACCESS_$M.0 ==
-      ptr && DEVICE_IS_REGISTERED_$ep;
-    lock$0_in_LS_$M.0_$ep := lock$0_in_CLS_$ep && lock$0_in_LS_$M.0_$ep;
-    WRITTEN_$M.0_$ep := true;
-    return;
-  anon1_Else:
-    assume {:partition} !(WATCHED_ACCESS_$M.0 ==
-      ptr && DEVICE_IS_REGISTERED_$ep);
-    return;
-}
-\end{boogie}
-
-The \texttt{\_READ\_LS\_\$M.0\_\$ep1()} updates the lockset of \texttt{\$M.0} and the read-set accordingly for a read access.
-
-\whoop continues by performing \emph{two-thread reduction}, a sound abstraction that removes all but two arbitrary threads, each running an entry point of the originally concurrent program, and then performs \emph{pairwise sequentialization}, which combines the two arbitrary threads in a single sequential pair. This is achieved by creating a checker function that calls the two instrumented entry points and then performs race-checking assertions. This process repeats until all possible pairs of entry points have been sequentialized. To be sound, each time an entry point performs a read access to a shared memory location, \whoop returns a nondeterministic value (using the Boogie keyword \texttt{havoc}). This over-approximates any effects from all the unmodeled threads on the shared state of the pair. Two-thread reduction is not a new idea, it has been used before in GPU kernel verification~\cite{bardsley2014engineering} and in model checking of cache coherence protocols~\cite{mcmillan1999verification}.
-
-After each checker function calls a pair of entry points, it asserts that each shared memory location is protected by at least one common lock (see Section~\ref{bg:lockset}). The assertion check is triggered iff the memory location was accessed by both entry points and at least one of the accesses was a write. We do not check for read-read races, which are inherently benign. The following is an example of a checker function for entry points \texttt{ep1} and \texttt{ep2}:
-
-\begin{boogie}
-procedure check$ep1$ep2(dev: int);
-  requires !lock$0_in_CLS_$ep1;
-  requires !lock$0_in_CLS_$ep2;
-  requires lock$0_in_LS_$M.0_$ep1;
-  requires lock$0_in_LS_$M.0_$ep2;
-  requires !WRITTEN_$M.0_$ep1;
-  requires !WRITTEN_$M.0_$ep2;
-  requires !READ_$M.0_$ep1;
-  requires !READ_$M.0_$ep2;
-  modifies lock$0_in_CLS_$ep1, lock$0_in_CLS_$ep2,
-    lock$0_in_LS_$M.0_$ep1, lock$0_in_LS_$M.0_$ep2,
-    WRITTEN_ $M.0_$ep1,WRITTEN_$M.0_$ep2,
-    READ_$M.0_$ep1, READ_$M.0_$ep2;
-
-implementation check$ep1$ep2(dev: int) {
-  _CHECK:
-    call ep1(dev);
-    call ep2(dev);
-    assert (WRITTEN_$M.0_$ep1 && WRITTEN_$M.0_$ep2)
-      || (WRITTEN_$M.0_$ep1 && READ_$M.0_$ep2)
-      || (READ_$M.0_$ep1 && WRITTEN_$M.0_$ep2)
-      ==> lock$0_in_LS_$M.0_$ep1 &&
-      lock$0_in_LS_$M.0_$ep2;
-    return;
-}
-\end{boogie}
 
 Finally the abstract program is send to the Boogie verification engine, which generates verification conditions~\cite{barnett2005weakest} and discharges them to the Z3~\cite{de2008z3} theorem prover. Successful verification implies that the original program is free of data races, while an error denotes a \emph{potential} data race and is reported to the user. To improve usability, \whoop has a built-in error reporter that matches counterexamples to source code. The following is an example of a reported error:
 
