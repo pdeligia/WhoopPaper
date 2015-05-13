@@ -152,7 +152,7 @@ Figure~\ref{fig:whoop} depicts the \whoop toolchain. Initially, \whoop accepts a
 
 Next, \whoop instruments and sequentializes the program to perform symbolic pairwise lockset analysis (see Figure~\ref{fig:whoop} -- B and Section~\ref{sec:symbolicpairwise}) using the Boogie verification engine. After the verification phase ends, \whoop can exploit any inferred race-freedom guarantees to accelerate precise race-checking with \corral (see Figure~\ref{fig:whoop} -- C and Section~\ref{corral}).
 
-In this work, we decided to reuse industrial-strength tools, because (i) we did not want to ``reinvent the wheel'' and (ii) these tools are already robust and battle-proven.
+Besides the Chauffeur and \whoop components of our toolchain (denoted with grey boxes in Figure~\ref{fig:whoop}), we decided to reuse other industrial-strength tools, because (i) we did not want to ``reinvent the wheel'' and (ii) these tools are robust and battle-proven in real complex software.
 
 \medskip\noindent\textbf{Extracting Entry Point Information }
 %
