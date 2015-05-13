@@ -133,7 +133,7 @@ We require the threads to terminate because in the presence of non-termination t
 \subsection{Implementation in \whoop}
 \label{sec:implementation}
 
-The simple concurrent programming model discussed in \S\ref{sec:symbolicpairwise} is deliberately idealistic to describe our symbolic verification technique. In practice, the Linux drivers we analyze are written in the C language, we do not know upfront which are the entry points for a driver, we do not have a named set of locks, and rather than having a given set of named shared variables, we have arbitrary memory accesses via pointers. We now explain how we have taken the conceptual ideas from \S\ref{sec:symbolicpairwise} and used them to build \whoop, a practical, fully automatic tool for soundly detecting data races in drivers.
+The simple concurrent programming model of \S\ref{sec:symbolicpairwise} is deliberately idealistic to make it easy to describe our symbolic verification technique. In practice, Linux drivers are written in the C, we do not know up-front which are the entry points for a driver, drivers do not work with a cleanly specified set of named locks, and rather than having a given set of named shared variables, we have arbitrary memory accesses via pointers. We now explain how we have taken the conceptual ideas from \S\ref{sec:symbolicpairwise} and used them to build \whoop, a practical, fully automatic tool for soundly detecting data races in drivers.
 
 \begin{figure*}
 \centering
@@ -144,15 +144,15 @@ The simple concurrent programming model discussed in \S\ref{sec:symbolicpairwise
 
 \medskip\noindent\textbf{Architecture }
 %
-Figure~\ref{fig:whoop} depicts the \whoop toolchain. Initially, \whoop accepts a Linux driver written in C, together with an environmental model\footnote{Stub header files that model the Linux kernel APIs.} that is required to ``close'' the driver and allow it to be subsequently analyzed for data races. Both the driver and the Linux model are passed to the translation phase of \whoop (see Figure~\ref{fig:whoop} -- A), which uses three LLVM\footnote{\url{http://llvm.org}}-based tools, Chauffeur\footnote{\url{https://github.com/mc-imperial/chauffeur}}, Clang\footnote{\url{http://clang.llvm.org}} and SMACK\footnote{\url{https://github.com/smackers/smack}}~\cite{rakamaric2014smack}, to translate the original driver into an abstract program written in the Boogie intermediate verification language (IVL)~\cite{deline2005boogiepl}, a simple imperative language with well-defined verification-focused semantics that is used as the input to a number of cutting-edge verifiers (e.g.\ Boogie and \corral).
+Figure~\ref{fig:whoop} depicts the \whoop toolchain. Initially, \whoop accepts a Linux driver written in C, together with an environmental model\footnote{This consists of stub header files modeling relevant Linux kernel APIs.} that is required to ``close'' the driver and allow it to be subsequently analyzed for data races. Both the driver and the Linux model are passed to the translation phase of \whoop (see Figure~\ref{fig:whoop} -- A), which uses three LLVM\footnote{\url{http://llvm.org}}-based tools, Chauffeur\footnote{\url{https://github.com/mc-imperial/chauffeur}}, Clang\footnote{\url{http://clang.llvm.org}} and SMACK\footnote{\url{https://github.com/smackers/smack}}~\cite{rakamaric2014smack}, to translate the original driver into an abstract program written in the Boogie intermediate verification language (IVL)~\cite{deline2005boogiepl}, a simple imperative language with well-defined semantics that is used as the input to a number of cutting-edge verifiers (e.g.\ Boogie and \corral).
 
 Next, \whoop instruments and sequentializes the program to perform symbolic pairwise lockset analysis (see Figure~\ref{fig:whoop} -- B and \S\ref{sec:symbolicpairwise}) using the Boogie verification engine. After the verification phase ends, \whoop can exploit any inferred race-freedom guarantees to accelerate precise race-checking with \corral (see Figure~\ref{fig:whoop} -- C and \S\ref{corral}).
 
-Besides the Chauffeur and \whoop components of our toolchain (denoted with grey boxes in Figure~\ref{fig:whoop}), we decided to reuse other industrial-strength tools, because (i) we did not want to ``reinvent the wheel'' and (ii) these tools are robust and battle-proven in real complex software.
+We engineered the Chauffeur and \whoop components of our toolchain (denoted with grey boxes in Figure~\ref{fig:whoop}).  For the remaining components, we were able to re-use industrial-strength tools that are robust and battle-proven via their use in many complex software projects.
 
 \medskip\noindent\textbf{Extracting Entry Point Information }
 %
-We have developed Chauffeur, a Clang-frontend that performs two important tasks. The first is to traverse (using a Clang visitor pass) the abstract syntax tree (AST) of the original driver and extract all entry point identifier names, together with the identifier names of their corresponding kernel API functions. Linux drivers define entry points in a standard way (see Figure~\ref{fig:entrypoints} for an example of how the generic\_nvram driver defines the entry points for the \texttt{file\_operations} API); Chauffeur identifies these definitions in the AST and outputs the relevant information in an XML file, which is subsequently parsed by \whoop.
+Chauffeur is a Clang-based frontend that performs two important tasks. The first is to traverse (using a Clang visitor pass) the abstract syntax tree (AST) of the original driver and extract all entry point identifier names, together with the identifier names of their corresponding kernel API functions. Linux drivers define entry points in a standard way (see Figure~\ref{fig:entrypoints} for an example of how the generic\_nvram driver defines the entry points for the \texttt{file\_operations} API); Chauffeur identifies these definitions in the AST and outputs the relevant information in an XML file, which is subsequently parsed by \whoop.
 
 \begin{figure}[t]
 \begin{lstlisting}
@@ -167,17 +167,27 @@ const struct file_operations nvram_fops = {
 \label{fig:entrypoints}
 \end{figure}
 
-The second task is to instrument the original driver with a function that calls all entry points, one after the other, passing them parameters of arbitrary value (to over-approximate kernel behavior for soundness). This function effectively acts as the \emph{main} function of the driver and is required so that Clang does not compile away any uncalled entry points (because we closed the environment using stub functions). This simple rewriting does not alter the semantics of the original driver, as \whoop only uses this function to create checker functions and instrument them with calls to entry points (see Figure~\ref{fig:sequentialization} for the pseudocode of such checker function). Chauffeur outputs the rewritten driver in a C file.
+\ADComment{This is not clear to me.  Is the purpose of the main function simply to make sure that the functions are not compiled away?  I.e., do we then just ignore the main function?  If that is the case then why does it matter what we pass to the entry points, i.e. why should this be some arbitrary value?}  The second task is to instrument the original driver with a function that calls all entry points, one after the other, passing them parameters of arbitrary value (to over-approximate kernel behavior for soundness). This function effectively acts as the \emph{main} function of the driver and is required so that Clang does not compile away any entry points that are not otherwise invoked (because we closed the environment using stub functions).  \ADComment{It is not clear to me why an entry point would be invoked anywhere in the code other than in the main function we add.  Is it the case that sometimes entry points call each other?  Or does the kernel sometimes make direct calls to named entry points (rather than calls via function pointers)?} This simple rewriting does not alter the semantics of the original driver, as \whoop only uses this function to create checker functions and instrument them with calls to entry points (see Figure~\ref{fig:sequentialization} for the pseudocode of such checker function). Chauffeur outputs the rewritten driver in a C file.
 
 \medskip\noindent\textbf{Translation for Verification }
 %
 The rewritten driver is compiled by Clang to LLVM-IR~\cite{lattner2004llvm}, a low-level assembly-like language in single static assignment (SSA) form. Function calls (e.g.\ for locking and unlocking) are preserved in this translation, which is useful for our lockset instrumentation.
 
-SMACK then translates the driver from LLVM-IR to Boogie IVL, which is the input language of \whoop. An important feature of SMACK is that it leverages the pointer-alias analyses of LLVM to efficiently model the heap manipulation operations of C programs in Boogie IVL. This means that \whoop does not need to directly deal with pointers and alias analysis, a hard problem on its own, allowing us to reuse proven existing techniques and focus instead on verification efforts.
+SMACK then translates the driver from LLVM-IR to Boogie IVL, which is the input language of \whoop. An important feature of SMACK is that it leverages the pointer-alias analyses of LLVM to efficiently model the heap manipulation operations of C programs in Boogie IVL. This means that \whoop does not need to directly deal with pointers and alias analysis, a hard problem on its own, allowing us to re-use robust existing techniques and focus instead on verification efforts.
 
-To achieve scalability, SMACK is using a split-memory model instead of a monolithic one that would be difficult for backend verifiers to reason about~\cite{rakamaric2009scalable}. This split memory model is based on \emph{memory regions}, which are maps of integers that model the heap. A benefit of using this model is that memory regions denote disjoint sections of the heap (i.e.\ pointers that cannot alias). We leverage this knowledge inside \whoop to guide and optimize our lockset instrumentation and analysis, and to create a fine-grained granularity of context-switch instrumentation as discussed in \S\ref{corral}.
+To achieve scalability, SMACK uses a \emph{split} memory model that exploits the case where
+alias analysis asserts that a given memory location cannot be aliased by multiple types.
+This has been shown to lead to more tractable verification compared with a \emph{monolithic} model where the heap is considered to be an array of bytes~\cite{rakamaric2009scalable}. This split memory model is based on \emph{memory regions}, which are maps of integers that model the heap. A benefit of using this model is that distinct memory regions denote disjoint sections of the heap. We leverage this knowledge inside \whoop to guide and optimize our lockset instrumentation and analysis, and to create a fine-grained granularity of context-switch instrumentation as discussed in \S\ref{corral}.
 
-In reality, SMACK is unsound ... (e.g.\ integers), but for our work we assume it is sound.
+We acknowledge that the SMACK translator is subject to sources of
+unsoundness (for example, SMACK models integers as an infinite set,
+rather than as a finite set of bitvectors), and that the combination
+of Clang and SMACK commits our approach to specific choices related to
+undefined and implementation-defined aspects of the C language when
+translating to Boogie.  However, \whoop makes no fundamental
+assumptions related to these translation decisions, meaning that a
+more accurate C-to-Boogie translation would automatically lead to a
+more accurate analysis with \whoop.
 
 \medskip\noindent\textbf{Identifying Set of All Locks }
 %
