@@ -195,8 +195,6 @@ Data race detection is performed by introducing sets containing the locks that a
 
 We introduce a global watchdog variable for each SMACK memory region that is common to both entry points of a pair. This variable is an \emph{unconstrained} constant representing the offset to memory region that should be checked for races. Verification involves proving that two entry points cannot race at the watched offset of every memory region. The arbitrary watched offset implies that every offset of each memory region is race-free. Watchdog race-checking has been used before for verifying GPU kernels~\cite{bardsley2014engineering}.
 
-\ADComment{Briefly talk about how we tried inlining and do summarization instead}
-
 \medskip\noindent\textbf{Watchdog Summarization }
 %
 Early on during the development of \whoop, we realized that scalability would be a serious issue. When we tried to apply \whoop on the r8169 ethernet driver ($>$7000 lines of C code) with all functions fully inlined, we run out of memory. One reason was that the C to Boogie translation produced hundreds of thousands of Boogie IVL code, which could not fit in memory. Another reason was that some entry points recursively call helper functions. Inherently, recursion does not work well with inlining. To tackle these issues, we developed \emph{watchdog summarization}, a novel summarization technique that allows us to analyze drivers in a scalable fashion and without destroying precision.
@@ -205,24 +203,7 @@ Watchdog summarization uses the Houdini~\cite{flanagan2001houdini} invariant inf
 
 The candidate invariants are based on the aforementioned global watchdog variables that \whoop instruments for watchdog race-checking. The key idea behind watchdog summarization is to automatically generate candidate invariants for each memory region in the granularity of watched accesses. This reduces the false positives from reporting errors if only e.g.\ a field in memory region $\mathit{MR}$ is racing, but the rest of the fields in $\mathit{MR}$ are not racing.
 
-To generate the candidate invariants, \whoop performs an inter-procedural static analysis on the call-graph (in Boogie IVL code) of each entry point, identifying all possible accesses to shared memory locations. To be sound, if \whoop cannot infer information for a specific access, it generates a coarse-grained candidate for the corresponding memory region. For example the previous \texttt{\$M.0} candidates would now be:
-
-\begin{boogie}
-procedure foo$ep1(dev: int);
-  ensures _b$ls$entrypoint1$0
-    ==> WATCHED_ACCESS_$M.0 == dev + 4
-    ==> lock$0_in_LS_$M.0_$entrypoint1;
-  ensures _b$ls$entrypoint1$1
-    ==> WATCHED_ACCESS_$M.0 == dev + 8
-    ==> lock$0_in_LS_$M.0_$entrypoint1;
-  ensures _b$ac$entrypoint1$0
-    ==> WATCHED_ACCESS_$M.0 == dev + 4
-    ==> !WRITTEN_$M.0_$entrypoint1;
-  ensures _b$ac$entrypoint1$1
-    ==> WATCHED_ACCESS_$M.0 == dev + 8
-    ==> !WRITTEN_$M.0_$entrypoint1;
-  ...
-\end{boogie}
+To generate the candidate invariants, \whoop performs an inter-procedural static analysis on the call-graph (in Boogie IVL code) of each entry point, identifying all possible accesses to shared memory locations. To be sound, if \whoop cannot infer information for a specific access, it generates a coarse-grained candidate for the corresponding memory region.
 
 \medskip\noindent\textbf{Verification and Error Reporting }
 %
@@ -238,13 +219,11 @@ foo.c: error: potential write-write race:
 
 \medskip\noindent\textbf{Optimizations }
 %
-To increase precision we enhance \whoop with domain-specific knowledge of how the Linux kernel interacts with its drivers. This is an ongoing manual effort: the more drivers we study, the more domain-specific properties we discover, which we then exploit to make \whoop more precise.
+To increase precision we enhance \whoop with domain-specific knowledge of how the Linux kernel interacts with its drivers. This is an ongoing manual effort: the more drivers we study, the more domain-specific properties we discover, which we then exploit to make \whoop more precise. In our experience, one of the most effective precision optimizations is to enrich \whoop with information regarding kernel-imposed serialization. The Linux kernel can serialize calls to entry points, thus forcing them to run sequentially with each other. As an example, a large number of networking entry points are mutually serialized with RTNL, a network-specific kernel lock. \whoop exploits this knowledge and does not create pairs for entry points that are serialized.
 
-In our experience, one of the most effective precision optimizations is to enrich \whoop with information regarding kernel-imposed serialization. The Linux kernel can serialize calls to entry points, thus forcing them to not run concurrently with each other. An an example, a large number of networking and ethernet entry points are mutually serialized with RTNL, a network-specific kernel lock. \whoop exploits this knowledge and does not create pairs for entry points that are serialized.
+%Modeling kernel methods is another opportunity to increase precision, but requires Linux kernel expertise. For example, the \texttt{register\_netdev()} function registers a network driver with the kernel. Before this function is called, the kernel is not able to invoke any of the driver's entry points. Modeling this functionality can reduce false positives when race-checking accesses before the driver's registration.
 
-Modeling kernel methods is another opportunity to increase precision, but requires Linux kernel expertise. For example, the \texttt{register\_netdev()} function registers a network driver with the kernel. Before this function is called, the kernel is not able to invoke any of the driver's entry points. Modeling this functionality can reduce false positives when race-checking accesses before the driver's registration.
-
-Another optimization \whoop uses is to soundly reduce the checked memory locations. If a memory location is accessed only by one entry point in a pair, then it is safe to not check this location for this pair. This reduces the burden to the SMT solver and speed up the verification process.
+A performance optimization that \whoop uses is to soundly reduce the checked shared variables. If a shared variable $s$ is accessed only by one entry point in a pair, then it is safe to not check $s$ for this pair. This reduces the burden of the SMT solver and speeds up the verification process.
 
 \medskip\noindent\textbf{Assumptions }
 %
