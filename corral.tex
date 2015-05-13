@@ -6,37 +6,18 @@ Because \corral performs bounded verification both in terms of the number of all
 
 \medskip\noindent\textbf{Sound Partial-Order Reduction }
 %
-By default, \corral instruments a \texttt{yield} statement (which denotes a potential nondeterministic context-switch) before each \emph{visible operation} (i.e., synchronization operations and shared memory accesses) of every thread. It then leverages sequentialization to explore all possible thread interleavings up to a pre-defined bound.
-
-Our approach to accelerating \corral is simple and yet effective: we simplify
-the sequentialization that \corral performs by instrumenting \texttt{yield}
-statements only at shared memory accesses that \whoop reported as potentially
-racy.\footnote{In the presence of data races and relaxed memory, even considering all interleavings of shared memory accesses may be insufficient to find all bugs.} This effectively acts as a partial-order reduction that can significantly
-reduce the number of interleavings that \corral needs to explore, and thus
-increase performance and scalability.
+By default, \corral instruments a \texttt{yield} statement (which denotes a potential nondeterministic context-switch) before every shared memory access of each thread. It then leverages sequentialization to explore all possible thread interleavings up to a pre-defined bound. Our approach to accelerating \corral is simple and yet effective: we simplify the sequentialization that \corral performs by instrumenting \texttt{yield} statements only at shared memory accesses that \whoop reported as potentially racy.\footnote{In the presence of data races and relaxed memory, even considering all interleavings of shared memory accesses may be insufficient to find all bugs.} This effectively acts as a partial-order reduction that can significantly reduce the number of interleavings that \corral needs to explore, and thus increase performance and scalability.
 
 \ZRComment{Could this be cleaned up a bit? In particular, do we need to talk
-about entry point pairs, or could we prove it just for any pair?}\PDComment{Lets also see what Ally thinks about this part.}
-We now show that our partial-order reduction is sound: it does not miss any more
-bugs than what \corral would miss even without taking advantage of the \whoop
-race-related information. Let \corral run an $n$ amount of entry point pairs
-with yields in all visible operations. Let this configuration be known as $C$.
-Each entry point pair is running in a separate \corral process. \corral will
-miss all bugs that are triggered by more than 3 bugs running concurrently and
-all bugs that are triggered by investigating a larger than $r$ recursion bound
-and larger than $k$ context-switch bound. Let \corral then run the same $n$
-amount of pairs, but this time with all \texttt{yield} statements in non-racy
-shared memory accesses that are removed according to information from \whoop. Let this configuration be
-known as $W+C$. Because these shared memory accesses cannot race, performing a
-\texttt{yield} will not introduce any new program behaviors. Thus, \corral will
-find the same bugs using the configuration $W+C$, as using the configuration
-$C$.
+about entry point pairs, or could we prove it just for any pair?}
+
+We now show that our partial-order reduction is sound: it does not miss any more bugs than what \corral would miss even without taking advantage of the \whoop race-related information. Let \corral run an $n$ amount of entry point pairs with yields in all \emph{visible} operations (synchronization points and shared memory accesses). Let this configuration be known as $C$. Each entry point pair is running in a separate \corral process. \corral will miss all bugs that are triggered by more than 3 threads running concurrently and all bugs that are triggered by investigating a larger than $r$ recursion bound and larger than $k$ context-switch bound. Let \corral then run the same $n$ amount of pairs, but this time \whoop removes the \texttt{yield} statements in all non-racy shared memory accesses. Let this configuration be known as $W+C$. Because these shared memory accesses cannot race, performing a \texttt{yield} will not introduce any new program behaviors. Thus, \corral will find the same bugs using the configuration $W+C$, as using the configuration $C$.
 
 We have implemented two different levels of context-switch instrumentation granularity:
 
 \yieldcoarse instruments \texttt{yield} statement in a binary fashion: if \whoop
 finds that a pair of entry points cannot race, then it will only instrument
-context-switches in synchronization points of this pair; else if \whoop finds
+context-switches in synchronization points (i.e.\ locks and unlocks) of this pair; else if \whoop finds
 that a pair of entry points can race, then it will instrument context-switches
 in all visible operations of this pair.
 
