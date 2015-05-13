@@ -187,7 +187,7 @@ In reality, SMACK is unsound ... (e.g.\ integers), but for our work we assume it
 %
 When the instrumentation phase begins, \whoop performs an inter-procedural static analysis (on the Boogie IVL source code of each entry point) to identify all available locks and rewrite each one (both at declaration and at all access sites) to a unique constant Boogie variable. The reason behind this transformation, is that representing all locks statically, instead of their original SMACK pointer-based representation, helps \whoop perform various internal instrumentation and optimization passes.
 
-Currently, \whoop only supports mutexes and spinlocks from the Linux kernel APIs. However, it is relatively easy to enhance our tool with knowledge of other locking primitives. If \whoop cannot infer a lock, e.g. because it was created dynamically or was indexed from an array of locks, it will exit with a warning. The reason behind this is twofold: (i) it is arguably hard to detect such locks using static analysis; and (ii) we want to advocate the use of good locking practices when developing drivers for the Linux kernel.
+Currently, \whoop only supports mutexes and spinlocks that are available in the Linux kernel APIs. However, it is relatively easy to enhance our tool with knowledge of other locking primitives. If \whoop cannot infer a lock, e.g. because it was created dynamically or was indexed from an array of locks, it will exit with a warning. The are two reasons behind this: (i) it is arguably hard to detect such locks using static analysis; and (ii) we want to advocate the use of good locking practices when developing drivers for the Linux kernel.
 
 \medskip\noindent\textbf{Watchdog Race-Checking Instrumentation }
 %
