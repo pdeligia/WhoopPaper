@@ -137,7 +137,7 @@ We require the threads to terminate because in the presence of non-termination t
 \subsection{Implementation in \whoop}
 \label{sec:implementation}
 
-The simple concurrent programming model discussed in Section~\ref{sec:symbolicpairwise} is deliberately idealistic to describe our symbolic verification technique. In practice, the Linux drivers we analyze are written in the C language, we do not know upfront which are the entry points for a driver, we do not have a named set of locks, and rather than having a given set of named shared variables, we have arbitrary memory accesses via pointers. We now explain how we have taken the conceptual ideas from Section~\ref{sec:symbolicpairwise} and used them to build \whoop, a practical tool for soundly detecting data races in drivers.
+The simple concurrent programming model discussed in Section~\ref{sec:symbolicpairwise} is deliberately idealistic to describe our symbolic verification technique. In practice, the Linux drivers we analyze are written in the C language, we do not know upfront which are the entry points for a driver, we do not have a named set of locks, and rather than having a given set of named shared variables, we have arbitrary memory accesses via pointers. We now explain how we have taken the conceptual ideas from Section~\ref{sec:symbolicpairwise} and used them to build \whoop, a practical, fully automatic tool for soundly detecting data races in drivers.
 
 \begin{figure*}
 \centering
@@ -219,13 +219,13 @@ foo.c: error: potential write-write race:
 
 \medskip\noindent\textbf{Optimizations }
 %
-We have implemented various optimizations to increase the precision and performance of \whoop.
+We have implemented various optimizations to increase the precision and performance of \whoop. In our experience, the following two are the most effective optimizations:
 
-In our experience, one of the most effective precision optimizations is to enrich \whoop with information regarding \emph{kernel-imposed serialization}. The Linux kernel can serialize calls to entry points, thus forcing them to run sequentially with each other. As an example, a large number of networking entry points are mutually serialized with RTNL, a network-specific kernel lock. \whoop exploits this knowledge and does not create pairs for entry points that are serialized. This is an ongoing manual effort: the more drivers we study, the more such properties we discover, which we can then exploit to make \whoop more precise.
+We enrich \whoop with information regarding \emph{kernel-imposed serialization}, to increase precision. The Linux kernel can serialize calls to entry points, thus forcing them to run sequentially with each other. As an example, a large number of networking entry points are mutually serialized with RTNL, a network-specific kernel lock. \whoop exploits this knowledge and does not create pairs for entry points that are serialized. This is an ongoing manual effort: the more drivers we study, the more such properties we discover, which we can then exploit to make \whoop more precise.
 
 %Modeling kernel methods is another opportunity to increase precision, but requires Linux kernel expertise. For example, the \texttt{register\_netdev()} function registers a network driver with the kernel. Before this function is called, the kernel is not able to invoke any of the driver's entry points. Modeling this functionality can reduce false positives when race-checking accesses before the driver's registration.
 
-A performance optimization that \whoop uses is to soundly reduce the checked shared variables. If a shared variable $s$ is accessed only by one entry point in a pair, then it is safe to not check $s$ for this pair. This reduces the burden of the SMT solver and speeds up the verification process.
+We soundly reduce the checked shared variables to increase the performance of \whoop. If a shared variable $s$ is accessed by only one entry point in a pair, then it is safe to not check $s$ for this pair. This can reduce the burden of the SMT solver and speedup the verification process.
 
 \medskip\noindent\textbf{Assumptions }
 %
