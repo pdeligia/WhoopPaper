@@ -4,8 +4,9 @@
 
 Because \corral performs bounded verification both in terms of the number of allowed context-switches and loop/recursion unrollings, it is inherently unsound; in other words, it can miss real bugs. On the other hand, \corral is precise, and assuming a precise model of the program environment it will only report true bugs. \whoop takes advantage of this precision to report only feasible data races.
 
-\noindent
-\textbf{Sound Partial-Order Reduction}\xspace\xspace By default, \corral instruments a \texttt{yield} statement (which denotes a potential nondeterministic context-switch) before each \emph{visible operation} (i.e., synchronization operations and shared memory accesses) of every thread. It then leverages sequentialization to explore all possible thread interleavings up to a pre-defined bound.
+\medskip\noindent\textbf{Sound Partial-Order Reduction }
+%
+By default, \corral instruments a \texttt{yield} statement (which denotes a potential nondeterministic context-switch) before each \emph{visible operation} (i.e., synchronization operations and shared memory accesses) of every thread. It then leverages sequentialization to explore all possible thread interleavings up to a pre-defined bound.
 
 Our approach to accelerating \corral is simple and yet effective: we simplify
 the sequentialization that \corral performs by instrumenting \texttt{yield}
@@ -45,26 +46,22 @@ regions that can potentially race (regardless if a pair has not been fully
 verified as race-free). In our experiments (see Section~\ref{evaluation}),
 \yieldmr performs significantly faster than \yieldcoarse.
 
-\noindent
-\textbf{Race-Checking Instrumentation}\xspace\xspace In this paper, we treat races as bugs. To detect them, we employ a simple, but effective, encoding of data race checks within \corral.
-For example, whenever there is a write access to a shared variable, such as
-\texttt{\$M.13 := 0}, we instrument the Boogie IVL code to check for write-write
-races as follows:
+\medskip\noindent\textbf{Race-Checking Instrumentation }
+%
+In this paper, we treat races as bugs. To detect them, we employ a simple, but effective, encoding of data race checks within \corral. For example, whenever there is a write access to a shared variable $s$, we instrument our abstract Boogie program to check for write-write races as follows:
 %
 \begin{boogie}
-$M.13 := 0;        // original write
-yield;             // allow for a context-switch
-assert $M.13 == 0; // check written value
+s = e;         // original write
+yield;         // allow for a context-switch
+assert s == e; // check written value
 \end{boogie}
 %
-Likewise, for a read access to a shared variable, such as \texttt{\$p0 :=
-\$M.13}, we instrument the Boogie IVL code to check for read-write races as
-follows:
+Likewise, for a read access to a shared variable $s$, we instrument the abstract Boogie program to check for read-write races as follows:
 %
 \begin{boogie}
-$p0 := $M.13;        // original read
-yield;               // allow for a context-switch
-assert $p0 == $M.13; // check read value
+x = s;         // original read
+yield;         // allow for a context-switch
+assert x == s; // check read value
 \end{boogie}
 
 Note that our instrumentation conveniently tolerates most benign races, as it does not report a write-write race if two write accesses update the same shared memory location with the same value.  An advantage of this instrumentation is that it can be used as a precise feasibility check for the potential data races that \whoop reports.
