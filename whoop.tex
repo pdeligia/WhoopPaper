@@ -133,7 +133,7 @@ We require the threads to terminate because in the presence of non-termination t
 \subsection{Implementation in \whoop}
 \label{sec:implementation}
 
-The simple concurrent programming model of \S\ref{sec:symbolicpairwise} is deliberately idealistic to make it easy to describe our symbolic verification technique. In practice, Linux drivers are written in the C, we do not know up-front which are the entry points for a driver, drivers do not work with a cleanly specified set of named locks, and rather than having a given set of named shared variables, we have arbitrary memory accesses via pointers. We now explain how we have taken the conceptual ideas from \S\ref{sec:symbolicpairwise} and used them to build \whoop, a practical, fully automatic tool for soundly detecting data races in drivers.
+The simple concurrent programming model of \S\ref{sec:symbolicpairwise} is deliberately idealistic to make it easy to describe our symbolic verification technique. In practice, Linux drivers are written in C, we do not know up-front which are the entry points for a driver, drivers do not work with a cleanly specified set of named locks, and rather than having a given set of named shared variables, we have arbitrary memory accesses via pointers. We now explain how we have taken the conceptual ideas from \S\ref{sec:symbolicpairwise} and used them to build \whoop, a practical, fully automatic tool for soundly detecting data races in drivers.
 
 \begin{figure*}
 \centering
@@ -177,7 +177,7 @@ SMACK then translates the driver from LLVM-IR to Boogie IVL, which is the input 
 
 To achieve scalability, SMACK uses a \emph{split} memory model that exploits the case where
 alias analysis asserts that a given memory location cannot be aliased by multiple types.
-This has been shown to lead to more tractable verification compared with a \emph{monolithic} model where the heap is considered to be an array of bytes~\cite{rakamaric2009scalable}. This split memory model is based on \emph{memory regions}, which are maps of integers that model the heap. A benefit of using this model is that distinct memory regions denote disjoint sections of the heap. We leverage this knowledge inside \whoop to guide and optimize our lockset instrumentation and analysis, and to create a fine-grained granularity of context-switch instrumentation as discussed in \S\ref{corral}.
+This has been shown to lead to more tractable verification compared with a \emph{monolithic} model where the heap is considered to be an array of bytes~\cite{rakamaric2009scalable}. This split memory model is based on \emph{memory regions}, which are maps of integers that model the heap. A benefit of using this model is that distinct memory regions denote disjoint sections of the heap. We leverage this knowledge inside \whoop to guide and optimize our lockset instrumentation and analysis, and to create a fine-grained context-switch instrumentation as discussed in \S\ref{corral}.
 
 We acknowledge that the SMACK translator is subject to sources of
 unsoundness (for example, SMACK models integers as an infinite set,
