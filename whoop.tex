@@ -133,7 +133,7 @@ We require the threads to terminate because in the presence of non-termination t
 \subsection{Implementation in \whoop}
 \label{sec:implementation}
 
-The simple concurrent programming model of \S\ref{sec:symbolicpairwise} is deliberately idealistic to make it easy to describe our symbolic verification technique. In practice, Linux drivers are written in C, we do not know up-front which are the entry points for a driver, drivers do not work with a cleanly specified set of named locks, and rather than having a given set of named shared variables, we have arbitrary memory accesses via pointers. We now explain how we have taken the conceptual ideas from \S\ref{sec:symbolicpairwise} and used them to build \whoop, a practical, fully automatic tool for detecting data races in drivers.
+The simple concurrent programming model of \S\ref{sec:symbolicpairwise} is deliberately idealistic to make it easy to describe our symbolic verification technique. In practice, Linux drivers are written in C, we do not know up-front which are the entry points for a driver, drivers do not work with a cleanly specified set of named locks, and rather than having a given set of named shared variables, we have arbitrary memory accesses via pointers. We now explain how we have taken the conceptual ideas from \S\ref{sec:symbolicpairwise} and used them to build \whoop\footnote{\url{https://github.com/pdeligia/whoop}}, a practical, fully automatic tool for detecting data races in drivers.
 
 \begin{figure*}
 \centering
@@ -193,9 +193,9 @@ To avoid quantifiers and the associated theorem proving burden, we use instead a
 %
 Early in the development of \whoop we experimented with reasoning about recursion-free drivers by resorting to full inlining.  We found that this did not scale to large drivers: when we tried to apply \whoop to the r8169 ethernet driver (see \S\ref{evaluation}), we quickly exhausted the memory limits of our experimental platform as the driver exhibited recursion, which cannot be fully inlined and blows up.
 
-\ADComment{We have not given much intuition for what these candidates look like.  Could you give an example candidate, using mathematical notation?  For instance, if entry point $T$ has a procedure $f$ that releases mutex $m$, then when instrumenting $T$ with symbol $i$ (using the notation from \S\ref{sec:symbolicpairwise}) we might guess $m \notin \currentlockset{i}$ as a postcondition for $\instrument{f}{i}$.  It would be ideal if you could be as specific as possible about the candidates we generate.}
-
 To make our analysis scalable without sacrificing precision, and to cater for recursion, we use the Houdini~\cite{flanagan2001houdini} invariant inference algorithm to automatically compute summaries (pre- and post-conditions and loop invariants) from a pool of \emph{candidate} invariants. The Boogie verifier then automatically checks whether each procedure meets its summary, abstracting each called procedure with its summary in the process. Boogie also checks whether loops respect their invariants and uses the invariants to over-approximate the effects of loops.
+
+\ADComment{We have not given much intuition for what these candidates look like.  Could you give an example candidate, using mathematical notation?  For instance, if entry point $T$ has a procedure $f$ that releases mutex $m$, then when instrumenting $T$ with symbol $i$ (using the notation from \S\ref{sec:symbolicpairwise}) we might guess $m \notin \currentlockset{i}$ as a postcondition for $\instrument{f}{i}$.  It would be ideal if you could be as specific as possible about the candidates we generate.}
 
 The candidate invariants are based on the aforementioned watchdog constants that \whoop instruments for watchdog race-checking. Our candidate generation rules are purely heuristic. The key idea is to automatically generate candidates for each memory region in the granularity of watched accesses. This reduces the false positives from reporting errors if only e.g.\ a field in memory region $\mathit{MR}$ is racing, but the rest of the fields in $\mathit{MR}$ are not racing.
 
@@ -227,7 +227,7 @@ Second, we soundly reduce the number of memory regions that are analyzed for rac
 
 \medskip\noindent\textbf{Practical Assumptions Related to Soundness}
 %
-\whoop is ``soundy''\footnote{http://soundiness.org/}~\cite{soundiness}: it aims in principle to perform a sound analysis that can prove absence of races, but suffers from some known sources of unsoundness, which we now comment on.
+\whoop is ``soundy''\footnote{\url{http://soundiness.org/}}~\cite{soundiness}: it aims in principle to perform a sound analysis that can prove absence of races, but suffers from some known sources of unsoundness, which we now comment on.
 
 We assume that the formal parameters of an entry point do not alias, and thus cannot race. This is a potentially unsound feature that can be turned off using a command line option, but without this assumption the false alarm rate of \whoop is very high. In our experience so far, we have not missed any races by assuming non-overlapping parameters.  We also rely on the soundness of our best-effort environmental model, and on exploiting domain-specific knowledge related to entry point serialization by the Linux kernel.
 
