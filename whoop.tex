@@ -189,36 +189,11 @@ When the instrumentation phase begins, \whoop performs an inter-procedural stati
 
 Currently, \whoop only supports mutexes and spinlocks from the Linux kernel APIs. However, it is relatively easy to enhance our tool with knowledge of other locking primitives. If \whoop cannot infer a lock, e.g. because it was created dynamically or was indexed from an array of locks, it will exit with a warning. The reason behind this is twofold: (i) it is arguably hard to detect such locks using static analysis; and (ii) we want to advocate the use of good locking practices when developing drivers for the Linux kernel.
 
-\ADComment{Explain how we avoid quantifiers in performing race analysis}
-
-\medskip\noindent\textbf{Watchdog Race-Checking }
+\medskip\noindent\textbf{Watchdog Race-Checking Instrumentation }
 %
-Next, \whoop instruments the program with global variables for lockset analysis and race-checking per entry point. For example, for entry point \texttt{ep1}, \whoop instruments:
+Data race detection is performed by introducing sets containing the locks that are consistently held by each shared variable and sets containing all shared variables that are read and written (see Section~\ref{sec:symbolicpairwise}). Such sets can be typically modeled in Boogie using maps. However, this requires the use of quantifiers to express invariants related to the contents of a set, such as emptiness. To avoid using quantifiers and the associated theorem proving burden, we use instead a \emph{watchdog} race-checking instrumentation, which works as follows:
 
-\begin{boogie}
-var {:current_lockset} lock$0_in_CLS_$ep1: bool;
-var {:lockset} lock$0_in_LS_$M.0_$ep1: bool;
-var {:access_checking} WRITTEN_$M.0_$ep1: bool;
-var {:access_checking} READ_$M.0_$ep1: bool;
-\end{boogie}
-
-\whoop also instruments a global watchdog variable per memory region that is common to all entry points:
-
-\begin{boogie}
-const {:watchdog} WATCHED_ACCESS_$M.0: int;
-\end{boogie}
-
-The above instrumented variables represent the follows: \texttt{lock\$0\_in\_CLS\_\$ep1} is the current lockset (CLS) of \texttt{ep1}; \texttt{WATCHED\_ACCESS\_\$M.0} is an \emph{unconstrained} constant representing the offset to memory region \texttt{\$M.0} that should be checked for races; \texttt{lock\$0\_in\_LS\_\$M.0\_\$ep1} is the lockset for \texttt{\$M.0}; \texttt{WRITTEN\_\$M.0\_\$ep1} is the write-set for \texttt{\$M.0}; and \texttt{READ\_\$M.0\_\$ep1} is the read-set for \texttt{\$M.0}. Verification involves proving that two entry points cannot race at the watched offset of every memory region. The arbitrary watched offset implies that every offset of each memory region is race-free. Watchdog race-checking has been used before for verifying GPU kernels~\cite{bardsley2014engineering}.
-
-Finally the abstract program is send to the Boogie verification engine, which generates verification conditions~\cite{barnett2005weakest} and discharges them to the Z3~\cite{de2008z3} theorem prover. Successful verification implies that the original program is free of data races, while an error denotes a \emph{potential} data race and is reported to the user. To improve usability, \whoop has a built-in error reporter that matches counterexamples to source code. The following is an example of a reported error:
-
-\begin{lstlisting}
-foo.c: error: potential write-write race:
-  write by entry point ep1, foo.c:36:2
-    shared->resource = 4;
-  write by entry point ep2, foo.c:52:2
-    shared->resource = 5;
-\end{lstlisting}
+We introduce a global watchdog variable for each SMACK memory region that is common to both entry points of a pair. This variable is an \emph{unconstrained} constant representing the offset to memory region that should be checked for races. Verification involves proving that two entry points cannot race at the watched offset of every memory region. The arbitrary watched offset implies that every offset of each memory region is race-free. Watchdog race-checking has been used before for verifying GPU kernels~\cite{bardsley2014engineering}.
 
 \ADComment{Briefly talk about how we tried inlining and do summarization instead}
 
@@ -261,6 +236,18 @@ procedure foo$ep1(dev: int);
     ==> !WRITTEN_$M.0_$entrypoint1;
   ...
 \end{boogie}
+
+\medskip\noindent\textbf{Verification and Error Reporting }
+%
+Finally, the instrumented and summarized abstract program is send to the Boogie verification engine, which generates verification conditions~\cite{barnett2005weakest} and discharges them to the Z3~\cite{de2008z3} theorem prover. Successful verification implies that the original program is free of data races, while an error denotes a \emph{potential} data race and is reported to the user. To improve usability, \whoop has a built-in error reporter that matches counterexamples to source code. The following is an example of a reported error:
+
+\begin{lstlisting}
+foo.c: error: potential write-write race:
+  write by entry point ep1, foo.c:36:2
+    shared->resource = 4;
+  write by entry point ep2, foo.c:52:2
+    shared->resource = 5;
+\end{lstlisting}
 
 \medskip\noindent\textbf{Optimizations and Assumptions }
 %
