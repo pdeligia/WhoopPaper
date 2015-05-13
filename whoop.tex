@@ -219,7 +219,9 @@ foo.c: error: potential write-write race:
 
 \medskip\noindent\textbf{Optimizations }
 %
-To increase precision we enhance \whoop with domain-specific knowledge of how the Linux kernel interacts with its drivers. This is an ongoing manual effort: the more drivers we study, the more domain-specific properties we discover, which we then exploit to make \whoop more precise. In our experience, one of the most effective precision optimizations is to enrich \whoop with information regarding kernel-imposed serialization. The Linux kernel can serialize calls to entry points, thus forcing them to run sequentially with each other. As an example, a large number of networking entry points are mutually serialized with RTNL, a network-specific kernel lock. \whoop exploits this knowledge and does not create pairs for entry points that are serialized.
+We have implemented various optimizations to increase the precision and performance of \whoop.
+
+In our experience, one of the most effective precision optimizations is to enrich \whoop with information regarding \emph{kernel-imposed serialization}. The Linux kernel can serialize calls to entry points, thus forcing them to run sequentially with each other. As an example, a large number of networking entry points are mutually serialized with RTNL, a network-specific kernel lock. \whoop exploits this knowledge and does not create pairs for entry points that are serialized. This is an ongoing manual effort: the more drivers we study, the more such properties we discover, which we can then exploit to make \whoop more precise.
 
 %Modeling kernel methods is another opportunity to increase precision, but requires Linux kernel expertise. For example, the \texttt{register\_netdev()} function registers a network driver with the kernel. Before this function is called, the kernel is not able to invoke any of the driver's entry points. Modeling this functionality can reduce false positives when race-checking accesses before the driver's registration.
 
