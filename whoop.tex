@@ -206,18 +206,17 @@ To generate the candidate invariants, \whoop performs an inter-procedural static
 
 \medskip\noindent\textbf{Verification and Error Reporting }
 %
-For each entry point pair, the instrumented sequential program, equipped with procedure and loop summaries, sent to the Boogie verification engine.  For each procedure in the program, Boogie generates a verification condition~\cite{barnett2005weakest} and discharges these to the Z3~\cite{de2008z3} theorem prover.  In particular, the verification for the root-level procedure, encoding the sequential program sketched in Figure~\ref{fig:sequentialization}, encodes the race-freedom check for the entry point pair.
-Successful verification implies that the entry point pair is free of data races, while an error denotes a \emph{potential} data race and is reported to the user. To improve usability, \whoop has a built-in error reporter that matches counterexamples to source code. The following is an example of a reported error: \ADComment{Can you replace this with an error \whoop would give for the example device driver bug used earlier in the paper, and refer back to that example?  That would look more convincing.}
+For each pair of entry points, the instrumented sequential program, equipped with procedure and loop summaries, is sent to the Boogie verification engine. Boogie generates a verification condition~\cite{barnett2005weakest}, for each procedure in the program, and discharges it to the Z3~\cite{de2008z3} theorem prover.  In particular, the verification for the root-level procedure, encoding the sequential program sketched in Figure~\ref{fig:sequentialization}, encodes the race-freedom check for the entry point pair. Successful verification implies that the entry point pair is free of data races, while an error (i.e.\ counterexample) denotes a \emph{potential} data race and is reported to the user. To improve usability, \whoop has a built-in error reporter that matches counterexamples to source code. The following is a race that \whoop found and reported for the example of Figure~\ref{fig:data_race_example}: 
 
-\begin{lstlisting}
-foo.c: error: potential write-write race:
-  write by entry point ep1, foo.c:36:2
-    shared->resource = 4;
-  write by entry point ep2, foo.c:52:2
-    shared->resource = 5;
+\begin{lstlisting}[keywordstyle=\ttfamily]
+generic_nvram.c: error: potential read-write race:
+  read by entry point nvram_llseek, generic_nvram.c:54:2
+    return file->f_pos;
+  write by entry point nvram_llseek, generic_nvram.c:53:2
+    file->f_pos = offset;
 \end{lstlisting}
 
-Because a driver is processed by Clang and SMACK during the translation from C to Boogie IVL, significant engineering effort was required to map Boogie-level errors back to original source locations.
+Because a driver is processed by Clang and SMACK during the translation from C to Boogie IVL, significant engineering effort was required to map Boogie-level errors back to original source code locations.
 
 \medskip\noindent\textbf{Optimizations }
 %
