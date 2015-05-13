@@ -179,16 +179,6 @@ To achieve scalability, SMACK uses a \emph{split} memory model that exploits the
 alias analysis asserts that a given memory location cannot be aliased by multiple types.
 This has been shown to lead to more tractable verification compared with a \emph{monolithic} model where the heap is considered to be an array of bytes~\cite{rakamaric2009scalable}. This split memory model is based on \emph{memory regions}, which are maps of integers that model the heap. A benefit of using this model is that distinct memory regions denote disjoint sections of the heap. We leverage this knowledge inside \whoop to guide and optimize our lockset instrumentation and analysis, and to create a fine-grained context-switch instrumentation as discussed in \S\ref{corral}.
 
-We acknowledge that the SMACK translator is subject to sources of
-unsoundness (for example, SMACK models integers as an infinite set,
-rather than as a finite set of bitvectors), and that the combination
-of Clang and SMACK commits our approach to specific choices related to
-undefined and implementation-defined aspects of the C language when
-translating to Boogie.  However, \whoop makes no fundamental
-assumptions related to these translation decisions, meaning that a
-more accurate C-to-Boogie translation would automatically lead to a
-more accurate analysis with \whoop.
-
 \medskip\noindent\textbf{Identifying Locks }
 %
 When the instrumentation phase begins, \whoop performs an inter-procedural static analysis (on the Boogie IVL source code of each entry point) to identify all available locks and rewrite each one (both at declaration and at all access sites) to a unique constant Boogie variable. The reason behind this transformation, is that representing all locks statically, instead of their original SMACK pointer-based representation, helps \whoop perform various internal instrumentation and optimization passes.
@@ -233,19 +223,37 @@ Because a driver is processed by Clang and SMACK during the translation from C t
 
 \medskip\noindent\textbf{Optimizations }
 %
-We have implemented various optimizations to increase the precision and performance of \whoop. In our experience, the following two are the most effective optimizations:
+We have implemented various optimizations to increase the precision and performance of \whoop.  We comment on the two most effective optimizations.
 
-We enrich \whoop with information regarding \emph{kernel-imposed serialization}, to increase precision. The Linux kernel can serialize calls to entry points, thus forcing them to run sequentially with each other. As an example, a large number of networking entry points are mutually serialized with RTNL, a network-specific kernel lock. \whoop exploits this knowledge and does not create pairs for entry points that are serialized. This is an ongoing manual effort: the more drivers we study, the more such properties we discover, which we can then exploit to make \whoop more precise.
+First, we enriched \whoop with information regarding \emph{kernel-imposed serialization}, to increase precision. The Linux kernel can serialize calls to entry points, thus forcing them to run sequentially with each other. As an example, a large number of networking entry points are mutually serialized with RTNL, a network-specific kernel lock. \whoop exploits this knowledge and does not create pairs for entry points that are serialized. This is an ongoing manual effort: the more drivers we study, the more such properties we discover, which we can then exploit to make \whoop more precise.  \ADComment{Can you make it clearer that this information is currently provided manually to Whoop?  Can you explain how this is achieved?  And can you comment briefly on how we figured this out?}
 
 %Modeling kernel methods is another opportunity to increase precision, but requires Linux kernel expertise. For example, the \texttt{register\_netdev()} function registers a network driver with the kernel. Before this function is called, the kernel is not able to invoke any of the driver's entry points. Modeling this functionality can reduce false positives when race-checking accesses before the driver's registration.
 
-We soundly reduce the checked shared variables to increase the performance of \whoop. If a shared variable $s$ is accessed by only one entry point in a pair, then it is safe to not check $s$ for this pair. This can reduce the burden of the SMT solver and speedup the verification process.
+Second, we soundly reduce the number of memory regions that are analyzed for races.  If memory region $\mathit{MR}$ is accessed by only one entry point in a pair then, trivially, the pair cannot race on $\mathit{MR}$.  We thus disable lockset analysis for $\mathit{MR}$.  This can reduce the complexity of verification conditions that need to be solved by the theorem prover, speeding up the verification process.
 
-\medskip\noindent\textbf{Assumptions }
+\medskip\noindent\textbf{Practical Assumptions Related to Soundness}
 %
-We assume that the formal parameters of an entry point do not alias, and thus cannot race. This is a potentially unsound feature that can be turned off using a command line option. In our experience so far, though, we have not missed any races because of this assumption. We also assume that our environmental model and domain-specific knowledge are correct and do not cause any bugs to be missed. Finally, we assume that the external tools that we use as part of the \whoop toolchain are sound and bug-free.
+\whoop is ``soundy''\footnote{http://soundiness.org/}~\cite{soundiness}: the tool aims in principle to perform a sound analysis
+that can prove absence of races, but suffers from some known sources of unsoundness
+which we now comment on.
+
+We assume that the formal parameters of an entry point do not alias, and thus cannot race. This is a potentially unsound feature that can be turned off using a command line option, but without this assumption the false alarm rate of the tool is very high. In our experience so far we have not missed any races by assuming non-overlapping parameters.  We also realy on the soundness of our best-effort environmental model, and on the domain-specific knowledge exploit related to entry point serialization.
+
+As well as inheriting soundness issues arising from currently unknown bugs in 
+\whoop and in the external tools that \whoop relies on,
+we acknowledge that the SMACK translator is subject to sources of
+unsoundness (for example, SMACK models integers as an infinite set,
+rather than as a finite set of bitvectors), and that the combination
+of Clang and SMACK commits our approach to specific choices related to
+undefined and implementation-defined aspects of the C language when
+translating to Boogie.  However, \whoop makes no fundamental
+assumptions related to these translation decisions, meaning that a
+more accurate C-to-Boogie translation would automatically lead to a
+more accurate analysis with \whoop.
 
 \medskip\noindent\textbf{Limitations }
+%
+\ADComment{This section is good, but could be shorter.  I suggest you do a ``squeezing'' pass.}
 %
 \whoop is based on lockset analysis and thus can report false bugs, because a violation of the locking discipline does not always correspond to a real data race (e.g.\ when lockfree synchronization is used instead of locking). \whoop also uses over-approximation (e.g.\ when reading from the shared state) and summarization, which can be sources of false positives. Furthermore, the tool does not currently check for dynamically created locks or for locks that are provided by external libraries, although the later could be addressed by providing a mechanism for users to declare custom locks. We also do not currently handle interrupt handlers in a special way; to be sound, we assume that they can execute concurrently with entry points at any time. We could address this in the future by modeling interrupt-specific kernel functions (e.g. for enabling/disabling interrupts).
 
