@@ -249,7 +249,7 @@ foo.c: error: potential write-write race:
     shared->resource = 5;
 \end{lstlisting}
 
-\medskip\noindent\textbf{Optimizations and Assumptions }
+\medskip\noindent\textbf{Optimizations }
 %
 To increase precision we enhance \whoop with domain-specific knowledge of how the Linux kernel interacts with its drivers. This is an ongoing manual effort: the more drivers we study, the more domain-specific properties we discover, which we then exploit to make \whoop more precise.
 
@@ -259,9 +259,9 @@ Modeling kernel methods is another opportunity to increase precision, but requir
 
 Another optimization \whoop uses is to soundly reduce the checked memory locations. If a memory location is accessed only by one entry point in a pair, then it is safe to not check this location for this pair. This reduces the burden to the SMT solver and speed up the verification process.
 
-%We also optimize the use of function pointers. LLVM and SMACK do not perform context-sensitive translation, which means that a function that accepts a function pointer as an argument, can arbitrarily call any possible method that corresponds to that function pointer regardless of call site. To increase precision, Chauffeur analyses the AST of the original program and attempts to infer context-sensitive function pointer use information. This information is the used by \whoop to increase precision. To be sound, this optimization is conservative: if no information can be extracted for a function pointer at a call site, then \whoop uses the original over-approximated function.
-
-Finally, we assume that the formal parameters of an entry point do not alias, and thus cannot race. This is a potentially unsound feature that can be turned off using a command line option. In our experience so far, though, we have not missed any data races because of this assumption. We also assume that our environmental model and domain-specific knowledge are correct and do not cause any bugs to be missed.
+\medskip\noindent\textbf{Assumptions }
+%
+We assume that the formal parameters of an entry point do not alias, and thus cannot race. This is a potentially unsound feature that can be turned off using a command line option. In our experience so far, though, we have not missed any data races because of this assumption. We also assume that our environmental model and domain-specific knowledge are correct and do not cause any bugs to be missed. Finally, we assume that the external tools we use as part of the \whoop toolchain are sound and bug-free.
 
 \medskip\noindent\textbf{Limitations }
 %
