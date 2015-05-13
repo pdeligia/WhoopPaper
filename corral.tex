@@ -10,7 +10,7 @@ Because \corral performs bounded verification both in terms of the number of all
 Our approach to accelerating \corral is simple and yet effective: we simplify
 the sequentialization that \corral performs by instrumenting \texttt{yield}
 statements only at shared memory accesses that \whoop reported as potentially
-racy. This effectively acts as a partial-order reduction that can significantly
+racy.\footnote{In the presence of data races and relaxed memory, even considering all interleavings of shared memory accesses may be insufficient to find all bugs.} This effectively acts as a partial-order reduction that can significantly
 reduce the number of interleavings that \corral needs to explore, and thus
 increase performance and scalability.
 
