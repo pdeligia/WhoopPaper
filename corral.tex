@@ -46,6 +46,8 @@ regions that can potentially race (regardless if a pair has not been fully
 verified as race-free). In our experiments (see Section~\ref{evaluation}),
 \yieldmr performs significantly faster than \yieldcoarse.
 
+In this work, we use \corral to analyze separate pairs of entry points (as outputted by \whoop), instead of the whole Boogie driver (as outputted by SMACK). We also do not employ any abstraction to model additional threads, as we want \corral to report only true races. Because we only analyze pairs, though, \corral can miss races that require more than two threads to manifest. We argue that this limitation is orthogonal to this work: as long as we compare the same pairs with standalone \corral and with \corral that takes advantage of \whoop, then our comparison is sound. In reality, we could allow \corral to analyze the whole driver, and then instrument \texttt{yield} statements in a coarser granularity (taking into account all threads).
+
 \medskip\noindent\textbf{Race-Checking Instrumentation }
 %
 In this paper, we treat races as bugs. To detect them, we employ a simple, but effective, encoding of data race checks within \corral. For example, whenever there is a write access to a shared variable $s$, we instrument our abstract Boogie program to check for write-write races as follows:
