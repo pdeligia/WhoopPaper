@@ -191,7 +191,7 @@ Currently, \whoop only supports mutexes and spinlocks from the Linux kernel APIs
 
 \medskip\noindent\textbf{Watchdog Race-Checking Instrumentation }
 %
-Data race detection is performed by introducing sets containing the locks that are consistently held by each shared variable and sets containing all shared variables that are read and written (see Section~\ref{sec:symbolicpairwise}). Such sets can be typically modeled in Boogie using maps. However, this requires the use of quantifiers to express invariants related to the contents of a set, such as emptiness. To avoid using quantifiers and the associated theorem proving burden, we use instead a \emph{watchdog} race-checking instrumentation, which works as follows:
+Data race detection is performed by introducing sets containing the locks that are consistently held by each shared variable and sets containing all shared variables that are read and written (see Section~\ref{sec:symbolicpairwise}). Such sets can be typically modeled in Boogie using maps. However, this requires the use of quantifiers to express invariants related to the contents of a set, such as emptiness. To avoid using quantifiers and the associated theorem proving burden, we use instead a \emph{watchdog race-checking instrumentation}, which works as follows:
 
 We introduce a global watchdog variable for each SMACK memory region that is common to both entry points of a pair. This variable is an \emph{unconstrained} constant representing the offset to memory region that should be checked for races. Verification involves proving that two entry points cannot race at the watched offset of every memory region. The arbitrary watched offset implies that every offset of each memory region is race-free. Watchdog race-checking has been used before for verifying GPU kernels~\cite{bardsley2014engineering}.
 
@@ -199,11 +199,13 @@ We introduce a global watchdog variable for each SMACK memory region that is com
 
 \medskip\noindent\textbf{Watchdog Summarization }
 %
-Early on during the development of \whoop, we realized that scalability would be a serious issue. When we tried to apply \whoop on the r8169 RealTek ethernet driver (8000 lines of C code) with all functions fully inlined, we were running out of memory. One reason was that the C to Boogie translation produced hundreds of thousands of Boogie IVL code, which could not fit in memory. Another reason was that some entry points recursively call helper functions. Inherently, recursion does not work with inlining. To tackle these issues we developed \emph{watchdog summarization}, a novel summarization technique that allows us to analyze Linux drivers in a scalable fashion, but without destroying precision.
+Early on during the development of \whoop, we realized that scalability would be a serious issue. When we tried to apply \whoop on the r8169 ethernet driver ($>$7000 lines of C code) with all functions fully inlined, we run out of memory. One reason was that the C to Boogie translation produced hundreds of thousands of Boogie IVL code, which could not fit in memory. Another reason was that some entry points recursively call helper functions. Inherently, recursion does not work well with inlining. To tackle these issues, we developed \emph{watchdog summarization}, a novel summarization technique that allows us to analyze drivers in a scalable fashion and without destroying precision.
 
 Watchdog summarization uses the Houdini~\cite{flanagan2001houdini} invariant inference algorithm (available inside Boogie) to automatically compute summaries (pre- and post-conditions and loop invariants) from a pool of \emph{candidate} invariants. The reason we need loop invariants is that we over-approximate loops using loop-cutting (also available inside Boogie).
 
-The candidate invariants are based on the global variables that \whoop instruments to perform lockset analysis and race-checking (see Section~\ref{whoop:method}). The key idea behind watchdog summarization is that we automatically generate candidate invariants for each memory region in the granularity of watched accesses. This reduces the false positives from reporting errors if only e.g.\ a field in memory region \texttt{\$M.0} is racing, but the rest of the fields are not. An example of watchdog-based candidate post-conditions is the following:
+The candidate invariants are based on the aforementioned global watchdog variables that \whoop instruments for watchdog race-checking. The key idea behind watchdog summarization is to automatically generate candidate invariants for each memory region in the granularity of watched accesses. This reduces the false positives from reporting errors if only e.g.\ a field in memory region $\mathit{MR}$ is racing, but the rest of the fields in $\mathit{MR}$ are not racing.
+
+To generate the candidate invariants, \whoop performs an inter-procedural static analysis on the call-graph (in Boogie IVL code) of each entry point, identifying all possible accesses to shared memory locations. To be sound, if \whoop cannot infer information for a specific access, it generates a coarse-grained candidate for the corresponding memory region. For example the previous \texttt{\$M.0} candidates would now be:
 
 \begin{boogie}
 procedure foo$ep1(dev: int);
@@ -218,21 +220,6 @@ procedure foo$ep1(dev: int);
     ==> !WRITTEN_$M.0_$entrypoint1;
   ensures _b$ac$entrypoint1$1
     ==> WATCHED_ACCESS_$M.0 == dev + 8
-    ==> !WRITTEN_$M.0_$entrypoint1;
-  ...
-\end{boogie}
-
-To generate the candidate invariants, \whoop performs an intra-procedural static analysis on the call-graph (in Boogie IVL code) of each entry point, identifying all possible accesses to shared memory locations. To be sound, if \whoop cannot infer information for a specific access, it generates a coarse-grained candidate for the corresponding memory region. For example the previous \texttt{\$M.0} candidates would now be:
-
-\begin{boogie}
-procedure foo$ep1(dev: int);
-  ensures _b$ls$entrypoint1$0
-    ==> lock$0_in_LS_$M.0_$entrypoint1;
-  ensures _b$ls$entrypoint1$1
-    ==> lock$0_in_LS_$M.0_$entrypoint1;
-  ensures _b$ac$entrypoint1$0
-    ==> !WRITTEN_$M.0_$entrypoint1;
-  ensures _b$ac$entrypoint1$1
     ==> !WRITTEN_$M.0_$entrypoint1;
   ...
 \end{boogie}
