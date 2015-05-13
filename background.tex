@@ -36,6 +36,7 @@ The most common technique for eliminating data races is using a \emph{locking} m
 
 Lock-based synchronization is a powerful tool for preventing data races in drivers, but careless use of locks has multiple pitfalls~\cite{sutter2005software}. Coarse-grained locking can hurt performance, because it limits the opportunity for concurrency. On the other hand, fine-grained locking can easily lead to deadlocks. Although the Linux kernel provides sophisticated lock-free synchronization mechanisms~\cite{corbet2005linux}, such as atomic read and write operations, in this work we focus on locks. However, we still treat lock-free operations (e.g.\ atomics) soundly (see Definition~\ref{definition:datarace}), by not regarding them as providing any protection between threads. This is sound but can potentially introduce false positives.
 
+\PDComment{Do we really need the following? I am not even sure how entirely accurate it is as I just used some simple greping ...}
 We believe that our focus in locks is justified, because the majority of Linux drivers still use locks. To check this, we used a simple grep command and found that 68\% of the drivers from the 4.0 Linux kernel distribution use locks, versus 13\% that use atomic operations. We also found that 31\% of the drivers use neither locking nor atomic primitives, which suggests that they are either simple (non-concurrent) drivers or use some other lock-free synchronization primitive.
 
 \begin{figure}[t]
