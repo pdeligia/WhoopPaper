@@ -24,7 +24,7 @@ in all visible operations of this pair.
 \yieldmr is a finer-grained instrumentation: \whoop instruments context-switches
 in all synchronization points, but only instruments context-switches in memory
 regions that can potentially race (regardless if a pair has not been fully
-verified as race-free). In our experiments (see Section~\ref{evaluation}),
+verified as race-free). In our experiments (see \S\ref{evaluation}),
 \yieldmr performs significantly faster than \yieldcoarse.
 
 In this work, we use \corral to analyze separate pairs of entry points (as outputted by \whoop), instead of the whole Boogie driver (as outputted by SMACK). We also do not employ any abstraction to model additional threads, as we want \corral to report only true races. Because we only analyze pairs, though, \corral can miss races that require more than two threads to manifest. We argue that this limitation is orthogonal to this work: as long as we compare the same pairs with standalone \corral and with \corral that takes advantage of \whoop, then our comparison is sound. In reality, we could allow \corral to analyze the whole driver, and then instrument \texttt{yield} statements in a coarser granularity (taking into account all threads).

@@ -10,7 +10,7 @@ Modern operating systems address the demand for responsiveness and performance b
 A data race occurs when two distinct threads access a shared memory location, at least one of the accesses modifies the location, at least one of the accesses is non-atomic, and there is no mechanism in place to prevent these accesses from being simultaneous.
 \end{definition}
 
-Example~\ref{fig:data_race_example} presents multiple data races that \whoop automatically found in the generic\_nvram Linux char driver (see Section~\ref{evaluation}). The driver can invoke the \texttt{nvram\_llseek} entry point concurrently from two threads $T_1$ and $T_2$, while passing the same \texttt{file} object as a parameter. However, this can lead to multiple possible data races, because $T_1$ and $T_2$ can read/write access the \texttt{f\_pos} field of the \texttt{file} object in arbitrary order resulting into nondeterministic behavior.
+Example~\ref{fig:data_race_example} presents multiple data races that \whoop automatically found in the generic\_nvram Linux char driver (see \S\ref{evaluation}). The driver can invoke the \texttt{nvram\_llseek} entry point concurrently from two threads $T_1$ and $T_2$, while passing the same \texttt{file} object as a parameter. However, this can lead to multiple possible data races, because $T_1$ and $T_2$ can read/write access the \texttt{f\_pos} field of the \texttt{file} object in arbitrary order resulting into nondeterministic behavior.
 
 \begin{figure}[t]
 \begin{lstlisting}
