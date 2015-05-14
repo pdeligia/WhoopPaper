@@ -8,7 +8,7 @@ Modern operating systems address the demand for responsiveness and performance i
 A \emph{data race} occurs when two distinct threads access a shared memory location, at least one of the accesses modifies the location, at least one of the accesses is non-atomic, and there is no mechanism in place to prevent these accesses from being simultaneous.
 \end{definition}
 
-Figure~\ref{fig:data_race_example} shows a racy entry point, \texttt{nvram\_llseek}, in the generic\_nvram Linux driver. The driver can invoke the entry point concurrently from two threads $T_1$ and $T_2$, with the same \texttt{file} object as a parameter. However, this can lead to multiple possible data races, because $T_1$ and $T_2$ can access the \texttt{f\_pos} field of \texttt{file} in arbitrary order. Our tool, \whoop (see \S\ref{whoop}), was able to find these races automatically (see \S\ref{evaluation}).
+Figure~\ref{fig:data_race_example} shows a racy entry point, \texttt{nvram\_llseek}, in the generic\_nvram Linux driver. The driver can invoke the entry point concurrently from two threads $T_1$ and $T_2$, with the same \texttt{file} struct as a parameter. However, this can lead to multiple possible data races, because $T_1$ and $T_2$ can access the \texttt{f\_pos} field of \texttt{file} in arbitrary order. Our tool, \whoop (see \S\ref{whoop}), was able to find these races automatically (see \S\ref{evaluation}).
 
 \begin{figure}[t]
 \begin{lstlisting}
