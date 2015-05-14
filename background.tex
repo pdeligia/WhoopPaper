@@ -26,14 +26,15 @@ static loff_t nvram_llseek(struct file *file,
   return file->f_pos; // racy
 }
 \end{lstlisting}
+\vspace{-2mm}
 \caption{Racy entry point in the generic\_nvram Linux driver}
 \label{fig:data_race_example}
 \end{figure}
 
 The most common method for avoiding races is to protecting sets of program statements that access a shared resource using \emph{locks}, forming \emph{critical sections}.  
 Figure~\ref{fig:lock_example} shows how to use a lock to eliminate the races in Figure~\ref{fig:data_race_example}. Because the return statement can potentially race on the \texttt{f\_pos} field, we store the result in a temporary variable inside the critical section.
-
-Lock-based synchronization is a powerful tool for preventing races in drivers, but careless use of locks has many pitfalls~\cite{sutter2005software}. Coarse-grained locking can hurt performance, as it limits the opportunity for concurrency. On the other hand, fine-grained locking can easily lead to deadlocks. Although the Linux kernel provides sophisticated lock-free synchronization mechanisms~\cite{corbet2005linux}, such as atomic read-modify-write operations, in this work we focus on locks as they are widely used.\footnote{We treat lock-free operations soundly by not regarding them as providing any protection between threads, but this can lead to false alarm race reports.}
+%
+Careless use of locks has many pitfalls~\cite{sutter2005software}: coarse-grained locking can hurt performance, as it limits the opportunity for concurrency, while fine-grained locking can easily lead to deadlocks. Although the Linux kernel provides sophisticated lock-free synchronization mechanisms~\cite{corbet2005linux}, such as atomic read-modify-write operations, in this work we focus on locks as they are widely used.\footnote{We treat lock-free operations soundly by not regarding them as providing any protection between threads, but this can lead to false alarm race reports.}
 
 \begin{figure}[t]
 \begin{lstlisting}
@@ -54,6 +55,7 @@ static loff_t nvram_llseek(struct file *file,
   return res;
 }
 \end{lstlisting}
+\vspace{-2mm}
 \caption{Using a lock to eliminate the data races in the previous example}
 \label{fig:lock_example}
 \end{figure}
@@ -63,23 +65,22 @@ static loff_t nvram_llseek(struct file *file,
 
 Lockset analysis is a lightweight race detection method proposed in the context of Eraser~\cite{savage1997eraser}, a dynamic data race detector.  The idea is to track the set of locks that are \emph{consistently} used to protect a memory location during program execution. If that lockset ever becomes empty, the analysis reports a \emph{potential} race on that memory location. This is because an inconsistent lockset suggests that a memory location \emph{may} be accessed simultaneously by two or more threads.  
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=1\linewidth]{img/lockset.pdf}
-\caption{Applying lockset analysis on a thread of a concurrent program}
-\label{fig:locksets}
-\end{figure}
-
-Lockset analysis for a concurrent program starts by creating a \emph{current} lockset, $\mathit{CLS}_T$, for each thread $T$ of the program, and a lockset, $\mathit{LS}_s$, for each shared variable $s$ used in the program. Initially, $\mathit{CLS}_T$ is empty for every thread $T$, because the threads do not hold any locks on program start. The lockset $\mathit{LS}_s$ for each variable $s$ is initialized to the set of all locks manipulated by the program, because initially each access to $s$ has (vacuously) been protected by every lock. The program is executed as usual (with threads scheduled according to the OS scheduler), except that instrumentation is added to update locksets as follows:
+Lockset analysis for a concurrent program starts by creating a \emph{current} lockset, $\mathit{CLS}_T$, for each thread $T$ of the program, and a lockset, $\mathit{LS}_s$, for each shared variable $s$ used in the program. Initially, $\mathit{CLS}_T$ is empty for every thread $T$, because the threads do not hold any locks on program start. The lockset $\mathit{LS}_s$ for each variable $s$ is initialized to the set of all locks manipulated by the program, because initially each access to $s$ has (vacuously) been protected by every lock. The program is executed as usual (with threads scheduled according to the OS scheduler), except that instrumentation is added to update locksets as follows.
 %
-\begin{enumerate}
-\item After each \emph{lock} and \emph{unlock} operation by $T$, $\mathit{CLS}_T$ is updated to reflect the locks currently held by $T$.
-\item When $T$ accesses shared variable $s$, any locks that are not common to $\mathit{LS}_s$ and $\mathit{CLS}_T$ are removed from $\mathit{LS}_s$.
+After each \emph{lock} and \emph{unlock} operation by $T$, $\mathit{CLS}_T$ is updated to reflect the locks currently held by $T$.
+%
+When $T$ accesses shared variable $s$, any locks that are not common to $\mathit{LS}_s$ and $\mathit{CLS}_T$ are removed from $\mathit{LS}_s$.
 If $\mathit{LS}_s$ becomes empty as a result, a warning is issued that the access to $s$ may be unprotected.
-\end{enumerate}
 
 Figure~\ref{fig:locksets} shows an example of applying lockset analysis on a concurrent program consisting of two threads $T_1$ and $T_2$, both accessing a global variable $A$. Initially, $\mathit{LS}_A$, which is the lockset for A, contains all possible locks in the program: $M$ and $N$. During execution of $T_1$, the thread writes $A$ without holding $N$, and thus $N$ is removed from $\mathit{LS}_A$. Next, during execution of $T_2$, the thread writes $A$ without holding $M$, and thus $\mathit{LS}_A$ becomes empty. As a result, a warning is reported because the two threads do not consistently protect $A$.
 
 In contrast to more sophisticated race analyses that encode a \emph{happens-before} relation between threads~\cite{lamport1978time} (e.g.\ using vector clocks), lockset analysis is easy to implement, lightweight, and thus has the potential to scale well.  The technique, though, suffers from imprecision (i.e.\ can report false bugs), because a violation of the locking discipline does not always correspond to a real data race~\cite{savage1997eraser, pozniansky2003efficient, o2003hybrid, elmas2007goldilocks, flanagan2009fasttrack}. Furthermore, the code coverage in dynamic lockset analyzers, such as Eraser, is limited by the execution paths that are explored under a given scheduler. This is because the tool runs the program in a truly concurrent environment, thus it only gets to see what the thread did on the particular schedule that was followed.
 
 To counter the above limitations, techniques such as Locksmith~\cite{pratikakis2006locksmith} and RELAY~\cite{voung2007relay} have explored the idea of applying lockset analysis in a static context, using dataflow analysis. In this paper, we present a novel symbolic lockset analysis method that involves generating verification conditions, which are then discharged to a theorem prover.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=1\linewidth]{img/lockset.pdf}
+\caption{Applying lockset analysis on a thread of a concurrent program}
+\label{fig:locksets}
+\end{figure}
