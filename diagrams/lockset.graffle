@@ -14,7 +14,7 @@
 	<key>BackgroundGraphic</key>
 	<dict>
 		<key>Bounds</key>
-		<string>{{0, 0}, {623.6220703125, 425.19683837890625}}</string>
+		<string>{{0, 0}, {623.6220703125, 411.02362060546875}}</string>
 		<key>Class</key>
 		<string>SolidGraphic</string>
 		<key>FontInfo</key>
@@ -61,7 +61,7 @@
 	<key>CanvasOrigin</key>
 	<string>{0, 0}</string>
 	<key>CanvasSize</key>
-	<string>{623.6220703125, 425.19683837890625}</string>
+	<string>{623.6220703125, 411.02362060546875}</string>
 	<key>ColumnAlign</key>
 	<integer>1</integer>
 	<key>ColumnSpacing</key>
@@ -78,7 +78,7 @@
 	<array>
 		<dict>
 			<key>Bounds</key>
-			<string>{{100.66283416748047, 1.7541351318359375}, {72, 23}}</string>
+			<string>{{99.662834167480469, 1.7541351318359375}, {80, 27}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FitText</key>
@@ -88,7 +88,7 @@
 			<key>FontInfo</key>
 			<dict>
 				<key>Font</key>
-				<string>HelveticaNeue-Medium</string>
+				<string>CMUSerif-Bold</string>
 				<key>Size</key>
 				<real>18</real>
 			</dict>
@@ -122,11 +122,11 @@
 				<integer>0</integer>
 				<key>Text</key>
 				<string>{\rtf1\ansi\ansicpg1252\cocoartf1347\cocoasubrtf570
-\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 HelveticaNeue-Medium;}
+\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 CMUSerif-Bold;}
 {\colortbl;\red255\green255\blue255;}
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\qc
 
-\f0\fs36 \cf0 Program}</string>
+\f0\b\fs36 \cf0 Program}</string>
 				<key>VerticalPad</key>
 				<integer>0</integer>
 			</dict>
@@ -135,7 +135,7 @@
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{293.7690372467041, 45.889242172241211}, {22, 21}}</string>
+			<string>{{293.7690372467041, 34.076598167419434}, {24, 26}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FitText</key>
@@ -145,7 +145,7 @@
 			<key>FontInfo</key>
 			<dict>
 				<key>Font</key>
-				<string>TimesNewRomanPSMT</string>
+				<string>CMUSerif-Roman</string>
 				<key>Size</key>
 				<real>13</real>
 			</dict>
@@ -179,7 +179,7 @@
 				<integer>0</integer>
 				<key>Text</key>
 				<string>{\rtf1\ansi\ansicpg1252\cocoartf1347\cocoasubrtf570
-\cocoascreenfonts1{\fonttbl\f0\froman\fcharset0 TimesNewRomanPSMT;}
+\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 CMUSerif-Roman;}
 {\colortbl;\red255\green255\blue255;}
 \deftab720
 \pard\pardeftab720\sa240\qc
@@ -193,7 +193,7 @@
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{528.68426513671875, 303.44270753860474}, {43, 120}}</string>
+			<string>{{528.68426513671875, 282.47567415237427}, {47, 124}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FitText</key>
@@ -203,7 +203,7 @@
 			<key>FontInfo</key>
 			<dict>
 				<key>Font</key>
-				<string>TimesNewRomanPSMT</string>
+				<string>CMUSerif-Roman</string>
 				<key>Size</key>
 				<real>13</real>
 			</dict>
@@ -237,10 +237,10 @@
 				<integer>0</integer>
 				<key>Text</key>
 				<string>{\rtf1\ansi\ansicpg1252\cocoartf1347\cocoasubrtf570
-\cocoascreenfonts1{\fonttbl\f0\froman\fcharset0 TimesNewRomanPSMT;}
+\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 CMUSerif-Roman;}
 {\colortbl;\red255\green255\blue255;}
 \deftab720
-\pard\pardeftab720\sa240\qc
+\pard\pardeftab720\slleading-200\sa240\qc
 
 \f0\fs36 \cf0 \{ M \}\
 \{ M \}\
@@ -254,7 +254,7 @@
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{517.68427785237634, 92.061204274496504}, {65, 186}}</string>
+			<string>{{517.68427785237634, 71.276129563650557}, {71, 192}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FitText</key>
@@ -264,7 +264,7 @@
 			<key>FontInfo</key>
 			<dict>
 				<key>Font</key>
-				<string>TimesNewRomanPSMT</string>
+				<string>CMUSerif-Roman</string>
 				<key>Size</key>
 				<real>13</real>
 			</dict>
@@ -298,10 +298,10 @@
 				<integer>0</integer>
 				<key>Text</key>
 				<string>{\rtf1\ansi\ansicpg1252\cocoartf1347\cocoasubrtf570
-\cocoascreenfonts1{\fonttbl\f0\froman\fcharset0 TimesNewRomanPSMT;}
+\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 CMUSerif-Roman;}
 {\colortbl;\red255\green255\blue255;}
 \deftab720
-\pard\pardeftab720\sa240\qc
+\pard\pardeftab720\slleading-200\sa240\qc
 
 \f0\fs36 \cf0 \{ M, N \}\
 \{ M, N \}\
@@ -317,7 +317,7 @@
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{194.64364051818848, 91.973313331604004}, {65, 186}}</string>
+			<string>{{194.64364051818848, 71.188238620758057}, {71, 192}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FitText</key>
@@ -327,7 +327,7 @@
 			<key>FontInfo</key>
 			<dict>
 				<key>Font</key>
-				<string>TimesNewRomanPSMT</string>
+				<string>CMUSerif-Roman</string>
 				<key>Size</key>
 				<real>13</real>
 			</dict>
@@ -361,10 +361,10 @@
 				<integer>0</integer>
 				<key>Text</key>
 				<string>{\rtf1\ansi\ansicpg1252\cocoartf1347\cocoasubrtf570
-\cocoascreenfonts1{\fonttbl\f0\froman\fcharset0 TimesNewRomanPSMT;}
+\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 CMUSerif-Roman;}
 {\colortbl;\red255\green255\blue255;}
 \deftab720
-\pard\pardeftab720\sa240\qc
+\pard\pardeftab720\slleading-200\sa240\qc
 
 \f0\fs36 \cf0 \{ M \}\
 \{ M, N \}\
@@ -380,9 +380,16 @@
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{18.811031341552734, 80.399064540863037}, {586, 0.125}}</string>
+			<string>{{18.811031341552734, 65.06991720199585}, {586, 0.125}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
+			<key>FontInfo</key>
+			<dict>
+				<key>Font</key>
+				<string>CMUSerif-Roman</string>
+				<key>Size</key>
+				<real>18</real>
+			</dict>
 			<key>ID</key>
 			<integer>493</integer>
 			<key>Layer</key>
@@ -405,9 +412,16 @@
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{18.811031341552734, 290.81116199493408}, {586, 0.125}}</string>
+			<string>{{18.811031341552734, 272.62232398986816}, {586, 0.125}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
+			<key>FontInfo</key>
+			<dict>
+				<key>Font</key>
+				<string>CMUSerif-Roman</string>
+				<key>Size</key>
+				<real>18</real>
+			</dict>
 			<key>ID</key>
 			<integer>492</integer>
 			<key>Layer</key>
@@ -432,9 +446,16 @@
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{18.811031341552734, 32.441782474517822}, {586, 0.125}}</string>
+			<string>{{18.811031341552734, 28.441782474517822}, {586, 0.125}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
+			<key>FontInfo</key>
+			<dict>
+				<key>Font</key>
+				<string>CMUSerif-Roman</string>
+				<key>Size</key>
+				<real>18</real>
+			</dict>
 			<key>ID</key>
 			<integer>491</integer>
 			<key>Layer</key>
@@ -457,7 +478,7 @@
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{201.64363861083984, 1.7541351318359375}, {51, 23}}</string>
+			<string>{{201.64364624023438, 1.7541351318359375}, {57, 27}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FitText</key>
@@ -467,7 +488,7 @@
 			<key>FontInfo</key>
 			<dict>
 				<key>Font</key>
-				<string>HelveticaNeue-Medium</string>
+				<string>CMUSerif-Bold</string>
 				<key>Size</key>
 				<real>18</real>
 			</dict>
@@ -501,11 +522,11 @@
 				<integer>0</integer>
 				<key>Text</key>
 				<string>{\rtf1\ansi\ansicpg1252\cocoartf1347\cocoasubrtf570
-\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 HelveticaNeue-Medium;}
+\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 CMUSerif-Bold;}
 {\colortbl;\red255\green255\blue255;}
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\qc
 
-\f0\fs36 \cf0 CLS 1}</string>
+\f0\b\fs36 \cf0 CLS 1}</string>
 				<key>VerticalPad</key>
 				<integer>0</integer>
 			</dict>
@@ -514,7 +535,7 @@
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{216.14364051818848, 45.889242172241211}, {22, 21}}</string>
+			<string>{{216.14364051818848, 34.076598167419434}, {24, 26}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FitText</key>
@@ -524,7 +545,7 @@
 			<key>FontInfo</key>
 			<dict>
 				<key>Font</key>
-				<string>TimesNewRomanPSMT</string>
+				<string>CMUSerif-Roman</string>
 				<key>Size</key>
 				<real>13</real>
 			</dict>
@@ -558,7 +579,7 @@
 				<integer>0</integer>
 				<key>Text</key>
 				<string>{\rtf1\ansi\ansicpg1252\cocoartf1347\cocoasubrtf570
-\cocoascreenfonts1{\fonttbl\f0\froman\fcharset0 TimesNewRomanPSMT;}
+\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 CMUSerif-Roman;}
 {\colortbl;\red255\green255\blue255;}
 \deftab720
 \pard\pardeftab720\sa240\qc
@@ -572,7 +593,7 @@
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{93.162841796875, 303.44269943237305}, {87, 120}}</string>
+			<string>{{93.162841796875, 282.47566604614258}, {93, 124}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FitText</key>
@@ -582,7 +603,7 @@
 			<key>FontInfo</key>
 			<dict>
 				<key>Font</key>
-				<string>TimesNewRomanPSMT</string>
+				<string>CMUSerif-Roman</string>
 				<key>Size</key>
 				<real>13</real>
 			</dict>
@@ -616,10 +637,10 @@
 				<integer>0</integer>
 				<key>Text</key>
 				<string>{\rtf1\ansi\ansicpg1252\cocoartf1347\cocoasubrtf570
-\cocoascreenfonts1{\fonttbl\f0\froman\fcharset0 TimesNewRomanPSMT;}
+\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 CMUSerif-Roman;}
 {\colortbl;\red255\green255\blue255;}
 \deftab720
-\pard\pardeftab720\sa240\qc
+\pard\pardeftab720\slleading-200\sa240\qc
 
 \f0\fs36 \cf0 lock (M);\
 write (A);\
@@ -633,7 +654,7 @@ write (A);}</string>
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{40.311033248901367, 351.94269895553589}, {21, 23}}</string>
+			<string>{{40.311033248901367, 330.97566556930542}, {25, 27}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FitText</key>
@@ -643,7 +664,7 @@ write (A);}</string>
 			<key>FontInfo</key>
 			<dict>
 				<key>Font</key>
-				<string>HelveticaNeue-Medium</string>
+				<string>CMUSerif-Bold</string>
 				<key>Size</key>
 				<real>18</real>
 			</dict>
@@ -677,11 +698,11 @@ write (A);}</string>
 				<integer>0</integer>
 				<key>Text</key>
 				<string>{\rtf1\ansi\ansicpg1252\cocoartf1347\cocoasubrtf570
-\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 HelveticaNeue-Medium;}
+\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 CMUSerif-Bold;}
 {\colortbl;\red255\green255\blue255;}
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\qc
 
-\f0\fs36 \cf0 T2}</string>
+\f0\b\fs36 \cf0 T2}</string>
 				<key>VerticalPad</key>
 				<integer>0</integer>
 			</dict>
@@ -694,7 +715,7 @@ write (A);}</string>
 			<key>FontInfo</key>
 			<dict>
 				<key>Font</key>
-				<string>HelveticaNeue-Medium</string>
+				<string>CMUSerif-Roman</string>
 				<key>Size</key>
 				<real>20</real>
 			</dict>
@@ -704,9 +725,9 @@ write (A);}</string>
 			<integer>2</integer>
 			<key>Points</key>
 			<array>
-				<string>{383.81103515625, 198.51069736480713}</string>
-				<string>{425.27456665039062, 225.51069736480713}</string>
-				<string>{517.68427785237634, 236.51069736480713}</string>
+				<string>{383.81103515625, 183.72562026977539}</string>
+				<string>{425.27456665039062, 210.72562026977539}</string>
+				<string>{517.68427785237634, 221.72562026977539}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -731,7 +752,7 @@ write (A);}</string>
 			<key>FontInfo</key>
 			<dict>
 				<key>Font</key>
-				<string>HelveticaNeue-Medium</string>
+				<string>CMUSerif-Roman</string>
 				<key>Size</key>
 				<real>20</real>
 			</dict>
@@ -741,9 +762,9 @@ write (A);}</string>
 			<integer>2</integer>
 			<key>Points</key>
 			<array>
-				<string>{259.64364051818848, 235.51069736480713}</string>
-				<string>{372.81103515625, 193.51069736480713}</string>
-				<string>{508.18426704406738, 200.51069736480713}</string>
+				<string>{259.64364051818848, 220.72562026977539}</string>
+				<string>{372.81103515625, 178.72562026977539}</string>
+				<string>{508.18426704406738, 185.72562026977539}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -764,7 +785,7 @@ write (A);}</string>
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{317.37535603841127, 119.51069736480713}, {120, 63}}</string>
+			<string>{{317.37535603841127, 98.451240539550781}, {120, 78}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FitText</key>
@@ -774,7 +795,7 @@ write (A);}</string>
 			<key>FontInfo</key>
 			<dict>
 				<key>Font</key>
-				<string>TimesNewRomanPSMT</string>
+				<string>CMUSerif-Roman</string>
 				<key>Size</key>
 				<real>13</real>
 			</dict>
@@ -808,7 +829,7 @@ write (A);}</string>
 				<integer>0</integer>
 				<key>Text</key>
 				<string>{\rtf1\ansi\ansicpg1252\cocoartf1347\cocoasubrtf570
-\cocoascreenfonts1{\fonttbl\f0\froman\fcharset0 TimesNewRomanPSMT;}
+\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 CMUSerif-Roman;}
 {\colortbl;\red255\green255\blue255;}
 \deftab720
 \pard\pardeftab720\sa240\qc
@@ -820,7 +841,7 @@ write (A);}</string>
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{343.81103515625, 351.3797272046404}, {178, 42}}</string>
+			<string>{{340.81103515625, 313}, {178, 52}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FitText</key>
@@ -830,7 +851,7 @@ write (A);}</string>
 			<key>FontInfo</key>
 			<dict>
 				<key>Font</key>
-				<string>TimesNewRomanPSMT</string>
+				<string>CMUSerif-Roman</string>
 				<key>Size</key>
 				<real>13</real>
 			</dict>
@@ -864,7 +885,7 @@ write (A);}</string>
 				<integer>0</integer>
 				<key>Text</key>
 				<string>{\rtf1\ansi\ansicpg1252\cocoartf1347\cocoasubrtf570
-\cocoascreenfonts1{\fonttbl\f0\froman\fcharset0 TimesNewRomanPSMT;}
+\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 CMUSerif-Roman;}
 {\colortbl;\red255\green255\blue255;}
 \deftab720
 \pard\pardeftab720\sa240\qc
@@ -880,7 +901,7 @@ write (A);}</string>
 			<key>FontInfo</key>
 			<dict>
 				<key>Font</key>
-				<string>HelveticaNeue-Medium</string>
+				<string>CMUSerif-Roman</string>
 				<key>Size</key>
 				<real>20</real>
 			</dict>
@@ -890,9 +911,9 @@ write (A);}</string>
 			<integer>2</integer>
 			<key>Points</key>
 			<array>
-				<string>{481.06898934922793, 393.37972720464046}</string>
-				<string>{485.81103515625, 395.44328260421753}</string>
-				<string>{527.8944091796875, 400.51098373663535}</string>
+				<string>{470.85257793754784, 365}</string>
+				<string>{485.81103515625, 374.47624921798706}</string>
+				<string>{527.8944091796875, 379.54395035040488}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -916,7 +937,7 @@ write (A);}</string>
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{508.18426704406738, 1.7541656494140625}, {84, 23}}</string>
+			<string>{{506.18426704406738, 1.7541656494140625}, {92, 27}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FitText</key>
@@ -926,7 +947,7 @@ write (A);}</string>
 			<key>FontInfo</key>
 			<dict>
 				<key>Font</key>
-				<string>HelveticaNeue-Medium</string>
+				<string>CMUSerif-Bold</string>
 				<key>Size</key>
 				<real>18</real>
 			</dict>
@@ -960,11 +981,11 @@ write (A);}</string>
 				<integer>0</integer>
 				<key>Text</key>
 				<string>{\rtf1\ansi\ansicpg1252\cocoartf1347\cocoasubrtf570
-\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 HelveticaNeue-Medium;}
+\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 CMUSerif-Bold;}
 {\colortbl;\red255\green255\blue255;}
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\qc
 
-\f0\fs36 \cf0 Lockset A}</string>
+\f0\b\fs36 \cf0 Lockset A}</string>
 				<key>VerticalPad</key>
 				<integer>0</integer>
 			</dict>
@@ -973,7 +994,7 @@ write (A);}</string>
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{279.26903629302979, 1.7541656494140625}, {51, 23}}</string>
+			<string>{{278.26903629302979, 1.7541656494140625}, {57, 27}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FitText</key>
@@ -983,7 +1004,7 @@ write (A);}</string>
 			<key>FontInfo</key>
 			<dict>
 				<key>Font</key>
-				<string>HelveticaNeue-Medium</string>
+				<string>CMUSerif-Bold</string>
 				<key>Size</key>
 				<real>18</real>
 			</dict>
@@ -1017,11 +1038,11 @@ write (A);}</string>
 				<integer>0</integer>
 				<key>Text</key>
 				<string>{\rtf1\ansi\ansicpg1252\cocoartf1347\cocoasubrtf570
-\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 HelveticaNeue-Medium;}
+\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 CMUSerif-Bold;}
 {\colortbl;\red255\green255\blue255;}
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\qc
 
-\f0\fs36 \cf0 CLS 2}</string>
+\f0\b\fs36 \cf0 CLS 2}</string>
 				<key>VerticalPad</key>
 				<integer>0</integer>
 			</dict>
@@ -1030,7 +1051,7 @@ write (A);}</string>
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{93.162841796875, 91.973317623138428}, {87, 186}}</string>
+			<string>{{93.162841796875, 71.18824291229248}, {93, 192}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FitText</key>
@@ -1040,7 +1061,7 @@ write (A);}</string>
 			<key>FontInfo</key>
 			<dict>
 				<key>Font</key>
-				<string>TimesNewRomanPSMT</string>
+				<string>CMUSerif-Roman</string>
 				<key>Size</key>
 				<real>13</real>
 			</dict>
@@ -1074,10 +1095,10 @@ write (A);}</string>
 				<integer>0</integer>
 				<key>Text</key>
 				<string>{\rtf1\ansi\ansicpg1252\cocoartf1347\cocoasubrtf570
-\cocoascreenfonts1{\fonttbl\f0\froman\fcharset0 TimesNewRomanPSMT;}
+\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 CMUSerif-Roman;}
 {\colortbl;\red255\green255\blue255;}
 \deftab720
-\pard\pardeftab720\sa240\qc
+\pard\pardeftab720\slleading-200\sa240\qc
 
 \f0\fs36 \cf0 lock (M);\
 lock (N);\
@@ -1093,7 +1114,7 @@ unlock (M);}</string>
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{40.31103515625, 173.473313331604}, {21, 23}}</string>
+			<string>{{40.31103515625, 153.68823623657227}, {25, 27}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FitText</key>
@@ -1103,7 +1124,7 @@ unlock (M);}</string>
 			<key>FontInfo</key>
 			<dict>
 				<key>Font</key>
-				<string>HelveticaNeue-Medium</string>
+				<string>CMUSerif-Bold</string>
 				<key>Size</key>
 				<real>18</real>
 			</dict>
@@ -1137,11 +1158,11 @@ unlock (M);}</string>
 				<integer>0</integer>
 				<key>Text</key>
 				<string>{\rtf1\ansi\ansicpg1252\cocoartf1347\cocoasubrtf570
-\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 HelveticaNeue-Medium;}
+\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 CMUSerif-Bold;}
 {\colortbl;\red255\green255\blue255;}
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\qc
 
-\f0\fs36 \cf0 T1}</string>
+\f0\b\fs36 \cf0 T1}</string>
 				<key>VerticalPad</key>
 				<integer>0</integer>
 			</dict>
@@ -1150,7 +1171,7 @@ unlock (M);}</string>
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{283.26903820037842, 303.44270372390747}, {43, 120}}</string>
+			<string>{{283.26903820037842, 282.475670337677}, {47, 124}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FitText</key>
@@ -1160,7 +1181,7 @@ unlock (M);}</string>
 			<key>FontInfo</key>
 			<dict>
 				<key>Font</key>
-				<string>TimesNewRomanPSMT</string>
+				<string>CMUSerif-Roman</string>
 				<key>Size</key>
 				<real>13</real>
 			</dict>
@@ -1194,10 +1215,10 @@ unlock (M);}</string>
 				<integer>0</integer>
 				<key>Text</key>
 				<string>{\rtf1\ansi\ansicpg1252\cocoartf1347\cocoasubrtf570
-\cocoascreenfonts1{\fonttbl\f0\froman\fcharset0 TimesNewRomanPSMT;}
+\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 CMUSerif-Roman;}
 {\colortbl;\red255\green255\blue255;}
 \deftab720
-\pard\pardeftab720\sa240\qc
+\pard\pardeftab720\slleading-200\sa240\qc
 
 \f0\fs36 \cf0 \{ M \}\
 \{ M \}\
@@ -1211,7 +1232,7 @@ unlock (M);}</string>
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{517.68427785237634, 45.889243443808027}, {65, 21}}</string>
+			<string>{{517.68427785237634, 34.07659943898625}, {71, 26}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FitText</key>
@@ -1221,7 +1242,7 @@ unlock (M);}</string>
 			<key>FontInfo</key>
 			<dict>
 				<key>Font</key>
-				<string>TimesNewRomanPSMT</string>
+				<string>CMUSerif-Roman</string>
 				<key>Size</key>
 				<real>13</real>
 			</dict>
@@ -1255,7 +1276,7 @@ unlock (M);}</string>
 				<integer>0</integer>
 				<key>Text</key>
 				<string>{\rtf1\ansi\ansicpg1252\cocoartf1347\cocoasubrtf570
-\cocoascreenfonts1{\fonttbl\f0\froman\fcharset0 TimesNewRomanPSMT;}
+\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 CMUSerif-Roman;}
 {\colortbl;\red255\green255\blue255;}
 \deftab720
 \pard\pardeftab720\sa240\qc
@@ -1395,7 +1416,7 @@ unlock (M);}</string>
 	<key>MasterSheets</key>
 	<array/>
 	<key>ModificationDate</key>
-	<string>2015-05-05 14:25:23 +0000</string>
+	<string>2015-05-14 08:14:47 +0000</string>
 	<key>Modifier</key>
 	<string>Pantazis Deligiannis</string>
 	<key>NotesVisible</key>
@@ -1426,7 +1447,7 @@ unlock (M);}</string>
 		<key>NSPaperName</key>
 		<array>
 			<string>string</string>
-			<string>7DD47D48-EBA9-4DEB-872E-9BCDF9B7A524</string>
+			<string>00CA46BC-DEAE-4A49-9E8D-50E82F58DEA7</string>
 		</array>
 		<key>NSPaperSize</key>
 		<array>
@@ -1495,7 +1516,7 @@ unlock (M);}</string>
 		<key>SidebarWidth</key>
 		<integer>120</integer>
 		<key>VisibleRegion</key>
-		<string>{{-188, -111}, {999, 648}}</string>
+		<string>{{-188, -118}, {999, 648}}</string>
 		<key>Zoom</key>
 		<real>1</real>
 		<key>ZoomValues</key>
