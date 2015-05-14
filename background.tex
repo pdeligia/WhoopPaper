@@ -65,7 +65,7 @@ static loff_t nvram_llseek(struct file *file,
 \subsection{Lockset Analysis}
 \label{bg:lockset}
 
-Lockset analysis is a lightweight race detection method proposed in the context of Eraser~\cite{savage1997eraser}, a dynamic data race detector.  The idea is to track the set of locks that are \emph{consistently} used to protect a memory location during program execution. If that lockset ever becomes empty, the analysis reports a potential data race on that memory location. This is because an inconsistent lockset suggests that a memory location \emph{may} be accessed simultaneously by two or more threads.  
+Lockset analysis is a lightweight race detection method proposed in the context of Eraser~\cite{savage1997eraser}, a dynamic data race detector.  The idea is to track the set of locks that are \emph{consistently} used to protect a memory location during program execution. If that lockset ever becomes empty, the analysis reports a potential race on that memory location. This is because an inconsistent lockset suggests that a memory location \emph{may} be accessed simultaneously by two or more threads.  
 
 \begin{figure}[htbp]
 \centering
@@ -74,12 +74,12 @@ Lockset analysis is a lightweight race detection method proposed in the context 
 \label{fig:locksets}
 \end{figure}
 
-Lockset analysis for a concurrent program starts by creating a \emph{current} lockset, $\mathit{CLS}_T$, for each thread $T$ of the program, and a lockset, $\mathit{LS}_v$, for each shared variable $v$ used in the program. Initially, $\mathit{CLS}_T$ is empty for every thread $T$, because the threads do not hold any locks on program start. The lockset $\mathit{LS}_v$ for each variable $v$ is initialized to the set of all locks manipulated by the program, because initially each access to $v$ has (vacuously) been protected by every lock. The program is executed as usual (with threads scheduled according to the OS scheduler), except that instrumentation is added to update locksets as follows:
+Lockset analysis for a concurrent program starts by creating a \emph{current} lockset, $\mathit{CLS}_T$, for each thread $T$ of the program, and a lockset, $\mathit{LS}_s$, for each shared variable $s$ used in the program. Initially, $\mathit{CLS}_T$ is empty for every thread $T$, because the threads do not hold any locks on program start. The lockset $\mathit{LS}_s$ for each variable $s$ is initialized to the set of all locks manipulated by the program, because initially each access to $s$ has (vacuously) been protected by every lock. The program is executed as usual (with threads scheduled according to the OS scheduler), except that instrumentation is added to update locksets as follows:
 %
 \begin{enumerate}
 \item After each \emph{lock} and \emph{unlock} operation by $T$, $\mathit{CLS}_T$ is updated to reflect the locks currently held by $T$.
-\item When $T$ accesses shared variable $v$, any locks that are not common to $\mathit{LS}_v$ and $\mathit{CLS}_T$ are removed from $\mathit{LS}_v$.
-If $\mathit{LS}_v$ becomes empty as a result, a warning is issued that the access to $v$ may be unprotected.
+\item When $T$ accesses shared variable $s$, any locks that are not common to $\mathit{LS}_s$ and $\mathit{CLS}_T$ are removed from $\mathit{LS}_s$.
+If $\mathit{LS}_s$ becomes empty as a result, a warning is issued that the access to $s$ may be unprotected.
 \end{enumerate}
 
 Figure~\ref{fig:locksets} shows an example of applying lockset analysis on a concurrent program consisting of two threads $T_1$ and $T_2$, both accessing a global variable $A$. Initially, $\mathit{LS}_A$, which is the lockset for A, contains all possible locks in the program: $M$ and $N$. During execution of $T_1$, the thread writes $A$ without holding $N$, and thus $N$ is removed from $\mathit{LS}_A$. Next, during execution of $T_2$, the thread writes $A$ without holding $M$, and thus $\mathit{LS}_A$ becomes empty. Finally, a warning is reported because the two threads do not consistently protect $A$.
