@@ -92,7 +92,7 @@
 			<integer>0</integer>
 			<key>Points</key>
 			<array>
-				<string>{761.13282012939453, 448.74410543760553}</string>
+				<string>{761.13282012939453, 448.74411010742188}</string>
 				<string>{761.13282012939453, 18.397613525390625}</string>
 			</array>
 			<key>Style</key>
@@ -365,8 +365,8 @@ Verification Engine}</string>
 			<integer>0</integer>
 			<key>Points</key>
 			<array>
-				<string>{1291.2106800982947, 288.19865424488444}</string>
-				<string>{1197.6463677071449, 354.9350693505603}</string>
+				<string>{1291.1408795718773, 288.19842367448842}</string>
+				<string>{1197.6457169631065, 354.8056609980859}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -785,7 +785,7 @@ Model}</string>
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{1121.2384796142578, 347.29543948775802}, {76, 69.739986565595061}}</string>
+			<string>{{1121.2384796142578, 347.29544343510963}, {76, 69.739986565595061}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FontInfo</key>
@@ -1088,8 +1088,8 @@ Model}</string>
 			<integer>4</integer>
 			<key>Points</key>
 			<array>
-				<string>{379.44879286835527, 370.12424706359957}</string>
-				<string>{412.84908923598272, 369.97538594805837}</string>
+				<string>{378.94879781988811, 370.12647548157111}</string>
+				<string>{412.84908911444012, 369.97185288412362}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -1352,8 +1352,8 @@ Model}</string>
 			<integer>4</integer>
 			<key>Points</key>
 			<array>
-				<string>{1076.1760761472199, 383.46362568924252}</string>
-				<string>{1120.7386268861983, 383.10005004629193}</string>
+				<string>{1076.1760629009773, 383.14307640613288}</string>
+				<string>{1120.7385201517045, 382.65581626988239}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -1503,8 +1503,8 @@ Model}</string>
 			<integer>4</integer>
 			<key>Points</key>
 			<array>
-				<string>{230.47996457870335, 370.00494477870831}</string>
-				<string>{260.23571767581956, 370.1305353478532}</string>
+				<string>{230.47996468850954, 370.00038057565786}</string>
+				<string>{260.23570524709328, 370.12446710674641}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -1547,8 +1547,8 @@ Model}</string>
 			<integer>4</integer>
 			<key>Points</key>
 			<array>
-				<string>{314.33322169212505, 187.36598847803393}</string>
-				<string>{198.13784635257267, 242.02593785530163}</string>
+				<string>{314.78566139825733, 187.15315443570489}</string>
+				<string>{198.13144004647796, 242.02591847159292}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -1934,7 +1934,7 @@ with yields}</string>
 			<integer>8</integer>
 			<key>Points</key>
 			<array>
-				<string>{1159.2384796142578, 448.74410543760553}</string>
+				<string>{1159.2384796142578, 448.74411010742188}</string>
 				<string>{1159.2384796142578, 18.397613525390625}</string>
 			</array>
 			<key>Style</key>
@@ -2080,7 +2080,7 @@ with yields}</string>
 	<key>MasterSheets</key>
 	<array/>
 	<key>ModificationDate</key>
-	<string>2015-05-14 08:33:21 +0000</string>
+	<string>2015-05-14 08:35:50 +0000</string>
 	<key>Modifier</key>
 	<string>Pantazis Deligiannis</string>
 	<key>NotesVisible</key>
@@ -2111,7 +2111,7 @@ with yields}</string>
 		<key>NSPaperName</key>
 		<array>
 			<string>string</string>
-			<string>9114CB63-67B8-4059-9BCF-68DC1ABAC64A</string>
+			<string>31F04228-38A5-4DFD-BC15-B4BC6AB523AE</string>
 		</array>
 		<key>NSPaperSize</key>
 		<array>
@@ -2180,7 +2180,7 @@ with yields}</string>
 		<key>SidebarWidth</key>
 		<integer>120</integer>
 		<key>VisibleRegion</key>
-		<string>{{134.66666666666666, -205}, {1332, 864}}</string>
+		<string>{{133.33333333333334, -205}, {1332, 864}}</string>
 		<key>Zoom</key>
 		<real>0.75</real>
 		<key>ZoomValues</key>
