@@ -8,9 +8,7 @@ Modern operating systems address the demand for responsiveness and performance i
 A \emph{data race} occurs when two distinct threads access a shared memory location, at least one of the accesses modifies the location, at least one of the accesses is non-atomic, and there is no mechanism in place to prevent these accesses from being simultaneous.
 \end{definition}
 
-Example~\ref{fig:data_race_example} shows a racy entry point that in the generic\_nvram Linux char driver;
-our \whoop (see \S\ref{whoop}) was able to find this race automatically 
-(see \S\ref{evaluation}). The driver can invoke the \texttt{nvram\_llseek} entry point concurrently from two threads $T_1$ and $T_2$, while passing the same \texttt{file} object as a parameter. However, this can lead to multiple possible data races, because $T_1$ and $T_2$ can access the \texttt{f\_pos} field of the \texttt{file} object in arbitrary order.
+Figure~\ref{fig:data_race_example} shows a racy entry point, \texttt{nvram\_llseek}, in the generic\_nvram Linux driver. The driver can invoke the entry point concurrently from two threads $T_1$ and $T_2$, with the same \texttt{file} object as a parameter. However, this can lead to multiple possible data races, because $T_1$ and $T_2$ can access the \texttt{f\_pos} field of \texttt{file} in arbitrary order. Our tool, \whoop (see \S\ref{whoop}), was able to find these races automatically (see \S\ref{evaluation}).
 
 \begin{figure}[t]
 \begin{lstlisting}
@@ -28,14 +26,14 @@ static loff_t nvram_llseek(struct file *file,
   return file->f_pos; // racy
 }
 \end{lstlisting}
-\caption{Example of data races in the generic\_nvram Linux char driver}
+\caption{Racy entry point in the generic\_nvram Linux driver}
 \label{fig:data_race_example}
 \end{figure}
 
 The most common method for avoiding races is to protecting sets of program statements that access a shared resource using \emph{locks}, forming \emph{critical sections}.  
 Figure~\ref{fig:lock_example} shows how to use a lock to eliminate the races in Figure~\ref{fig:data_race_example}. Because the return statement can potentially race on the \texttt{f\_pos} field, we store the result in a temporary variable inside the critical section.
 
-Lock-based synchronization is a powerful tool for preventing races in drivers, but careless use of locks has many pitfalls~\cite{sutter2005software}. Coarse-grained locking can hurt performance, as it limits the opportunity for concurrency. On the other hand, fine-grained locking can easily lead to deadlocks. Although the Linux kernel provides sophisticated lock-free synchronization mechanisms~\cite{corbet2005linux}, such as atomic read-modify-write operations, in this work we focus on locks as they are widely used.\footnote{We treat lock-free operations by not regarding them as providing any protection between threads. This is sound, but can lead to false alarm race reports.}
+Lock-based synchronization is a powerful tool for preventing races in drivers, but careless use of locks has many pitfalls~\cite{sutter2005software}. Coarse-grained locking can hurt performance, as it limits the opportunity for concurrency. On the other hand, fine-grained locking can easily lead to deadlocks. Although the Linux kernel provides sophisticated lock-free synchronization mechanisms~\cite{corbet2005linux}, such as atomic read-modify-write operations, in this work we focus on locks as they are widely used.\footnote{We treat lock-free operations soundly by not regarding them as providing any protection between threads, but this can lead to false alarm race reports.}
 
 \begin{figure}[t]
 \begin{lstlisting}
