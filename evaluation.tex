@@ -33,15 +33,15 @@
 We performed experiments to validate the usefulness of the \whoop approach (\S\ref{whoop}) and its combination with \corral (\S\ref{corral}). We first present race-checking results from running \whoop and \corral on \sizeOfBenchmarks drivers taken from the 4.0 Linux kernel distribution.\footnote{\url{https://www.kernel.org}} We then evaluate the runtime performance and scalability of \corral and \whoop + \corral with different yield instrumentation granularities and context-switch bounds.
 Our results demonstrate that \whoop can efficiently accelerate race-checking with \corral.
 
-\medskip\noindent\textbf{Experimental Setup }
+\noindent\textbf{Experimental Setup }
 %
 We performed all experiments on a 3.40GHz Intel Core i7-2600 CPU with 16GB RAM running Ubuntu Linux 12.04.5 LTS, LLVM 3.5, SMACK 1.5, Z3~4.3.2, Boogie rev. 4192 and \corral rev. 534. We also used Mono~4.1.0 to run Boogie and \corral.
 
-\medskip\noindent\textbf{Benchmarks }
+\noindent\textbf{Benchmarks }
 %
 We evaluate our methodology against \sizeOfBenchmarks drivers taken from the 4.0 Linux kernel. We chose non-trivial drivers from several categories: block; char; ethernet; near field communication (nfc); universal serial bus (usb); and watchdog. We had to manually model the environment for these drivers, a process that required approximately two months of work.
 
-\medskip\noindent\textbf{Race-Checking }
+\noindent\textbf{Race-Checking }
 %
 Table~\ref{tab:stats} presents statistics for all our benchmarks: lines of code (LoC); number of entry point pairs (\#Pairs); number of SMACK memory regions (\#MRs); number of potentially racy pairs identified by \whoop (\#Racy Pairs); number of potentially racy memory regions reported by \whoop (\#Racy MRs); and number of races discovered by \corral using a context-switch bound of 2 (\#Races Found). We did not discover new races with larger context-switch bounds. This might mean that these drivers only have races that manifest with at least one or two context-switches, or that \corral hit its bounds before discovering a deeper race.
 
@@ -51,7 +51,7 @@ Most of the races that \whoop and \corral discovered can be classified in two ca
 
 As an example of the second case, we found the following race in the generic\_nvram char driver (see Figure~\ref{fig:data_race_example} for the source code): during the \texttt{llseek} entry point, the driver is accessing the file offset \texttt{file->f\_pos} without first acquiring a lock (\texttt{file} is passed as a parameter to \texttt{llseek}). This can lead to a race if the driver invokes \texttt{llseek} from another thread passing the same \texttt{file} object as a parameter. When we investigated another char driver that uses the same APIs, we saw that it was protecting the offset access in its \texttt{llseek} entry point with a mutex. This made us suspicious that the race we found in generic\_nvram could be real. We filed a bug report, but did not manage to get a response yet.
 
-\medskip\noindent\textbf{Granularity of Context-Switches }
+\noindent\textbf{Granularity of Context-Switches }
 %
 Table~\ref{tab:results} presents runtime results from using \whoop, \corral and \whoop + \corral to analyze our benchmarks, while Figure~\ref{fig:plot} plots the runtime speedups that \corral achieves using \whoop with the \yieldmr instrumentation. All reported times, in seconds, are averages over three runs. \corral was configured with a time budget of 10 hours (T.O. denotes timeout) and a context-switch bound (csb) of 2, 5 and 9, respectively. For standalone \corral we enable the \yieldall instrumentation, which instruments context-switches (i.e. \texttt{yield} statements) after all visible operations. \whoop + \corral, instead, uses two different context-switch instrumentation granularities, \yieldcoarse and \yieldmr (see \S\ref{corral}). The table also shows the number of context-switches per instrumentation (\#Y).
 
@@ -61,6 +61,6 @@ Using the race-freedom guarantees from \whoop, we managed to significantly accel
 
 However, if \whoop fails to verify any race-related properties of a driver, it might actually slow down \corral. We noticed this in the sx8 driver, where \whoop does not verify any pairs, causing unnecessary overhead. Although \whoop verified 46 out of 47 memory regions, it still fails to speedup \corral using \yieldmr. This might be because \corral verifies the only 2 pairs of sx8 quite fast (21.4 seconds with csb of 9), and thus the overhead of using \whoop overwhelms any benefits from our fine-grained instrumentation.
 
-\medskip\noindent\textbf{Other Tools }
+\noindent\textbf{Other Tools }
 %
 We tried to compare \whoop with other similar approaches (see \S\ref{related}). However, we found this hard to achieve, as some tools are not freely available, while others are outdated for several years and are not working on the 4.0 Linux drivers.
