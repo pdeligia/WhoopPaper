@@ -30,18 +30,10 @@ In this work, we use \corral to analyze individual pairs of entry points. We do 
 %
 By default, and assuming no race-freedom guarantees, \whoop instruments a \texttt{yield} after each shared memory access of each entry point, and after every lock and unlock operation.\footnote{We acknowledge that in the presence of data races and relaxed memory, even considering all interleavings of shared memory accesses may be insufficient to find all bugs.} \whoop then sends this instrumented program to \corral, which leverages sequentialization to explore all possible thread interleavings up to a pre-defined bound. Our approach to accelerating \corral is simple and yet effective: if, thanks to \whoop's analysis, we know that a given statement that accesses shared memory cannot be involved in a data race, we do not instrument a \texttt{yield} after this statement.  This is a form of \emph{partial order reduction}~\cite{DBLP:books/sp/Godefroid96}, and reduces the number of context switches that \corral must consider in a \emph{sound} manner: there is no impact on the bugs that will be detected.  This is because each access, for which a \texttt{yield} is suppressed, is guaranteed to be protected by some lock (a consequence of lockset analysis).  If the access is a write, its effects are not visible by the other entry point in the pair until the lock is released.  If the access is a read, the value of the shared location cannot change until the lock is released.  The fact that a \texttt{yield} is placed after each unlock operation suffices to take account of communication between entry points via the shared memory location.
 
-We have implemented two different levels of context-switch instrumentation granularity: \yieldcoarse and \yieldmr.
+We have implemented two different \texttt{yield} instrumentations in \whoop: \yieldcoarse and \yieldmr.
 %
-The first instruments \texttt{yield} statement in a binary fashion: if \whoop
-finds that a pair of entry points cannot race, then it will only instrument
-context-switches in synchronization points (i.e.\ locks and unlocks) of this pair; else if \whoop finds
-that a pair of entry points can race, then it will instrument context-switches
-in all visible operations of this pair.
+\yieldcoarse instruments \texttt{yield} statements in a binary fashion: if \whoop finds that a pair of entry points cannot race, then it will instrument a \texttt{yield} only after each lock and unlock statement of this pair; else if \whoop finds that a pair of entry points might race, then it will instrument context-switches after all visible operations of this pair.
 %
-\textbf{\yieldmr} is a finer-grained instrumentation: \whoop instruments context-switches
-in all synchronization points, but only instruments context-switches in memory
-regions that can potentially race (regardless if a pair has not been fully
-verified as race-free). In our experiments (see \S\ref{evaluation}),
-\yieldmr significantly outperforms \yieldcoarse.
+\yieldmr performs a finer-grained instrumentation: it instruments context-switches only after each memory region that can potentially race (regardless if a pair has not been fully verified as race-free) and after each lock and unlock. In our experiments (see \S\ref{evaluation}), \yieldmr significantly outperforms \yieldcoarse.
 
 Our partial-order reduction can be used to accelerate \corral for arbitrary bug-finding in concurrent programs. In the remainder of this paper, though, we regard races as bugs and use \corral solely to look for races.
