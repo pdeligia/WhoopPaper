@@ -426,8 +426,8 @@ Verification Engine}</string>
 			<integer>0</integer>
 			<key>Points</key>
 			<array>
-				<string>{1281.4334295606345, 278.44201927815487}</string>
-				<string>{1199.50002160026, 328.5987381298936}</string>
+				<string>{1281.9506694556146, 278.44347462045329}</string>
+				<string>{1199.5034999305626, 329.30273820699762}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -1045,7 +1045,7 @@ Model}</string>
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{1123.0734906858872, 317.23388950729498}, {76, 69.739986565595061}}</string>
+			<string>{{1123.0734906858872, 317.23388969273162}, {76, 69.739986565595061}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FontInfo</key>
@@ -1429,7 +1429,7 @@ Model}</string>
 			<key>Points</key>
 			<array>
 				<string>{1075.8350110716294, 353.22228882047943}</string>
-				<string>{1122.5735337240765, 352.60903708461518}</string>
+				<string>{1122.5735337240765, 352.60903718629498}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -1919,8 +1919,8 @@ with yields}</string>
 			<integer>8</integer>
 			<key>Points</key>
 			<array>
-				<string>{1159.0734906858872, 417.22225952148438}</string>
-				<string>{1159.0734906858872, 7.9745892286307729}</string>
+				<string>{1159.0734906858872, 417.22225970692102}</string>
+				<string>{1159.0734906858872, 7.9745894140674487}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -2065,7 +2065,7 @@ with yields}</string>
 	<key>MasterSheets</key>
 	<array/>
 	<key>ModificationDate</key>
-	<string>2015-05-14 23:42:42 +0000</string>
+	<string>2015-05-14 23:44:12 +0000</string>
 	<key>Modifier</key>
 	<string>Pantazis Deligiannis</string>
 	<key>NotesVisible</key>
