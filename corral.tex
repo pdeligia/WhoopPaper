@@ -20,9 +20,7 @@ yield;         // allow for a context-switch
 assert x == s; // check read value
 \end{boogie}
 
-\corral is inherently unsound (i.e.\ can miss real races), because it performs bounded verification. However, \corral is precise and, assuming a precise environmental model, it will only report true races. \whoop takes advantage of this precision to report only feasible data races.
-
-Note also that our instrumentation conveniently tolerates most benign races, as it does not report a write-write race if two write accesses update the same shared memory location with the same value.
+\corral is inherently unsound (i.e.\ can miss real races), because it performs bounded verification. However, \corral is precise and, assuming a precise environmental model, it will only report true races. \whoop takes advantage of this precision to report only feasible data races. Also note that our instrumentation conveniently tolerates most benign races, as it does not report a write-write race if two write accesses update the same shared memory location with the same value.
 
 \noindent\textbf{Sound Partial-Order Reduction }
 %
