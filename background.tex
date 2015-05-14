@@ -1,16 +1,16 @@
 \subsection{Concurrency in Device Drivers}
 \label{bg:concurrency}
 
-Nowadays, multicore machines have become mainstream, allowing operating systems to exploit concurrency for \emph{responsiveness} (latency) or \emph{performance} (throughput). In drivers, responsiveness is important (even if there is only a single core available), because entry points of distinct processes should run concurrently so that no single process hogs the core. Likewise, performance is important, as drivers should be able to timely process incoming requests (e.g.\ network packages).
-
-Modern operating systems address the demand for responsiveness and performance by providing multiple sources of concurrency~\cite{corbet2005linux}, such as: a kernel can invoke an arbitrary number of entry points from the same driver concurrently; a running driver process can block and be replaced by another process in the same driver; and hardware interrupts can be handled concurrently. All these possibilities can easily lead to \emph{data races}, which can be defined as follows:
+Modern operating systems address the demand for responsiveness and performance in device drivers by providing multiple sources of concurrency~\cite{corbet2005linux}: the kernel can invoke an arbitrary number of entry points from the same driver concurrently; a running driver process can block and be replaced by another process in the same driver; and hardware interrupts can be handled concurrently.  These forms of concurrent execution are prone to \emph{data races}.
 
 \begin{definition}
 \label{definition:datarace}
-A data race occurs when two distinct threads access a shared memory location, at least one of the accesses modifies the location, at least one of the accesses is non-atomic, and there is no mechanism in place to prevent these accesses from being simultaneous.
+A \emph{data race} occurs when two distinct threads access a shared memory location, at least one of the accesses modifies the location, at least one of the accesses is non-atomic, and there is no mechanism in place to prevent these accesses from being simultaneous.
 \end{definition}
 
-Example~\ref{fig:data_race_example} shows a racy entry point that \whoop (see \S\ref{whoop}) automatically found in the generic\_nvram Linux char driver (see \S\ref{evaluation}). The driver can invoke the \texttt{nvram\_llseek} entry point concurrently from two threads $T_1$ and $T_2$, while passing the same \texttt{file} object as a parameter. However, this can lead to multiple possible data races, because $T_1$ and $T_2$ can access the \texttt{f\_pos} field of the \texttt{file} object in arbitrary order.
+Example~\ref{fig:data_race_example} shows a racy entry point that in the generic\_nvram Linux char driver;
+our \whoop (see \S\ref{whoop}) was able to find this race automatically 
+(see \S\ref{evaluation}). The driver can invoke the \texttt{nvram\_llseek} entry point concurrently from two threads $T_1$ and $T_2$, while passing the same \texttt{file} object as a parameter. However, this can lead to multiple possible data races, because $T_1$ and $T_2$ can access the \texttt{f\_pos} field of the \texttt{file} object in arbitrary order.
 
 \begin{figure}[t]
 \begin{lstlisting}
@@ -32,12 +32,10 @@ static loff_t nvram_llseek(struct file *file,
 \label{fig:data_race_example}
 \end{figure}
 
-The most common technique for eliminating races is using a lock $l$. Locking a set of program statements that access a shared resource with $l$ creates a \emph{critical section}, i.e.\ source code that can only execute by the thread that holds $l$. Figure~\ref{fig:lock_example} shows how to use a lock to eliminate the races in Figure~\ref{fig:data_race_example}. The example is tricky, because the return statement can potentially race on the \texttt{f\_pos} field. To fix this issue, we store the result in a temporary variable, inside the critical section.
+The most common method for avoiding races is to protecting sets of program statements that access a shared resource using \emph{locks}, forming \emph{critical sections}.  
+Figure~\ref{fig:lock_example} shows how to use a lock to eliminate the races in Figure~\ref{fig:data_race_example}. Because the return statement can potentially race on the \texttt{f\_pos} field, we store the result in a temporary variable inside the critical section.
 
-Lock-based synchronization is a powerful tool for preventing races in drivers, but careless use of locks has many pitfalls~\cite{sutter2005software}. Coarse-grained locking can hurt performance, as it limits the opportunity for concurrency. On the other hand, fine-grained locking can easily lead to deadlocks. Although the Linux kernel provides sophisticated lock-free synchronization mechanisms~\cite{corbet2005linux}, such as atomic read and write operations, in this work we focus on locks. However, we still treat lock-free operations soundly (see Definition~\ref{definition:datarace}), by not regarding them as providing any protection between threads. This is sound, but can potentially introduce false positives.
-
-\PDComment{Do we really need the following? I am not even sure how entirely accurate it is as I just used some simple greping ...}
-We believe that our focus in locks is justified, because the majority of Linux drivers still use locks. To check this, we used a simple grep command and found that 68\% of the drivers from the 4.0 Linux kernel distribution use locks, versus 13\% that use atomic operations. We also found that 31\% of the drivers use neither locking nor atomic primitives, which suggests that they are either simple (non-concurrent) drivers or use some other lock-free synchronization primitive.
+Lock-based synchronization is a powerful tool for preventing races in drivers, but careless use of locks has many pitfalls~\cite{sutter2005software}. Coarse-grained locking can hurt performance, as it limits the opportunity for concurrency. On the other hand, fine-grained locking can easily lead to deadlocks. Although the Linux kernel provides sophisticated lock-free synchronization mechanisms~\cite{corbet2005linux}, such as atomic read-modify-write operations, in this work we focus on locks as they are widely used.\footnote{We treat lock-free operations by not regarding them as providing any protection between threads. This is sound, but can lead to false alarm race reports.}
 
 \begin{figure}[t]
 \begin{lstlisting}
