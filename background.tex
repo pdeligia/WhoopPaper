@@ -1,4 +1,4 @@
-\noindent\textbf{Concurrency in Device Drivers. }
+\noindent\textbf{Concurrency in Device Drivers }
 %
 Modern operating systems address the demand for responsiveness and performance in device drivers by providing multiple sources of concurrency~\cite{corbet2005linux}: the kernel can invoke an arbitrary number of entry points from the same driver concurrently; a running driver process can block and be replaced by another process in the same driver; and hardware interrupts can be handled concurrently.  These forms of concurrent execution are prone to \emph{data races}.
 
@@ -31,9 +31,9 @@ static loff_t nvram_llseek(struct file *file,
 \vspace{-2mm}
 \end{figure}
 
-The most common method for avoiding races is by protecting sets of program statements that access a shared resource using \emph{locks}, forming \emph{critical sections}.  Figure~\ref{fig:lock_example} shows how to use a lock to eliminate the races in Figure~\ref{fig:data_race_example}. Because the return statement can potentially race on the \texttt{f\_pos} field, we store the result in a temporary variable inside the critical section.
+The most common method for avoiding races is by protecting sets of program statements that access a shared resource with \emph{locks}, forming \emph{critical sections}.  Figure~\ref{fig:lock_example} shows how to use locking to eliminate the races in Figure~\ref{fig:data_race_example}. Because the \texttt{return} statement can potentially race on the \texttt{f\_pos} field, we store the result in a temporary variable inside the critical section.
 %
-Careless use of locks has many well-known pitfalls~\cite{sutter2005software}: coarse-grained locking can hurt performance, as it limits the opportunity for concurrency; while fine-grained locking can easily lead to deadlocks. Although the Linux kernel provides sophisticated lock-free synchronization mechanisms~\cite{corbet2005linux}, such as atomic read-modify-write operations, in this work we focus on locks as they are widely used.\footnote{We treat lock-free operations soundly, by not regarding them as providing any protection between threads, but this can lead to false alarm race reports.}
+Careless use of locks has many well-known pitfalls~\cite{sutter2005software}: coarse-grained locking can hurt performance, as it limits the opportunity for concurrency; while fine-grained locking can easily lead to deadlocks. Although the Linux kernel provides sophisticated lock-free synchronization mechanisms~\cite[p.\ 123]{corbet2005linux}, such as atomic read-modify-write operations, in this work we focus on locks as they are widely used.\footnote{We treat lock-free operations soundly, by not regarding them as providing any protection between threads, but this can lead to false alarm race reports.}
 
 \begin{figure}[t]
 \begin{lstlisting}
@@ -60,7 +60,7 @@ static loff_t nvram_llseek(struct file *file,
 \vspace{-2mm}
 \end{figure}
 
-\noindent\textbf{Lockset Analysis. }
+\noindent\textbf{Lockset Analysis }
 %
 Lockset analysis is a lightweight race detection method proposed in the context of Eraser~\cite{savage1997eraser}, a dynamic data race detector.  The idea is to track the set of locks that are \emph{consistently} used to protect a memory location during program execution. If that lockset ever becomes empty, the analysis reports a \emph{potential} race on that memory location. This is because an empty lockset suggests that a memory location \emph{may} be accessed simultaneously by two or more threads.  
 
