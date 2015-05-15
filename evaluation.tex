@@ -34,8 +34,7 @@
 \vspace{-2mm}
 \end{figure}
 
-We performed experiments to validate the usefulness of the \whoop approach (\S\ref{whoop}) and its combination with \corral (\S\ref{corral}). We first present race-checking results from running \whoop and \corral on \sizeOfBenchmarks drivers taken from the Linux 4.0 kernel.\footnote{\url{https://www.kernel.org}} We then evaluate the runtime performance and scalability of \corral and \whoop + \corral with different yield instrumentation granularities and context-switch bounds.
-Our results demonstrate that \whoop can efficiently accelerate race-checking with \corral.
+We performed experiments to validate the usefulness of the \whoop approach (\S\ref{whoop}) and its combination with \corral (\S\ref{corral}). We first present race-checking results from running \whoop and \corral on \sizeOfBenchmarks drivers taken from the Linux 4.0 kernel.\footnote{\url{https://www.kernel.org}} We then evaluate the runtime performance and scalability of \corral using different yield instrumentations and context-switch bounds. Our results demonstrate that \whoop can efficiently accelerate race-checking with \corral.
 
 For reproducibility, we make all of our tools (including source) and benchmarks available online:
 
