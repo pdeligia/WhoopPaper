@@ -16,11 +16,9 @@ static loff_t nvram_llseek(struct file *file,
   switch (origin) {
     case 0: break;
     case 1: offset += file->f_pos; break; // racy
-    case 2: offset += nvram_len; break;
     default: offset = -1;
   }
-  if (offset < 0)
-    return -EINVAL;
+  if (offset < 0) return -EINVAL;
   file->f_pos = offset; // racy
   return file->f_pos; // racy
 }
@@ -43,11 +41,12 @@ static loff_t nvram_llseek(struct file *file,
   switch (origin) {
     case 0: break;
     case 1: offset += file->f_pos; break;
-    case 2: offset += nvram_len; break;
     default: offset = -1;
   }
-  if (offset < 0)
+  if (offset < 0) {
+    mutex_unlock(&nvram_mutex); // unlock
     return -EINVAL;
+  }
   file->f_pos = offset;
   loff_t res = file->f_pos; // store result
   mutex_unlock(&nvram_mutex); // unlock
@@ -71,7 +70,7 @@ After each \emph{lock} and \emph{unlock} operation by $T$, $\mathit{CLS}_T$ is u
 When $T$ accesses shared variable $s$, any locks that are not common to $\mathit{LS}_s$ and $\mathit{CLS}_T$ are removed from $\mathit{LS}_s$.
 If $\mathit{LS}_s$ becomes empty as a result, a warning is issued that the access to $s$ may be unprotected.
 
-Figure~\ref{fig:locksets} shows an example of applying lockset analysis on a concurrent program consisting of two threads $T_1$ and $T_2$, both accessing a global variable $A$. Initially, $\mathit{LS}_A$, which is the lockset for A, contains all possible locks in the program: $M$ and $N$. During execution of $T_1$, the thread writes $A$ without holding $N$, and thus $N$ is removed from $\mathit{LS}_A$. Next, during execution of $T_2$, the thread writes $A$ without holding $M$, and thus $\mathit{LS}_A$ becomes empty. As a result, a warning is reported because the two threads do not consistently protect $A$.
+Figure~\ref{fig:locksets} shows an example of applying lockset analysis to a concurrent program consisting of two threads $T_1$ and $T_2$, both accessing a global variable $A$. Initially, $\mathit{LS}_A$, which is the lockset for A, contains all possible locks in the program: $M$ and $N$. During execution of $T_1$, the thread writes $A$ without holding $N$, and thus $N$ is removed from $\mathit{LS}_A$. Next, during execution of $T_2$, the thread writes $A$ without holding $M$, and thus $\mathit{LS}_A$ becomes empty. As a result, a warning is reported because the two threads do not consistently protect $A$.
 
 In contrast to more sophisticated race analyses that encode a \emph{happens-before} relation between threads~\cite{lamport1978time} (e.g.\ using vector clocks), lockset analysis is easy to implement, lightweight, and thus has the potential to scale well.  The technique, though, suffers from imprecision (i.e.\ can report false bugs), because a violation of the locking discipline does not always correspond to a real data race~\cite{savage1997eraser, pozniansky2003efficient, o2003hybrid, elmas2007goldilocks, flanagan2009fasttrack}. Furthermore, the code coverage in dynamic lockset analyzers, such as Eraser, is limited by the execution paths that are explored under a given scheduler. This is because the tool runs the program in a truly concurrent environment, thus it only gets to see what the thread did on the particular schedule that was followed.
 
