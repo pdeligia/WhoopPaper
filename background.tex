@@ -1,6 +1,5 @@
-\subsection{Concurrency in Device Drivers}
-\label{bg:concurrency}
-
+\noindent\textbf{Concurrency in Device Drivers. }
+%
 Modern operating systems address the demand for responsiveness and performance in device drivers by providing multiple sources of concurrency~\cite{corbet2005linux}: the kernel can invoke an arbitrary number of entry points from the same driver concurrently; a running driver process can block and be replaced by another process in the same driver; and hardware interrupts can be handled concurrently.  These forms of concurrent execution are prone to \emph{data races}.
 
 \begin{definition}
@@ -59,9 +58,8 @@ static loff_t nvram_llseek(struct file *file,
 \label{fig:lock_example}
 \end{figure}
 
-\subsection{Lockset Analysis}
-\label{bg:lockset}
-
+\noindent\textbf{Lockset Analysis. }
+%
 Lockset analysis is a lightweight race detection method proposed in the context of Eraser~\cite{savage1997eraser}, a dynamic data race detector.  The idea is to track the set of locks that are \emph{consistently} used to protect a memory location during program execution. If that lockset ever becomes empty, the analysis reports a \emph{potential} race on that memory location. This is because an empty lockset suggests that a memory location \emph{may} be accessed simultaneously by two or more threads.  
 
 Lockset analysis for a concurrent program starts by creating a \emph{current} lockset, $\mathit{CLS}_T$, for each thread $T$ of the program, and a lockset, $\mathit{LS}_s$, for each shared variable $s$ used in the program. Initially, $\mathit{CLS}_T$ is empty for every thread $T$, because the threads do not hold any locks on program start. The lockset $\mathit{LS}_s$ for each variable $s$ is initialized to the set of all locks manipulated by the program, because initially each access to $s$ has (vacuously) been protected by every lock. The program is executed as usual (with threads scheduled according to the OS scheduler), except that instrumentation is added to update locksets as follows.

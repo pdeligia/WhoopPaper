@@ -65,7 +65,7 @@ A thread terminates if it reaches the end of $\mainforthread{T}$; in this case t
 %
 For templates $T$ and $U$ (including the possibility that $T$ and $U$ are equal) we want to check whether it is possible for a thread executing $T$ to race with a thread executing $U$, in the presence of arbitrarily many further concurrently executing threads.
 %
-To this end, we first \emph{instrument} a template $T$ for lockset analysis (see \S\ref{bg:lockset}).  Given an arbitrary symbol $i$, we define the instrumentation of $T$ with respect to $i$, denoted $\instrument{T}{i}$.  There are two aspects to this instrumentation phase: \emph{renaming} and \emph{lockset instrumentation}.
+To this end, we first \emph{instrument} a template $T$ for lockset analysis (see \S\ref{sec:background}).  Given an arbitrary symbol $i$, we define the instrumentation of $T$ with respect to $i$, denoted $\instrument{T}{i}$.  There are two aspects to this instrumentation phase: \emph{renaming} and \emph{lockset instrumentation}.
 
 Renaming is straightforward: all occurrences of each private variable $x \in \variables{T}$ used in $T$ are replaced with a renamed variable $\instrument{x}{i}$ in $\instrument{T}{i}$, and every procedure $f \in \procedures{T}$ is renamed (both at its declaration site and at all call sites) to $\instrument{f}{i}$ in $\instrument{T}{i}$.  The purpose of renaming is to ensure that when we analyze a pair of templates, $T$ and $U$, both templates execute distinct procedures and operate on distinct private data.  This is vital in the case where $T$ and $U$ are the same.
 
