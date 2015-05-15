@@ -1,6 +1,6 @@
 \noindent\textbf{Concurrency in Device Drivers }
 %
-Modern operating systems address the demand for responsiveness and performance in device drivers by providing multiple sources of concurrency~\cite{corbet2005linux}: the kernel can invoke an arbitrary number of entry points from the same driver concurrently; a running driver process can block and be replaced by another process in the same driver; and hardware interrupts can be handled concurrently.  These forms of concurrent execution are prone to \emph{data races}.
+Modern operating systems address the demand for responsiveness and performance in device drivers by providing multiple sources of concurrency~\cite{corbet2005linux}: an arbitrary number of entry points from the same driver can be invoked concurrently; a running driver process can block, causing the driver to switch execution to another process; and hardware interrupts can be handled concurrently.  These forms of concurrent execution are prone to \emph{data races}.
 
 \begin{definition}
 \label{definition:datarace}
