@@ -47,6 +47,7 @@ $\mutexunlock{m};$ & mutex unlock, where $m \in \mutexes$\\
 \end{tabular}
 \caption{Forms of statements in our simple programming model}
 \label{fig:statements}
+\vspace{-2mm}
 \end{figure}
 
 \noindent\textbf{Semantics }
@@ -59,14 +60,14 @@ At any point of execution, a new thread may be added to the list of threads.  Th
 %
 We consider a standard interleaving model of concurrency: at any execution point, a thread may execute its current statement, unless that statement has the form $\mutexlock{m}$ and mutex $m$ is already held by some thread.  Executing a statement causes the state of the thread, and the shared state, to be updated in a standard manner.  For example, if a thread following template $T$ executes $s = e$, where $s \in \sharedvars$ and $e$ is an expression over $\variables{T}$, the shared variable valuation is updated so that $s$ has the value determined by evaluating $e$ in the context of the thread's private variable valuation.  Because our interest is in data race analysis for race-free programming, we are not concerned with relaxed memory behavior: race-free programs exhibit only sequentially consistent behaviors.
 
-A thread terminates if it reaches the end of $\mainforthread{T}$; in this case the thread is removed from the list of threads.  Because we are interested in the analysis of device drivers, which are \emph{reactive} concurrent programs, we do not consider the notion of global program termination.
+A thread terminates if it reaches the end of $\mainforthread{T}$, and is removed from the list of threads.  Since our interest is in analysis of device drivers, which are reactive, we do not consider the notion of global program termination.
 
 \noindent\textbf{Lockset Instrumentation }
 %
 For templates $T$ and $U$ (including the possibility that $T$ and $U$ are equal) we want to check whether it is possible for a thread executing $T$ to race with a thread executing $U$, in the presence of arbitrarily many further concurrently executing threads.
 %
 To this end, we first \emph{instrument} a template $T$ for lockset analysis (see \S\ref{sec:background}).  Given an arbitrary symbol $i$, we define the instrumentation of $T$ with respect to $i$, denoted $\instrument{T}{i}$.  There are two aspects to this instrumentation phase: \emph{renaming} and \emph{lockset instrumentation}.
-
+%
 Renaming is straightforward: all occurrences of each private variable $x \in \variables{T}$ used in $T$ are replaced with a renamed variable $\instrument{x}{i}$ in $\instrument{T}{i}$, and every procedure $f \in \procedures{T}$ is renamed (both at its declaration site and at all call sites) to $\instrument{f}{i}$ in $\instrument{T}{i}$.  The purpose of renaming is to ensure that when we analyze a pair of templates, $T$ and $U$, both templates execute distinct procedures and operate on distinct private data.  This is vital in the case where $T$ and $U$ are the same.
 
 \begin{figure}
@@ -199,7 +200,7 @@ To avoid quantifiers and the associated theorem proving burden, we use instead a
 %
 Early in the development of \whoop, we experimented with analyzing recursion-free drivers using full inlining.  We found that this did not scale to large drivers: when we tried to apply \whoop to the r8169 ethernet driver (see \S\ref{evaluation}), we quickly exhausted the memory limits of our experimental platform as the driver exhibited recursion, which cannot be fully inlined.
 
-To make our analysis scalable without sacrificing precision, and to cater for recursion, we use the Houdini~\cite{flanagan2001houdini} invariant inference algorithm to automatically compute summaries (pre- and post-conditions and loop invariants) from a pool of \emph{candidate} invariants.  Given a pool of candidates, Houdini repeatedly attempts to verify each procedure with respect to its current candidate summary.  If verification fails due to an incorrect candidate, this candidate is discarded.  The process repeats until a fixpoint is reached, whereby the largest conjunction of the candidate invariants that can be proven to hold remains.  The remaining candidates, which are indeed invariants, can then be assumed during further analysis of the program.
+To make our analysis scale while maintaining precision, and to support recursion, we use the Houdini algorithm~\cite{flanagan2001houdini} to automatically compute summaries (pre- and post-conditions and loop invariants).  Given a pool of \emph{candidate} pre-conditions, post-conditions, and loop invariants, Houdini repeatedly attempts to verify each procedure.  Initially, the entire candidate pool is considered.  If verification fails due to an incorrect candidate, this candidate is discarded.  The process repeats until a fixpoint is reached.  The (possibly empty) set of remaining candidates have been proven to hold, and can used to summarize calls and loops during further program analysis.
 
 Houdini does not generate the initial pool of candidates: \whoop generates them using a set of heuristics, and passes them to Houdini as a starting point.  The idea is to automatically generate likely program invariants based on syntactic patterns extracted from an inter-procedural pass over the code for an entry point.  We give two examples; for clarity we use notation from the simple shared variable concurrent programming model of \S\ref{sec:symbolicpairwise}.  If we observe syntactically that procedure $f$ of entry point $T$ may write to, but does not read from, shared variable $s$, then when instrumenting $T$ with symbol $i$, we guess $s \in \hasbeenwritten{i}$ and $s \notin\hasbeenread{i}$ as postconditions for $\instrument{f}{i}$.  These guesses may be incorrect, for instance if the potential write to $s$ turns out to be in dead code, or if a read from $s$ has already been issued on entry to $\instrument{f}{i}$.  Similarly, if syntactic analysis indicates that $f$ may unlock mutex $m$, we guess $m \notin \currentlockset{i}$ as a postcondition for $\instrument{f}{i}$; this guess may be wrong, e.g.\ if the unlock operation is not reachable or if a subsequent lock operation acquires the mutex again.  We stress that guessing incorrect candidate invariants does not compromise the soundness of verification: \whoop is free to speculatively generate candidates that are later deemed to be incorrect, and thus discarded, by Houdini.  The balance we try to strike is to have \whoop generate sufficient candidates to enable precise lockset analysis, without generating so many candidates that the speed of the Houdini algorithm is prohibitively slow.
 
