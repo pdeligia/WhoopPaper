@@ -112,11 +112,11 @@ The pseudocode of Figure~\ref{fig:sequentialization} shows the sequential progra
 \begin{tabular}{l}
 $\currentlockset{i} = \emptyset;$ $\hasbeenread{i} = \emptyset;$ $\hasbeenwritten{i} = \emptyset;$ \\
 $\currentlockset{j} = \emptyset;$ $\hasbeenread{j} = \emptyset;$ $\hasbeenwritten{j} = \emptyset;$ \\
-\texttt{for} $s \in \sharedvars$ \texttt{do} $\lockset{s}{i} = \mutexes;$ $\lockset{s}{j} = \mutexes;$ \medskip
+\texttt{for} $s \in \sharedvars$ \texttt{do} $\lockset{s}{i} = \mutexes;$ $\lockset{s}{j} = \mutexes;$ \smallskip
 \\
 
 $\mainforthread{\instrument{T}{i}}();$ \\
-$\mainforthread{\instrument{U}{j}}();$ \medskip\\
+$\mainforthread{\instrument{U}{j}}();$ \smallskip\\
 
 \texttt{assert} $\forall s \in \sharedvars \; .$ \\
 
@@ -127,6 +127,7 @@ $\quad\quad \lockset{s}{i} \cap \lockset{s}{j} \neq \emptyset;$ \\
 \end{tabular}
 \caption{The sequential program to be analyzed in order to prove race-freedom for a pair of thread templates}
 \label{fig:sequentialization}
+\vspace{-2mm}
 \end{figure}
 
 \noindent\textbf{Soundness }
@@ -143,7 +144,9 @@ The simple concurrent programming model of \S\ref{sec:symbolicpairwise} is delib
 \begin{figure*}
 \centering
 \includegraphics[width=.99\linewidth]{img/whoop.pdf}
+\vspace{-2mm}
 \caption{The \whoop architecture, empowered by state-of-the-art compilation (Clang/LLVM and SMACK) and verification (Boogie and \corral) tools}
+\vspace{-2mm}
 \label{fig:whoop}
 \end{figure*}
 
@@ -166,8 +169,10 @@ const struct file_operations nvram_fops = {
   .unlocked_ioctl = nvram_unlocked_ioctl
 };
 \end{lstlisting}
-\caption{Entry points definitions in the generic\_nvram driver}
+\vspace{-2mm}
+\caption{Entry point definitions in the generic\_nvram driver}
 \label{fig:entrypoints}
+\vspace{-2mm}
 \end{figure}
 
 \noindent\textbf{Translation for Verification }
@@ -211,6 +216,7 @@ generic_nvram.c: error: potential read-write race:
   write by entry point nvram_llseek, generic_nvram.c:53:2
     file->f_pos = offset;
 \end{lstlisting}
+\vspace{-2mm}
 
 \noindent\textbf{Optimizations }
 %
