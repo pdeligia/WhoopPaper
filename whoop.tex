@@ -186,9 +186,9 @@ To achieve scalability, SMACK uses a \emph{split} memory model that exploits an 
 
 \noindent\textbf{Identifying Locks }
 %
-When the instrumentation phase begins, \whoop performs an inter-procedural static analysis (at Boogie IVL level) to identify all available locks and rewrite each one (both at declaration and at all access sites) to a unique constant Boogie variable. The reason behind this transformation is that representing all locks statically, instead of their original SMACK pointer-based representation, helps \whoop perform various internal instrumentation and optimization passes.
+When the instrumentation phase begins, \whoop performs an inter-procedural static analysis (at Boogie IVL level) to identify all available locks and rewrite each one (both at declaration and at all access sites) to a unique constant Boogie variable. The reason behind this transformation is that representing all locks statically, instead of their original SMACK pointer-based representation, helps \whoop perform various internal instrumentations and optimizations.
 %
-Currently, \whoop only supports mutexes and spinlocks that are available in the Linux kernel APIs. However, it is relatively easy to enhance our tool with knowledge of other locking primitives. If \whoop cannot infer a lock, e.g. because it was created dynamically or was indexed from an array of locks, it will exit with a warning. The are two reasons behind this: (i) it is arguably hard to detect such locks using static analysis; and (ii) a small, fixed number of locks is advocated by Linux experts as good practice when developing drivers~\cite{corbet2005linux}.
+Currently, \whoop only supports mutexes and spinlocks that are available in the Linux kernel APIs. However, it is relatively easy to enhance our tool with knowledge of other locking primitives. If \whoop cannot infer a lock, e.g. because it was created dynamically or was indexed from an array of locks, it will exit with a warning. The are two reasons behind this: (i) it is arguably hard to detect such locks via static analysis; and (ii) a small, fixed number of locks is advocated by Linux experts as good practice when developing drivers~\cite[p.\ 123]{corbet2005linux}.
 
 \noindent\textbf{Watchdog Race-Checking Instrumentation }
 %
