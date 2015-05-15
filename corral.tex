@@ -36,4 +36,4 @@ The first instruments \texttt{yield} statements in a binary fashion: if \whoop p
 %
 \yieldmr is a finer-grained instrumentation: it instruments a \texttt{yield} only after each access to a memory region that might race in the pair (regardless if the pair has not been fully proven as race-free), and after each lock and unlock. In our experiments (see \S\ref{evaluation}), \yieldmr significantly outperforms \yieldcoarse.
 
-Our partial-order reduction can be used to accelerate \corral for arbitrary bug-finding in concurrent programs. In the remainder of this paper, though, we regard races as bugs and use \corral solely to look for races.
+Our partial-order reduction can be used to accelerate \corral for arbitrary bug-finding in concurrent programs. In the remainder of this paper, though, we only regard races as bugs and use \corral solely to look for races.
