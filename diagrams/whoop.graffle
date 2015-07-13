@@ -426,8 +426,8 @@ Verification Engine}</string>
 			<integer>0</integer>
 			<key>Points</key>
 			<array>
-				<string>{1281.9506694556146, 278.44347462045329}</string>
-				<string>{1199.5034999305626, 329.30273820699762}</string>
+				<string>{1281.4988364030551, 278.44220259259822}</string>
+				<string>{1199.5004597091852, 328.68716975544146}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -1137,7 +1137,7 @@ Model}</string>
 {\colortbl;\red255\green255\blue255;}
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\qc
 
-\f0\fs44 \cf0 CounterExamples}</string>
+\f0\fs44 \cf0 Error Traces}</string>
 				<key>VerticalPad</key>
 				<integer>0</integer>
 			</dict>
@@ -2065,7 +2065,7 @@ with yields}</string>
 	<key>MasterSheets</key>
 	<array/>
 	<key>ModificationDate</key>
-	<string>2015-05-14 23:44:12 +0000</string>
+	<string>2015-06-17 04:14:33 +0000</string>
 	<key>Modifier</key>
 	<string>Pantazis Deligiannis</string>
 	<key>NotesVisible</key>
@@ -2096,7 +2096,7 @@ with yields}</string>
 		<key>NSPaperName</key>
 		<array>
 			<string>string</string>
-			<string>203D8DB2-663F-46D7-B111-7F5D4B787F81</string>
+			<string>D7E366C5-0292-421D-81AE-2C11197C39E3</string>
 		</array>
 		<key>NSPaperSize</key>
 		<array>
@@ -2165,7 +2165,7 @@ with yields}</string>
 		<key>SidebarWidth</key>
 		<integer>120</integer>
 		<key>VisibleRegion</key>
-		<string>{{-53, -325.99999999999994}, {1664.9999338388468, 1079.9999570846571}}</string>
+		<string>{{-53, -326}, {1664.9999338388468, 1079.9999570846574}}</string>
 		<key>Zoom</key>
 		<real>0.60000002384185791</real>
 		<key>ZoomValues</key>
