@@ -378,9 +378,9 @@
 
 \newcommand{\sizeOfBenchmarks}{16\xspace}
 
-\newcommand{\ADComment}[1]{\textcolor{blue}{Ally: #1}}
-\newcommand{\PDComment}[1]{\textcolor{magenta}{Pantazis: #1}}
-\newcommand{\ZRComment}[1]{\textcolor{red}{Zvonimir: #1}}
+%\newcommand{\ADComment}[1]{\textcolor{blue}{Ally: #1}}
+%\newcommand{\PDComment}[1]{\textcolor{magenta}{Pantazis: #1}}
+%\newcommand{\ZRComment}[1]{\textcolor{red}{Zvonimir: #1}}
 
 \begin{document}
 %
@@ -485,7 +485,7 @@ Concurrency errors, such as data races, make device drivers notoriously hard to 
 %
 % For peerreview papers, this IEEEtran command inserts a page break and
 % creates the second title. It will be ignored for other modes.
-\IEEEpeerreviewmaketitle
+%\IEEEpeerreviewmaketitle
 
 \section{Introduction}
 
@@ -606,9 +606,8 @@ Concurrency errors, such as data races, make device drivers notoriously hard to 
 
 
 % use section* for acknowledgement
-%\section*{Acknowledgments}
-%We would like to thank Akash Lal for his useful input and for helping us with various \corral issues, and Montgomery Carter for modeling Linux locks. We would also like to acknowledge Anton Burtsev, Charlie Jacobsen and the members of the Multicore Programming Group of Imperial College London for  discussions and feedback in various stages of this work. This work is part of the research project ``Automatic Synthesis of High-Assurance Device Drivers'' and was generously funded by a gift from Intel Corporation, and also supported in part by NSF CCF 1346756.  \ADComment{Tyler specifically.}  \ADComment{Jeroen specifically, assuming he does provide feedback.}
-
+\section*{Acknowledgments}
+We would like to thank Akash Lal for his input and for helping us with \corral issues, and Montgomery Carter for modeling Linux locks. We would also like to acknowledge Jeroen Ketema, Tyler Sorensen, Anton Burtsev and Charlie Jacobsen for discussions and feedback in various stages of this work. This work is part of the research project ``Automatic Synthesis of High-Assurance Device Drivers'' and was generously funded by a gift from Intel Corporation, and also supported in part by NSF CCF 1346756.
 
 
 % trigger a \newpage just before the given reference

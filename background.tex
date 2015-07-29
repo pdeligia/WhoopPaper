@@ -7,16 +7,16 @@ Modern operating systems address the demand for responsiveness and performance i
 A \emph{data race} occurs when two distinct threads access a shared memory location, at least one of the accesses modifies the location, at least one of the accesses is non-atomic, and there is no mechanism in place to prevent these accesses from being simultaneous.
 \end{definition}
 
-Figure~\ref{fig:data_race_example} shows a racy entry point, \texttt{nvram\_llseek}, in the generic\_nvram Linux driver. The driver can invoke the entry point concurrently from two threads $T_1$ and $T_2$, with the same \texttt{file} struct as a parameter. However, this can lead to multiple possible data races, because $T_1$ and $T_2$ can access the \texttt{f\_pos} field of \texttt{file} in arbitrary order. Our tool, \whoop (see \S\ref{whoop}), was able to find these races automatically (see \S\ref{evaluation}).
+Figure~\ref{fig:data_race_example} shows a racy entry point, \texttt{nvram\_llseek}, in the generic\_nvram Linux 4.0 driver. The driver can invoke the entry point concurrently from two threads $T_1$ and $T_2$, with the same \texttt{file} struct as a parameter. However, this can lead to multiple possible data races, because $T_1$ and $T_2$ can access the \texttt{f\_pos} field of \texttt{file} in arbitrary order. Our tool, \whoop (see \S\ref{whoop}), was able to find these races automatically (see \S\ref{evaluation}).
 
 \begin{figure}[t]
 \begin{lstlisting}
 static loff_t nvram_llseek(struct file *file,
     loff_t offset, int origin) {
   switch (origin) {
-    case 0: break;
+    ...
     case 1: offset += file->f_pos; break; // racy
-    default: offset = -1;
+    ...
   }
   if (offset < 0) return -EINVAL;
   file->f_pos = offset; // racy
@@ -24,7 +24,7 @@ static loff_t nvram_llseek(struct file *file,
 }
 \end{lstlisting}
 \vspace{-2mm}
-\caption{Racy entry point in the generic\_nvram Linux driver}
+\caption{Racy entry point in a Linux 4.0 driver (drivers/char/generic\_nvram.c)}
 \label{fig:data_race_example}
 \vspace{-2mm}
 \end{figure}
@@ -39,9 +39,9 @@ static loff_t nvram_llseek(struct file *file,
     loff_t offset, int origin) {
   mutex_lock(&nvram_mutex); // lock
   switch (origin) {
-    case 0: break;
+    ...
     case 1: offset += file->f_pos; break;
-    default: offset = -1;
+    ...
   }
   if (offset < 0) {
     mutex_unlock(&nvram_mutex); // unlock

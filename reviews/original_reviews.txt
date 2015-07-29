@@ -1,0 +1,382 @@
+First reviewer's review:
+
+Summary of the submission <<<
+
+The paper proposes a lock set analysis for detecting data races in Linux
+device drivers. The approach proposes a sound but approximate analysis
+using a new tool named Whoop, and then feeds possible races into an
+accurate but slow existing tool named Corral for elimination of false
+positives. Concretely, Whoop collects constraints related to locksets from
+driver code, and then provides them to Boogie for resolution. The possible
+races identified Whoop are then used to annotate a program with explicit
+yield operations such that Corral needs to evaluate fewer interleavings.
+The paper uses this to refine the results of Whoop, but points out that it
+could be use for other kinds of bug detection. The evaluation considers 16
+Linux 4.0 drivers, and finds races with Corral in about half of them.
+
+Evaluation <<<
+
+Assessment:
++ Efficient analysis. Good synergy of new and existing tools. Important
+problem.
+- Apparently, major limitations to the analysis as compared to current
+device driver design. No confirmation of the correctness of the results.
+
+Section 3b says: "If Whoop cannot infer a lock, eg because it was created
+dynamically or was indexed from an array of locks, it will exit with a
+warning". This statement is either unclear or represents a major
+limitation of the approach. Indeed, it is very common for a Linux device
+driver to dynamically create a driver-specific structure that contains
+locks. As an approximation, over 2/3 of the calls to mutex_lock,
+{spin,read,write}_lock and the bh and irqsave variants of the latter have
+as their lock argument an expression of the form &x->y where x is a local
+variable. While this doesn't prove that these local variables don't refer
+to global structures, it would seem quite strange for them to do so. As
+another example, network drivers typically use a function such as
+alloc_etherdev to dynamically allocate a network device structure followed
+by a driver-specific structures. Considering over 180 of these
+driver-specific structures, over 110 contain spin lock typed fields. One
+could indeed conjecture that the only drivers that Whoop is able to process
+are quite old and of little current interest. Indeed, generic-nvram (the
+motivating example of the paper) was last modified in 2011, fs3270 was last
+modified in 2013, and ds1286 and swim were last modified in 2014, but only
+at most a couple of times in that year and with only generic changes (these
+are the only files I checked).
+
+Overall, it is not clear at all if the limitation with respect to
+dynamically allocated locks is necessary to the approach. The authors
+could consider whether it could be lifted in an extension of this work.
+
+It is not clear how many of the races found are actually interesting. The
+evaluation highlights two categories: global counters and structure
+fields. The structure field races seem likely interesting, but only one is
+described in detail. Is that actually the only one? This one is mentioned
+as having been reported to the Linux kernel bug tracker. Were the others
+not reported at all?
+
+Section 1:
+
+"Techniques that can detect races in drivers ... are usually either unsound
+or imprecise ... Thus, there is a clear need for new tools..."
+Pretty much all practical program analyses are either unsound or imprecise,
+so that in itself would not seem to justify the need for new tools.
+
+Figure 1: What file does the code come from, in what version of the Linux
+kernel. Has the bug been reported? (It is stated much later in the paper
+that it has, but one would like to know here.)
+
+Section 2:
+
+"The program is executed as usual"
+If the program is executed that would seem to be dynamic analysis. But
+later in the section, dynamic analysis is described as one special case of
+lockset analysis. So this part must not be a generic definition of lockset
+analysis.
+
+Figure 3:
+
+It is not clear what CLS_T1 and CLS_T2 are. The comment "compute set
+intersection at access points" and the dotted arrows underneath it are not
+very understandable. More explanation is needed.
+
+Section 3a:
+
+"the effects of additional entry points"
+The point is the possibility of more threads? Additional entry points
+makes it sound like the key point is that different entry points may be
+being executed, while it would seem that execution of different instances
+of the same entry points could also be a concern.
+
+In the description of Figure 4, it is not clear how you know what locations
+are shared.
+
+"We consider a standard interleaving model of concurrency"
+Section 3a said that your approach "executed the instrumented entry points
+in sequence". So why is it necessary to consider any particular model of
+concurrency?
+
+Why not write "x_i = havoc()", to make it look more like an assignment?
+
+"which is -- described above -- at the end of the program"
+The -- -- makes the sentence hard to parse. Surely the idea can be
+expressed in a simpler way.
+
+Section 3b:
+
+Footnote mark 4 should appear after the comma.
+
+"extracts all entry point identifier names, together with the identifier
+names of their corresponding kernel API functions"
+What are the kernel API functions that are being referred to? The example
+shows entry points as the functions listed in a structure. Are these the
+API functions? This would seem odd, because these functions are typically
+static to the .c file, and thus not really part of an API. On the other
+hand, some API functions such as the functions for setting up interrupts,
+take as arguments handler functions that can also be viewed as entry
+points. Are these handler functions also collected at this point?
+
+The paragraph on Chauffeur focuses more on what has been done after the
+problem (of identifying entry points) has been solved, and not on
+presenting how to solve the problem.
+
+Is it SMACK that identifies the shared variables?
+
+"Whoop performs various internal instrumentations and optimizations"
+Obscure.
+
+"Currently, Whoop only supports mutexes and spinlocks that are available in
+the Linux kernel"
+Mutexes and spinlocks would seem to be the lock values themselves. The
+next sentence suggests that here you means the mutex and spin lock
+operations. What operations do you consider exactly?
+
+"it is arguably hard to detect such locks"
+Not clear what is meant by detect. Normally a lock is something that has
+type eg spinlock_t and it passed as an argument to spin_lock, etc. These
+properties seem easy to identify. But maybe you mean some other aspect of
+their detection.
+
+The section on watchdog race-checking is not very easy to understand.
+Is the point that boogie is not able to reason about sets? With respect to
+the solution presented in the second paragraph, maybe it would be possible
+to provide a concrete example?
+
+"We assume that the formal parameters of an entry point do not alias"
+Not clear what this means. That two parameters in a single parameter list
+are not aliases of each other? Or that the parameters of one entry point
+are not aliases of the parameters of the other entry point. The latter
+property seems unlikely to hold. Most entry points take as input a common
+"private" structure that contains information about the device. In the
+case of the generic_nvram driver, the eg read an write entry points take as
+argument a file structure. Could these be aliases of each other?
+
+"but requires Linux expertise" -> "but requires Linux kernel expertise"
+
+Section 4:
+
+"Whoop is a sound but imprecise race analyzer"
+It would be nice to point out the specific issue being addressed here.
+Is the goal to remove the imprecision introduced by the use of havoc?
+
+"Whoop instruments a yield after each shared memory access..."
+This seems to repeat what was said just 3 paragraphs above.
+
+", for which a yield is suppressed,"
+The commas should be dropped. They make the sentence incorrect, making it
+refer to all accesses, not just the ones with the suppressed yields.
+
+"if Whoop proves an entry point pair as race free, then it will instrument
+a yield only after each lock and unlock statement"
+If Whoop says that the code is race free, why is the pair considered by
+Corral at all? The last paragraph says that Corral could be used for
+finding other kinds of bugs, and maybe this is useful in that case. But so
+far Corral has only been presented as useful in improving Whoop.
+
+"Yield-MR significantly outperforms Yield-EPP"
+Outperforms in what way? Faster? More accurate?
+
+Section 5:
+
+It is nice that you put all of the information on your website, but
+experience shows that a local university website might not be available 10
+years later. It could be good to at least put the names of the analyzed
+files and the considered lock functions in an appendix. Perhaps the PC
+chair would allow it to be tucked under the bibliography in the final
+version.
+
+Table 1 and 2 and Figure 9 all appear on the page before they are first
+referenced.
+
+"number of entry point pairs"
+Does this exclude the ones found to be impossible?
+
+"Corral hits its bounds"
+This is some other bound than the csb?
+
+"Corral did not discover any races that Whoop did not report"
+It is not clear how much confidence this can give, because Corral doesn't
+explore interleavings that Whoop considers to be race free.
+
+"built-in loop over-approximation described in [39]"
+Try not to use references as nouns. This requires the reader to go look at
+the bibliography, which disturbs the reading flow.
+
+"Finally, when we apply Corral to a pair of entry points..."
+The point made here has been made before.
+
+For reporting your bug, it would be more effective to send and email to the
+maintainer of the affected file. The relevant people and mailing lists can
+be found using the script get_maintainer.pl, found in the scrips directory
+of the Linux kernel source tree.
+
+"Standalone Corral uses Yield-all, which instruments..."
+This seems to refer back to Table 2, not to Figure 9 that was just
+presented. It could work better to just move the presentation of Figure 9
+to the paragraph "Using the race-freedom guarantees..." where its results
+are discussed.
+
+"which might get Corral stuck" ->
+"which might cause Corral to get stuck"
+
+"the best results were obtained using Yield-MR"
+This was already mentioned, and indeed one is likely to have already seen
+this when Figure 9 was presented.
+
+"if Whoop fails to verify any race-related properties of a driver, it might
+slow down"
+What might Whoop fail to verify? what does "it" refer to?
+
+"analyzed the only two pairs"
+Not sure what this means. How does it relate to the 46 out of 47 regions
+analyzed by Whoop?
+
+"might be missing some of the latest features"
+Features of what?
+
+It would be nice to be able to compare the capabilities of the tools in a
+conceptual way.
+
+Section 6:
+
+"showcasing its limited scalability"
+It is a little bit not nice to put a very positive word (showcasing) with a
+very negative word (limited scalability). Hinting at, suggesting,
+revealing, etc could be better.
+
+"to speedup dynamic race detection" -> "to speed up dynamic race detection"
+
+The conference in reference 5 is typically referred to as EuroSys.
+
+*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*
+
+Second reviewer's review:
+
+Summary of the submission <<<
+
+This paper presents an optimization of the data-raced detection tool CORRAL,
+called Whoop which performs a variant of pairwise lockset analysis which
+reduces the problem of checking race-freedom to analyzing a sequential program
+that over-approximates the original concurrent program and uses locksets to
+assert that all accesses to the same shared resource are protected by locks.
+The analysis produces race-freedom guarantees that can be used to speed-up
+Corral.
+
+Evaluation <<<
+
+Pros:
+This is a well written paper on a hard, although well studied, problem. The
+presented approach has been implemented and shown to indeed accelerate Corral.
+The experimental results are impressive.
+
+Cons:
+There is a large body of work in this are so it is hard to assess the
+significance of the contribution here. An empirical comparison with such
+previous work would be desirable. The idea of reducing the race-freedom
+analysis to the analysis of a sequential program is not new (the authors have
+studied it extensively in their previous work). However the symbolic approach
+is very interesting
+
+Wrt previous work by others the authors state that they were either unsound or
+imprecise, yet their approach is "soundy" rather than sound.
+
+*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*
+
+Third reviewer's review:
+
+Summary of the submission <<<
+
+The paper describes a lightweight lockset analysis based on thread-pair-wise
+data-(lock-)flow analysis, aiming to speed up race detection in device drivers.
+The approach first converts C code into Boogie intermediate verification
+language with the helps of LLVM and the authors' previous work on SMACK, then
+it analyses the locksets for each pair of threads (each instance of the entry
+points in the drivers is considered to be a thread) to determine whether they
+have potential data races. Such race information is further used to reduce
+possible context switches between threads and thus help to speed up other race
+detection tools, such as CORRAL, that are based on thread interleaving.
+Evaluation indeed shows that it helps to speed up CORRAL significantly.
+
+Evaluation <<<
+
+Pros:
++ Present a lightweight, fast lockset analysis
++ Utilize the lockset analysis results to speed up other more precise race
+detection tools in a new way
+
+Cons:
+- The approach is limited to detecting data races only, not all concurrency
+bugs as stated in the title
+- The approach may still be unsound, excluding what are discussed in its
+assumptions and limitations
+
+The paper effectively applies a lightweight static version of lockset analysis
+to help speed up other more precise tools in data race detection. Such a
+combination is in general a favorable approach (in my biased opinion) to deal
+with scalability and imprecision issues in static analysis.
+
+The speedup results achieved against Corral are convincing. However, more
+details may be added to clarify the results better:
+
+- In Table I, since "#Racy MRs" are sometimes smaller than "#Races Found", it'd
+need some explanation about how Whoop/Corral counted these numbers so as to
+avoid the impression that Whoop may have false negatives.
+
+- In Table I, how many of those "#Racy Pairs" and "#Racy MRs" and "#Races
+Found" are true positives? To provide such clarification can further help to
+understand the claim that Whoop may report more false alarms, but never miss
+true ones.
+
+- In Table II, does the "Time" include the time for converting C to Boogie IVL
+and adding Yields into Boogie IVL? Separating the parts can help understand how
+much overheads Whoop adds into Corral.
+
+On the other hand, Whoop by itself may report many false positives or
+"harmless" data races; the paper mentioned briefly such a concern, but doesn't
+consider it too much. It also states, without sufficient evidence, that "our
+instrumentation conveniently tolerates *most* benign races..." and "Even benign
+races, though, lead to undefined behavior..." The authors may in fact consider
+incorporating patterns of harmless data races discussed in the following
+related paper to try to reduce false positives:
+Satish Narayanasamy, Zhenghao Wang, Jordan Tigani, Andrew Edwards, Brad Calder:
+Automatically classifying benign and harmful data races using replay analysis.
+PLDI 2007: 22-31
+
+My concern about the paper is its claim that Whoop is sound (excluding those
+issues affecting "soundiness"). This is because the lockset analysis
+illustrated in Fig. 5 implies that the analysis is flow and path insensitive,
+which may cause false negatives. E.g., see the code fragments below:
+Thread 1:
+if ( flag )
+ lock(m);
+// access #1 to shared_var;
+if ( flag )
+ unlock(m);
+
+Thread 2:
+lock(m);
+// access #2 to shared_var;
+unlock(m);
+
+The path-insensitive analysis as stated in Fig. 5 would think the access #1 in
+Thread 1 is protected by the lock, which could be a false negative (when "flag"
+is false).
+
+Another concern is a bit over-claim by the title, abstract, and introduction:
+they give the impression that Whoop handles all kinds of concurrency bugs, but
+in fact the Whoop approach by far can only handle data races.
+
+These inappropriate claims in the paper may be easily fixed though, if the
+authors are willing.
+
+Other minor issues:
+
+- Page 3, "...a finite set of shared variables Vs, ..." Why "finite"? Is it
+just a practical consideration?
+
+- Page 4, "The purpose of renaming is..vital..." Why "vital"? Can't the thread
+ids from the set I achieve the same purpose too?
+
+- Page 6, "This technique...as a form of quantifier elimination..." Can't Z3
+perform quantifier elimination already?
+
+*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*
