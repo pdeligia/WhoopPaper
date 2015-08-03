@@ -73,6 +73,9 @@ whole driver and find if a lock x indexed from this list is the same as
 a lock y from this list. Lockset analysis relies on knowing that the given
 locks are unique.
 
+>>> Zvonimir: This clearly caused a lot of confusion and we should try to
+address this.
+
 It is not clear how many of the races found are actually interesting. The
 evaluation highlights two categories: global counters and structure
 fields. The structure field races seem likely interesting, but only one is
@@ -85,6 +88,11 @@ is mentioned later about contacting the author directly). We lack kernel
 expertise (as we mention in the paper), so its not clear unless we ask
 people about how important a race is.
 
+>>> Zvonimir: Did you maybe report more races? Did we get any kind of
+response? I almost wonder if we should remove from the paper that we
+reported that one race.
+
+
 Section 1:
 
 "Techniques that can detect races in drivers ... are usually either unsound
@@ -94,6 +102,10 @@ so that in itself would not seem to justify the need for new tools.
 
 >>> Should we remove this? or should we leave it as it is? I am fine either
 way, although I quite like it as it is.
+
+>>> Zvonimir: One more reviewer is not happy with this sentence, given that
+we are not really totally sounds either. We should reword it.
+How about "are usually either overly unsound or imprecise"?
 
 Figure 1: What file does the code come from, in what version of the Linux
 kernel. Has the bug been reported? (It is stated much later in the paper
@@ -114,6 +126,8 @@ describing lockset analysis ala Eraser, which is dynamic. In the end we mention
 that we will apply this statically to counter known limitations. I am not sure
 if we really need to rephrase here.
 
+>>> Zvonimir: I am fine to leave it as is.
+
 Figure 3:
 
 It is not clear what CLS_T1 and CLS_T2 are. The comment "compute set
@@ -123,6 +137,14 @@ very understandable. More explanation is needed.
 >>> About CLS, we describe in the text (paragraph in page 2 before referencing
 Figure 3) what they are and how they are updated. In this same paragraph,
 we also explain how set intersection works.
+
+>>> Zvonimir: But "set intersection" is actually not mentioned in this previous
+paragraph. I think it would be good to mention it. I also agree with the
+reviewer that the dotted arrows/lines are a bit confusing. Could you maybe
+draw an arrow from {M} into "compute intersections", then from {M,N} into
+"compute intersections", and from "compute intersections" into the other {M}?
+That would maybe look slightly better, not sure.
+
 
 Section 3a:
 
@@ -137,6 +159,9 @@ additional threads by". I wonder if we should mention that each thread
 executes an entry point. This becomes clear later in the paper, but I
 wonder if this is needed now. I did not add it though to save some space.
 
+>>> Zvonimir: I think this is fine. Oh, and don't worry about space, we'll
+address space issues later.
+
 In the description of Figure 4, it is not clear how you know what locations
 are shared.
 
@@ -144,6 +169,8 @@ are shared.
 approach in a high-level manner, but not sure if its really required. These
 locations are basically what SMACK gives us (memory regions), so Whoop needs
 to automatically instrument them every time it finds them.
+
+>>> Zvonimir: I think I am fine with what we have.
 
 "We consider a standard interleaving model of concurrency"
 Section 3a said that your approach "executed the instrumented entry points
@@ -155,12 +182,16 @@ of our simple concurrent language, which interleaves. The sequentialization
 we describe is not directly related to this semantics, it is used to abstract
 the threads and analyze them for races.
 
+>>> Zvonimir: I am fine with what we have.
+
 Why not write "x_i = havoc()", to make it look more like an assignment?
 
 >>> We clearly say in the text: "This is reflected by the use of a havoc command,
 which sets its argument to an arbitrary value". So we use it as a method. I think
 this is just subjective and we do not need to change it. I personally like it as
 a method.
+
+>>> Zvonimir: I am fine with what we have.
 
 "which is -- described above -- at the end of the program"
 The -- -- makes the sentence hard to parse. Surely the idea can be
@@ -188,6 +219,8 @@ points. Are these handler functions also collected at this point?
 >>> he is right, probably the use of API here is not appropriate. I removed
 the word API to keep this simpler and avoid confusion.
 
+>>> Zvonimir: I am fine with what we have.
+
 The paragraph on Chauffeur focuses more on what has been done after the
 problem (of identifying entry points) has been solved, and not on
 presenting how to solve the problem.
@@ -196,16 +229,23 @@ presenting how to solve the problem.
 this is standard AST traversal, nothing novel here, so I don't think we
 really need to say anything more (which would take too much space).
 
+>>> Zvonimir: I am fine with what we have.
+
 Is it SMACK that identifies the shared variables?
 
 >>> I mentioned above about SMACK's memory regions. do you guys think we need
 to make this somehow a bit clearer? any suggestions?
+
+>>> Zvonimir: I am fine with what we have.
 
 "Whoop performs various internal instrumentations and optimizations"
 Obscure.
 
 >>> i am not sure about this. we just say that by representing the locks in the
 model as unique constants, makes various internal tool transformations easier.
+
+>>> Zvonimir: Hmmm, I think it would be good to say in one sentence what kind
+of instrumentations and optimizations it performs.
 
 "Currently, Whoop only supports mutexes and spinlocks that are available in
 the Linux kernel"
@@ -219,6 +259,10 @@ in the Linux kernel. I removed the next sentence "However, it is relatively
 easy to enhance our tool with knowledge of other locking primitives.", to
 keep it simpler. do you agree?
 
+>>> Zvonimir: Say this:
+"Currently, WHOOP supports Linux kernel mutex and spinlock operations.  In
+addition, it is easy to enhance it with knowledge of other locking primitives."
+
 "it is arguably hard to detect such locks"
 Not clear what is meant by detect. Normally a lock is something that has
 type eg spinlock_t and it passed as an argument to spin_lock, etc. These
@@ -231,6 +275,9 @@ is e.g. lock_1 or lock_2 or lock_n, because it was created dynamically and
 is not a "static lock" (available in the driver private struct that is
 passed along in each entry point).
 
+>>> Zvonimir: Yeah, again this confusion from before. This should be clarified,
+especially the "dynamically created" part.
+
 The section on watchdog race-checking is not very easy to understand.
 Is the point that boogie is not able to reason about sets? With respect to
 the solution presented in the second paragraph, maybe it would be possible
@@ -238,6 +285,11 @@ to provide a concrete example?
 
 >>> Ally any thoughts on this? Although I understand this section, I find
 it a bit hard to improve it myself.
+
+>>> Zvonimir: But we do say that it is possible to reason about sets directly
+in Boogie. Those 2 paragraphs look good to me. Pantazis, if you could come up
+quickly with as simple example to indulge this reviewer, that would be nice. If
+not, don't worry about it.
 
 "We assume that the formal parameters of an entry point do not alias"
 Not clear what this means. That two parameters in a single parameter list
@@ -250,6 +302,11 @@ argument a file structure. Could these be aliases of each other?
 
 >>> we mean the former. should we maybe say: the formal parameters of the
 same entry point instance (although i do not like the instance word here)?
+
+>>> Zvonimir: Does not "an entry point" mean exactly "same entry point
+instance"? I am fine with what we have. If we wanted to express the other
+meaning, we would I guess say:
+"We assume that the formal parameters of entry points do not alias"
 
 "but requires Linux expertise" -> "but requires Linux kernel expertise"
 
@@ -264,6 +321,8 @@ Is the goal to remove the imprecision introduced by the use of havoc?
 >>> do we actually need to repeat it here? as we just had a few previous
 paragraphs (limitations in section 3) that discuss why Whoop is imprecise
 
+>>> Zvonimir: What we have is good.
+
 "Whoop instruments a yield after each shared memory access..."
 This seems to repeat what was said just 3 paragraphs above.
 
@@ -271,6 +330,8 @@ This seems to repeat what was said just 3 paragraphs above.
 what Corral does by default (yields in all visible operations), and what
 we do with Whoop (yields only when it matters). I think we should still
 keep it here, until you have objections?
+
+>>> Zvonimir: What we have is good.
 
 ", for which a yield is suppressed,"
 The commas should be dropped. They make the sentence incorrect, making it
@@ -290,12 +351,22 @@ report results about this in this paper, but we know it works after I tried
 it on few SVComp benchmarks. I also do not understand what he means in his
 last sentence.
 
+>>> Zvonimir: Do we say somewhere that we could use this infrastructure to
+find other kinds of bugs? If not, then we should certainly say it. We
+should also say that we did preliminary explorations in that direction.
+Maybe we should also say that identifying useful properties was a challenge
+since there are no assertions in drivers.
+
 "Yield-MR significantly outperforms Yield-EPP"
 Outperforms in what way? Faster? More accurate?
 
 >>> its about faster, accuracy does not change, as corral reports the same
 bugs independently of instrumentation. Should I change this to:
 "in our experiments (see §V), Yield-MR scales better than Yield-EPP."?
+
+>>> Zvonimir: I would change this:
+"in our experiments (see §V), Yield-MR is significantly faster than Yield-EPP."
+
 
 Section 5:
 
@@ -311,12 +382,17 @@ to remove this second link as we do not need to convince the reviewers
 anymore, and I can put the link in the GitHub repository README. This
 will save us some space. What do you think?
 
+>>> Zvonimir: That sounds good to me. In fact, could you put everything
+in one place, i.e., github? Maybe into github wiki of Whoop?
+
 Table 1 and 2 and Figure 9 all appear on the page before they are first
 referenced.
 
 >>> well, by leaving them where they are saves a few lines of space. and we
 need some extra lines to put the acknowledgements! (at the current time of
 writing this)
+
+>>> This is a minor thing. Let's see how things look like in the end.
 
 "number of entry point pairs"
 Does this exclude the ones found to be impossible?
@@ -329,12 +405,16 @@ This is some other bound than the csb?
 >>> we already describe in the previous section that corral also has a bound
 in recursion depth.
 
+>>> Zvonimir: Just say here: Corral hits its recursion depth bound"
+
 "Corral did not discover any races that Whoop did not report"
 It is not clear how much confidence this can give, because Corral doesn't
 explore interleavings that Whoop considers to be race free.
 
 >>> actually we run Corral without any input from Whoop ... that was the baseline
 (Yield-All), so I think he missed the point here!
+
+>>> Zvonimir: Maybe you could add: "Corral in the Yield-All mode did not..."
 
 "built-in loop over-approximation described in [39]"
 Try not to use references as nouns. This requires the reader to go look at
@@ -343,11 +423,17 @@ the bibliography, which disturbs the reading flow.
 >>> I would normally agree, but this saves space here, which is currently needed.
 I would like to leave it as it is, unless you strongly disagree.
 
+>>> Zvonimir: Yeah, I also don't like this style of using references as nouns.
+So please change this to "described in previous work [39]". We will save space
+somewhere else once we are done.
+
 "Finally, when we apply Corral to a pair of entry points..."
 The point made here has been made before.
 
 >>> yes, but we re-iterate to make sure that the user knows (at this point) how
 Corral could miss a race.
+
+>>> Zvonimir: I am fine with what we have.
 
 For reporting your bug, it would be more effective to send and email to the
 maintainer of the affected file. The relevant people and mailing lists can
@@ -355,6 +441,10 @@ be found using the script get_maintainer.pl, found in the scrips directory
 of the Linux kernel source tree.
 
 >>> good suggestion, but no comment as this is not relevant to the camera ready.
+
+>>> Zvonimir: Could you actually try to do it, at least for the bug we already
+reported? I think we should either get some confirmation about that bug, or
+we should totally remove that we even reported it.
 
 "Standalone Corral uses Yield-all, which instruments..."
 This seems to refer back to Table 2, not to Figure 9 that was just
@@ -364,6 +454,8 @@ are discussed.
 
 >>> no this actually refers to both Table 2 and Figure 9! A column in the table and
 one of the axis in Figure 9 is Yield-All ...
+
+>>> Zvonimir: fine with what we have.
 
 "which might get Corral stuck" ->
 "which might cause Corral to get stuck"
@@ -375,6 +467,8 @@ This was already mentioned, and indeed one is likely to have already seen
 this when Figure 9 was presented.
 
 >>> i think its good to repeat it though as its a nice result.
+
+>>> Zvonimir: fine with what we have.
 
 "if Whoop fails to verify any race-related properties of a driver, it might
 slow down"
@@ -459,6 +553,9 @@ imprecise, yet their approach is "soundy" rather than sound.
 specific we should address. in regards to his last comment do you think we
 should change anything?
 
+>>> Zvonimir: The above comment is similar to what reviewer 1 complained about.
+We should reword that one sentence as I indicated before.
+
 ========================
 Third reviewer's review:
 ========================
@@ -490,8 +587,14 @@ detection tools in a new way
 Cons:
 - The approach is limited to detecting data races only, not all concurrency
 bugs as stated in the title
+
+>>> Zvonimir: This is not true! We should stress out that we can check any
+user-provided assertions!
+
 - The approach may still be unsound, excluding what are discussed in its
 assumptions and limitations
+
+>>> Zvonimir: Not sure what he/she means here?
 
 The paper effectively applies a lightweight static version of lockset analysis
 to help speed up other more precise tools in data race detection. Such a
@@ -509,6 +612,9 @@ avoid the impression that Whoop may have false negatives.
 multiple objects of that class. basically, you might find that a MR is racy, but
 this same MR could be racy in many places in the program.
 
+>>> Zvonimir: Please stick in a sentence clarifying this, it should be easy and
+it cannot hurt.
+
 - In Table I, how many of those "#Racy Pairs" and "#Racy MRs" and "#Races
 Found" are true positives? To provide such clarification can further help to
 understand the claim that Whoop may report more false alarms, but never miss
@@ -516,6 +622,10 @@ true ones.
 
 >>> we dont have specific numbers on this right now, as it requires to go through
 each driver and also requires quite some driver/kernel expertise
+
+>>> Zvonimir: Do we say this in the paper? If not, then we probably should.
+We invested a significant amount of time trying to figure this out, but it is
+just too hard without having a driver expert sitting next to you.
 
 - In Table II, does the "Time" include the time for converting C to Boogie IVL
 and adding Yields into Boogie IVL? Separating the parts can help understand how
@@ -559,6 +669,9 @@ is false).
 >>> I think he misunderstood here. The formula that will be generated by Boogie and sent
 to the solver will actually take into account these, and it will not cause a false negative.
 
+>>> Zvonimir: Why does the reviewer think that Fig.5 implies flow and path
+insensitive analysis???
+
 Another concern is a bit over-claim by the title, abstract, and introduction:
 they give the impression that Whoop handles all kinds of concurrency bugs, but
 in fact the Whoop approach by far can only handle data races.
@@ -570,6 +683,8 @@ we can detect these too (assertion failures), for example I could already detect
 some of the SVComp benchmarks ... so I do not agree with his statement (although I know
 we only show results for races in this paper).
 
+>>> Zvonimir: Yes! We have to say this in the paper! We can handle any assertions.
+
 These inappropriate claims in the paper may be easily fixed though, if the
 authors are willing.
 
@@ -580,6 +695,8 @@ just a practical consideration?
 
 >>> it is also realistic that a program (especially a driver) has a finite set of shared vars.
 
+>>> Zvonimir: But does it have to be finite or not?
+
 - Page 4, "The purpose of renaming is..vital..." Why "vital"? Can't the thread
 ids from the set I achieve the same purpose too?
 
@@ -588,9 +705,39 @@ entry point in order to sequentialize the pair in Boogie. we do not really have
 a concept of thread ID in the Boogie abstraction, Boogie actually during the Whoop
 phase performs sequential verification
 
+>>> Zvonimir: I think what we have is clear to me. Maybe you could add:
+"...since Boogie performs sequential program verification and has no notion of
+threads."
+
 - Page 6, "This technique...as a form of quantifier elimination..." Can't Z3
 perform quantifier elimination already?
 
 >>> but the point is that we want to make the solver run faster, i am not really
 an expert in solvers, but if we eliminate quantifiers before we send the VCs to
 Z3 then we can speed it up, versus if we make Z3 do this job.
+
+>>> Zvonimir: Ah, this is not really general quantifier elimination. What we are
+doing is weaker and is called skolemization. What basically happens is this
+(example).
+This assertion:
+assert forall x: a[x] == y
+can be rewritten as this:
+not exists x: a[x] != y
+Then we skolemize:
+not a[x] != y
+which is in the end:
+a[x] == y
+
+However, this is weaker than general quantifier elimination that happens within
+Z3 since for example you cannot do it for assumptions. Meaning:
+assume forall x: a[x] == y
+is not equivalent to just
+a[x] == y
+
+Now, the question is whether Z3 can perform the Skolemization as noted above
+automatically, and I would guess that it cannot. Not sure though:
+http://stackoverflow.com/questions/7179777/z3-extracting-existential-model-values
+
+Maybe Ally could clarify this. I know that we leveraged these kinds of tricks
+before as well.
+
