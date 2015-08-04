@@ -23,10 +23,10 @@ static loff_t nvram_llseek(struct file *file,
   return file->f_pos; // racy
 }
 \end{lstlisting}
-\vspace{-2mm}
+%\vspace{-2mm}
 \caption{Racy entry point in a Linux 4.0 driver (drivers/char/generic\_nvram.c)}
 \label{fig:data_race_example}
-\vspace{-2mm}
+%\vspace{-2mm}
 \end{figure}
 
 The most common method for avoiding races is by protecting sets of program statements that access a shared resource with \emph{locks}, forming \emph{critical sections}.  Figure~\ref{fig:lock_example} shows how to use locking to eliminate the races in Figure~\ref{fig:data_race_example}. Because the \texttt{return} statement can potentially race on the \texttt{f\_pos} field, we store the result in a temporary variable \texttt{res} inside the critical section.
@@ -53,10 +53,10 @@ static loff_t nvram_llseek(struct file *file,
   return res;
 }
 \end{lstlisting}
-\vspace{-2mm}
+%\vspace{-2mm}
 \caption{Using a lock to eliminate the data races in the previous example}
 \label{fig:lock_example}
-\vspace{-2mm}
+%\vspace{-2mm}
 \end{figure}
 
 \noindent\textbf{Lockset Analysis }
@@ -80,8 +80,8 @@ To counter the above limitations, techniques such as Locksmith~\cite{pratikakis2
 \begin{figure}[t]
 \centering
 \includegraphics[width=1\linewidth]{img/lockset.pdf}
-\vspace{-5mm}
+%\vspace{-5mm}
 \caption{Applying lockset analysis on a concurrent program}
 \label{fig:locksets}
-\vspace{-3mm}
+%\vspace{-3mm}
 \end{figure}

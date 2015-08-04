@@ -15,13 +15,13 @@ We show that we can exploit the race-freedom guarantees provided by our symbolic
 \whoop currently supports Linux drivers, but our approach is conceptually generic and could be applied to analyze drivers for other operating systems, as well as concurrent systems that use a similar programming model (e.g.\ file systems).
 
 To summarize, our contributions are as follows:
-\vspace{-0.5mm}
+%\vspace{-0.5mm}
 \begin{itemize}
 \item We propose symbolic pairwise lockset analysis, a sound and scalable technique for automatically verifying the absence of data races in device drivers.
-\vspace{-0.2mm}
+%\vspace{-0.2mm}
 \item We present \whoop, a tool that leverages our approach for analyzing data races in device drivers.
-\vspace{-0.2mm}
+%\vspace{-0.2mm}
 \item We show that we can achieve a sound partial-order reduction using our technique to accelerate \corral, an industrial-strength bug-finder.
-\vspace{-0.2mm}
+%\vspace{-0.2mm}
 \item We analyze \sizeOfBenchmarks Linux drivers, showing that \whoop is efficient at race-checking and accelerating \corral.
 \end{itemize}

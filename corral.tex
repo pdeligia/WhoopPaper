@@ -10,7 +10,7 @@ To detect data races with \corral, \whoop outputs a Boogie program instrumented 
 s = e;         // original write
 yield;         // allow for a context-switch
 assert s == e; // check written value
-\end{boogie}\vspace{-2mm}
+\end{boogie}%\vspace{-2mm}
 %
 Likewise, whenever there is a read access to $s$, \whoop instruments the program as follows:
 %
@@ -18,7 +18,7 @@ Likewise, whenever there is a read access to $s$, \whoop instruments the program
 x = s;         // original read
 yield;         // allow for a context-switch
 assert x == s; // check read value
-\end{boogie}\vspace{-2mm}
+\end{boogie}%\vspace{-2mm}
 %
 A \texttt{yield} statement denotes a nondeterministic context-switch, and is used by \corral to guide the sequentialization.
 
