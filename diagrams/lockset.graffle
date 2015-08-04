@@ -77,6 +77,130 @@
 	<key>GraphicsList</key>
 	<array>
 		<dict>
+			<key>Class</key>
+			<string>LineGraphic</string>
+			<key>FontInfo</key>
+			<dict>
+				<key>Font</key>
+				<string>CMUSerif-Roman</string>
+				<key>Size</key>
+				<real>20</real>
+			</dict>
+			<key>ID</key>
+			<integer>442</integer>
+			<key>Layer</key>
+			<integer>0</integer>
+			<key>Points</key>
+			<array>
+				<string>{492.20661948148728, 310.14924621582026}</string>
+				<string>{533.57218424479163, 341.0876444180804}</string>
+			</array>
+			<key>Style</key>
+			<dict>
+				<key>stroke</key>
+				<dict>
+					<key>HeadArrow</key>
+					<string>SharpArrow</string>
+					<key>Legacy</key>
+					<true/>
+					<key>LineType</key>
+					<integer>1</integer>
+					<key>TailArrow</key>
+					<string>0</string>
+				</dict>
+			</dict>
+		</dict>
+		<dict>
+			<key>Bounds</key>
+			<string>{{314.57341512044258, 148.49757893880221}, {153.99209594726562, 67}}</string>
+			<key>Class</key>
+			<string>ShapedGraphic</string>
+			<key>FitText</key>
+			<string>Vertical</string>
+			<key>Flow</key>
+			<string>Resize</string>
+			<key>FontInfo</key>
+			<dict>
+				<key>Font</key>
+				<string>CMUSerif-Roman</string>
+				<key>Size</key>
+				<real>13</real>
+			</dict>
+			<key>ID</key>
+			<integer>446</integer>
+			<key>Layer</key>
+			<integer>0</integer>
+			<key>Shape</key>
+			<string>Rectangle</string>
+			<key>Style</key>
+			<dict>
+				<key>fill</key>
+				<dict>
+					<key>Draws</key>
+					<string>NO</string>
+				</dict>
+				<key>shadow</key>
+				<dict>
+					<key>Draws</key>
+					<string>NO</string>
+				</dict>
+				<key>stroke</key>
+				<dict>
+					<key>Draws</key>
+					<string>NO</string>
+				</dict>
+			</dict>
+			<key>Text</key>
+			<dict>
+				<key>Pad</key>
+				<integer>0</integer>
+				<key>Text</key>
+				<string>{\rtf1\ansi\ansicpg1252\cocoartf1348\cocoasubrtf170
+\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 CMUSerif-Bold;}
+{\colortbl;\red255\green255\blue255;}
+\deftab720
+\pard\pardeftab720\slleading-100\sa240\qc
+
+\f0\b\fs36 \cf0 compute lockset intersection at access points}</string>
+				<key>VerticalPad</key>
+				<integer>0</integer>
+			</dict>
+		</dict>
+		<dict>
+			<key>Class</key>
+			<string>LineGraphic</string>
+			<key>FontInfo</key>
+			<dict>
+				<key>Font</key>
+				<string>CMUSerif-Roman</string>
+				<key>Size</key>
+				<real>20</real>
+			</dict>
+			<key>ID</key>
+			<integer>558</integer>
+			<key>Layer</key>
+			<integer>0</integer>
+			<key>Points</key>
+			<array>
+				<string>{470.51289749145491, 167.447188632874}</string>
+				<string>{512.84623209635424, 167.447188632874}</string>
+			</array>
+			<key>Style</key>
+			<dict>
+				<key>stroke</key>
+				<dict>
+					<key>HeadArrow</key>
+					<string>0</string>
+					<key>Legacy</key>
+					<true/>
+					<key>LineType</key>
+					<integer>1</integer>
+					<key>TailArrow</key>
+					<string>SharpArrow</string>
+				</dict>
+			</dict>
+		</dict>
+		<dict>
 			<key>Bounds</key>
 			<string>{{25.216551462809306, 35.955026507377021}, {55, 27}}</string>
 			<key>Class</key>
@@ -2394,21 +2518,18 @@
 			<integer>3</integer>
 			<key>Points</key>
 			<array>
-				<string>{383.716552734375, 161.81947453816693}</string>
-				<string>{425.18008422851562, 188.81947453816693}</string>
-				<string>{517.58979543050134, 199.81947453816693}</string>
+				<string>{466.25645828247048, 195.15280787150053}</string>
+				<string>{524.589795430501, 195.15280787150053}</string>
 			</array>
 			<key>Style</key>
 			<dict>
 				<key>stroke</key>
 				<dict>
 					<key>HeadArrow</key>
-					<string>FilledArrow</string>
+					<string>SharpArrow</string>
 					<key>Legacy</key>
 					<true/>
 					<key>LineType</key>
-					<integer>1</integer>
-					<key>Pattern</key>
 					<integer>1</integer>
 					<key>TailArrow</key>
 					<string>0</string>
@@ -2425,11 +2546,6 @@
 				<key>Size</key>
 				<real>20</real>
 			</dict>
-			<key>Head</key>
-			<dict>
-				<key>ID</key>
-				<integer>515</integer>
-			</dict>
 			<key>ID</key>
 			<integer>447</integer>
 			<key>Layer</key>
@@ -2437,85 +2553,26 @@
 			<key>Points</key>
 			<array>
 				<string>{261.905517578125, 194.328488667806}</string>
-				<string>{374.905517578125, 159.56666437784818}</string>
-				<string>{506.58978271484375, 164.11385529954069}</string>
+				<string>{315.57218297322589, 182.66666666666512}</string>
 			</array>
 			<key>Style</key>
 			<dict>
 				<key>stroke</key>
 				<dict>
 					<key>HeadArrow</key>
-					<string>FilledBall</string>
+					<string>SharpArrow</string>
 					<key>Legacy</key>
 					<true/>
 					<key>LineType</key>
 					<integer>1</integer>
-					<key>Pattern</key>
-					<integer>1</integer>
 					<key>TailArrow</key>
-					<string>FilledBall</string>
+					<string>0</string>
 				</dict>
 			</dict>
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{283.17456563313783, 101.87842814127593}, {206.29130554199219, 52}}</string>
-			<key>Class</key>
-			<string>ShapedGraphic</string>
-			<key>FitText</key>
-			<string>Vertical</string>
-			<key>Flow</key>
-			<string>Resize</string>
-			<key>FontInfo</key>
-			<dict>
-				<key>Font</key>
-				<string>CMUSerif-Roman</string>
-				<key>Size</key>
-				<real>13</real>
-			</dict>
-			<key>ID</key>
-			<integer>446</integer>
-			<key>Layer</key>
-			<integer>3</integer>
-			<key>Shape</key>
-			<string>Rectangle</string>
-			<key>Style</key>
-			<dict>
-				<key>fill</key>
-				<dict>
-					<key>Draws</key>
-					<string>NO</string>
-				</dict>
-				<key>shadow</key>
-				<dict>
-					<key>Draws</key>
-					<string>NO</string>
-				</dict>
-				<key>stroke</key>
-				<dict>
-					<key>Draws</key>
-					<string>NO</string>
-				</dict>
-			</dict>
-			<key>Text</key>
-			<dict>
-				<key>Pad</key>
-				<integer>0</integer>
-				<key>Text</key>
-				<string>{\rtf1\ansi\ansicpg1252\cocoartf1348\cocoasubrtf170
-\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 CMUSerif-Roman;}
-{\colortbl;\red255\green255\blue255;}
-\deftab720
-\pard\pardeftab720\sa240\qc
-
-\f0\fs36 \cf0 compute set intersection at access points}</string>
-				<key>VerticalPad</key>
-				<integer>0</integer>
-			</dict>
-		</dict>
-		<dict>
-			<key>Bounds</key>
-			<string>{{339.58978271484369, 272.74128977457673}, {178, 52}}</string>
+			<string>{{353.01038996378577, 264.03580347696982}, {147.41021728515625, 67}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FitText</key>
@@ -2559,54 +2616,14 @@
 				<integer>0</integer>
 				<key>Text</key>
 				<string>{\rtf1\ansi\ansicpg1252\cocoartf1348\cocoasubrtf170
-\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 CMUSerif-Roman;}
+\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 CMUSerif-Bold;}
 {\colortbl;\red255\green255\blue255;}
 \deftab720
-\pard\pardeftab720\sa240\qc
+\pard\pardeftab720\slleading-100\sa240\qc
 
-\f0\fs36 \cf0 warning: access to A may not be protected}</string>
+\f0\b\fs36 \cf0 warning: access to A may not be protected}</string>
 				<key>VerticalPad</key>
 				<integer>0</integer>
-			</dict>
-		</dict>
-		<dict>
-			<key>Class</key>
-			<string>LineGraphic</string>
-			<key>FontInfo</key>
-			<dict>
-				<key>Font</key>
-				<string>CMUSerif-Roman</string>
-				<key>Size</key>
-				<real>20</real>
-			</dict>
-			<key>ID</key>
-			<integer>442</integer>
-			<key>Layer</key>
-			<integer>3</integer>
-			<key>Points</key>
-			<array>
-				<string>{454.50859940855116, 324.74128977457679}</string>
-				<string>{468.88249715169292, 339.16020965576166}</string>
-				<string>{524.23885091145826, 340.67968797683716}</string>
-			</array>
-			<key>Style</key>
-			<dict>
-				<key>stroke</key>
-				<dict>
-					<key>HeadArrow</key>
-					<string>FilledArrow</string>
-					<key>Legacy</key>
-					<true/>
-					<key>LineType</key>
-					<integer>1</integer>
-					<key>TailArrow</key>
-					<string>0</string>
-				</dict>
-			</dict>
-			<key>Tail</key>
-			<dict>
-				<key>ID</key>
-				<integer>443</integer>
 			</dict>
 		</dict>
 		<dict>
@@ -2862,7 +2879,7 @@
 	<key>MasterSheets</key>
 	<array/>
 	<key>ModificationDate</key>
-	<string>2015-07-13 17:32:22 +0000</string>
+	<string>2015-08-03 22:16:34 +0000</string>
 	<key>Modifier</key>
 	<string>Pantazis Deligiannis</string>
 	<key>NotesVisible</key>
@@ -2893,7 +2910,7 @@
 		<key>NSPaperName</key>
 		<array>
 			<string>string</string>
-			<string>4503BAF1-C479-4B78-92BC-3D8C67DED8F2</string>
+			<string>13E7CD01-62CB-497F-945F-C20B3B0849C4</string>
 		</array>
 		<key>NSPaperSize</key>
 		<array>
