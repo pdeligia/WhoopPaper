@@ -61,7 +61,7 @@ Initially, the valuation of shared variables is arbitrary, no mutexes are held (
 %
 At any point of execution, a new thread may be added to the list of threads.  This involves selecting a thread template $T$ and an id $i \in \ids$ that has not been previously used during program execution, setting the point of execution for the new thread to be the first statement of $\mainforthread{T}$, and choosing an arbitrary valuation for the private variables $\variables{T}$.
 %
-We consider a standard interleaving model of concurrency: at any execution point, a thread may execute its current statement, unless that statement has the form $\mutexlock{m}$ and mutex $m$ is held by some thread.  Executing a statement causes the state of the thread, and the shared state, to be updated in a standard manner.  For example, if a thread following template $T$ executes $s = e$, where $s \in \sharedvars$ and $e$ is an expression over $\variables{T}$, the shared variable valuation is updated so that $s$ has the value determined by evaluating $e$ in the context of the thread's private variable valuation.  Because our interest is in data race analysis for race-free programming, we are not concerned with relaxed memory behavior: race-free programs exhibit only sequentially consistent behaviors.
+We consider a standard interleaving model of concurrency: at any execution point, a thread may execute its current statement, unless that statement has the form $\mutexlock{m}$ and mutex $m$ is held by some thread.  Executing a statement updates the thread-private and shared state in a standard manner.  For example, if a thread following template $T$ executes $s = e$, where $s \in \sharedvars$ and $e$ is an expression over $\variables{T}$, the shared variable valuation is updated so that $s$ has the value determined by evaluating $e$ in the context of the thread's private variable valuation.  Because our interest is in data race analysis for race-free programming, we are not concerned with relaxed memory behavior: race-free programs exhibit only sequentially consistent behaviors.
 
 A thread terminates if it reaches the end of $\mainforthread{T}$, and is removed from the list of threads.  Since our interest is in analysis of device drivers, which are reactive, we do not consider the notion of global program termination.
 
@@ -110,7 +110,7 @@ Recall that while our aim is to perform race analysis for pairs of threads, we m
 
 \noindent\textbf{Sequentialization }
 %
-The pseudocode of Fig.~\ref{fig:sequentialization} shows the sequential program that we analyze in order to prove race-freedom for a pair of thread templates $T$ and $U$. Assuming that $T$ and $U$ have been instrumented using distinct symbols $i$ and $j$, yielding $\instrument{T}{i}$ and $\instrument{U}{j}$, the sequential program operates as follows. First, the read, write, and current locksets for $\instrument{T}{i}$ and $\instrument{U}{j}$ are initialized to be empty, and for each shared variable $s$, the locksets $\lockset{s}{i}$ and $\lockset{s}{j}$ are initialized to the full set of mutexes $\mutexes$.  The main procedures of the instrumented thread templates, $\mainforthread{\instrument{T}{i}}$ and $\mainforthread{\instrument{U}{j}}$, are then executed in turn (the order does not matter due to renaming). Finally, an assertion checks for consistent use of mutexes: if $s$ is written during execution of $\instrument{T}{i}$ and accessed during execution of $\instrument{U}{j}$, or vice-versa, then the locksets $\lockset{s}{i}$ and $\lockset{s}{j}$ must contain at least one common mutex.
+Fig.~\ref{fig:sequentialization} shows the sequential program that we analyze to prove race-freedom for a pair of thread templates $T$ and $U$. Assuming that $T$ and $U$ have been instrumented using distinct symbols $i$ and $j$, yielding $\instrument{T}{i}$ and $\instrument{U}{j}$, the sequential program operates as follows. First, the read, write, and current locksets for $\instrument{T}{i}$ and $\instrument{U}{j}$ are initialized to be empty, and for each shared variable $s$, the locksets $\lockset{s}{i}$ and $\lockset{s}{j}$ are initialized to the full set of mutexes $\mutexes$.  The main procedures of the instrumented thread templates, $\mainforthread{\instrument{T}{i}}$ and $\mainforthread{\instrument{U}{j}}$, are then executed in turn (the order does not matter due to renaming). Finally, an assertion checks for consistent use of mutexes: if $s$ is written during execution of $\instrument{T}{i}$ and accessed during execution of $\instrument{U}{j}$, or vice-versa, then the locksets $\lockset{s}{i}$ and $\lockset{s}{j}$ must contain at least one common mutex.
 
 \begin{figure}
 \footnotesize
@@ -130,7 +130,7 @@ $\quad s \in \hasbeenwritten{i} \cap (\hasbeenread{j} \cup \hasbeenwritten{j}) \
 $\quad\quad \lockset{s}{i} \cap \lockset{s}{j} \neq \emptyset;$ \\
 
 \end{tabular}
-\caption{The sequential program to be analyzed in order to prove race-freedom for a pair of thread templates}
+\caption{The sequential program to be analyzed to prove race-freedom for a pair of thread templates}
 \label{fig:sequentialization}
 %\vspace{-2mm}
 \end{figure}
