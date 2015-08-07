@@ -1,7 +1,5 @@
 
 We now present \emph{symbolic pairwise lockset analysis}, a novel method for data race analysis in device drivers.  In \S\ref{sec:symbolicpairwise} we describe how the approach works in a semi-formal manner, with respect to a simple concurrent programming model.  In \S\ref{sec:implementation} we explain how we have implemented our analysis in a practical tool, \whoop, that can be applied directly to driver source code.
-%
-\COULDCUT{Our experimental evaluation (\S\ref{evaluation}) demonstrates that \whoop has value as a stand-alone analyzer, and that results from our analysis can be exploited to significantly boost the performance of a more precise symbolic analysis for concurrency, offered by the \corral~\cite{lal2012corral} tool; we discuss the latter approach in \S\ref{corral}.}
 
 \subsection{Symbolic Pairwise Lockset Analysis}
 \label{sec:symbolicpairwise}
@@ -48,14 +46,14 @@ $\mutexlock{m};$   & mutex lock, where $m \in \mutexes$ \\
 $\mutexunlock{m};$ & mutex unlock, where $m \in \mutexes$\\
 \bottomrule
 \end{tabular}
-\caption{The allowed statements in our simple programming model}
+\caption{The allowed statements in our simple programming model.}
 \label{fig:statements}
 %\vspace{-2mm}
 \end{figure}
 
 \noindent\textbf{Semantics }
 %
-Let $\ids$ be an infinite set from which dynamic thread ids will be drawn.  The state of a running concurrent program consists of: a valuation of the shared variables $\sharedvars$; a mapping that associates each mutex in $\mutexes$ with an id from $\ids$, recording which thread currently holds the mutex, or with a special value $\bot \notin \ids$ to indicate that the mutex is not held by any thread; and a list of \emph{thread state}.  Each thread state has an associated thread template $T$, the type of the thread (and multiple threads may have the same associated template), and consistes of an id (drawn from $\ids$), an index indicating the next statement of $T$ to be executed by the thread, and a valuation of the thread private variables $\variables{T}$.  If multiple threads are instances of the same template $T$, then each thread carries a \emph{separate} valuation of the private variables for this template.
+Let $\ids$ be an infinite set from which dynamic thread ids will be drawn.  The state of a running concurrent program consists of: a valuation of the shared variables $\sharedvars$; a mapping that associates each mutex in $\mutexes$ with an id from $\ids$, recording which thread currently holds the mutex, or with a special value $\bot \notin \ids$ to indicate that the mutex is not held by any thread; and a list of \emph{thread states}.  Each thread state has an associated thread template $T$, the type of the thread (and multiple threads may have the same associated template), and consists of an id (drawn from $\ids$), an index indicating the next statement of $T$ to be executed by the thread, and a valuation of the thread private variables $\variables{T}$.  If multiple threads are instances of the same template $T$, then each thread carries a \emph{separate} valuation of the private variables for this template.
 
 Initially, the valuation of shared variables is arbitrary, no mutexes are held (i.e.\ each mutex maps to $\bot$), and the list of thread states is empty.
 %
@@ -95,7 +93,7 @@ $\mutexlock{m};$   & $\currentlockset{i} = \currentlockset{i} \cup \{ m \};$ \\
 $\mutexunlock{m};$ & $\currentlockset{i} = \currentlockset{i} \setminus \{ m \};$ \\
 \bottomrule
 \end{tabular}
-\caption{Instrumenting statements for lockset analysis}
+\caption{Instrumenting statements for lockset analysis.}
 \label{fig:instrumentation}
 %\vspace{-2mm}
 \end{figure}
@@ -130,7 +128,7 @@ $\quad s \in \hasbeenwritten{i} \cap (\hasbeenread{j} \cup \hasbeenwritten{j}) \
 $\quad\quad \lockset{s}{i} \cap \lockset{s}{j} \neq \emptyset;$ \\
 
 \end{tabular}
-\caption{The sequential program to be analyzed to prove race-freedom for a pair of thread templates}
+\caption{The sequential program to be analyzed to prove race-freedom for a pair of thread templates.}
 \label{fig:sequentialization}
 %\vspace{-2mm}
 \end{figure}
@@ -139,7 +137,7 @@ $\quad\quad \lockset{s}{i} \cap \lockset{s}{j} \neq \emptyset;$ \\
 \centering
 \includegraphics[width=.99\linewidth]{img/whoop.pdf}
 %\vspace{-2mm}
-\caption{The \whoop architecture, empowered by state-of-the-art compilation (Clang/LLVM and SMACK) and verification (Boogie and \corral) tools}
+\caption{The \whoop architecture, empowered by state-of-the-art compilation (Clang/LLVM and SMACK) and verification (Boogie and \corral) tools.}
 %\vspace{-3mm}
 \label{fig:whoop}
 \end{figure*}
@@ -174,8 +172,8 @@ const struct file_operations nvram_fops = {
   .unlocked_ioctl = nvram_unlocked_ioctl
 };
 \end{lstlisting}
-%\vspace{-2mm}
-\caption{Entry point definitions in the generic\_nvram driver}
+\vspace{-2mm}
+\caption{Entry point definitions in the generic\_nvram driver.}
 \label{fig:entrypoints}
 %\vspace{-2mm}
 \end{figure}
@@ -204,7 +202,7 @@ To avoid quantifiers and the associated theorem proving burden, we use instead a
 
 \noindent\textbf{Generating Loop and Procedure Summaries }
 %
-Early in the development of \whoop, we experimented with analyzing recursion-free drivers using full inlining.  We found that this did not scale to large drivers, and some drivers do exhibit recursion, e.g.\ the r8169 ethernet driver (see \S\ref{evaluation}).
+Early in the development of \whoop, we experimented with analyzing recursion-free drivers using full inlining.  We found that this did not scale to large drivers, and that some drivers do exhibit recursion, e.g.\ the r8169 ethernet driver (see \S\ref{evaluation}).
 
 To make our analysis scale while maintaining precision, and to support recursion, we use the Houdini algorithm~\cite{flanagan2001houdini} to automatically compute summaries (pre- and post-conditions and loop invariants).  Given a pool of \emph{candidate} pre-conditions, post-conditions, and loop invariants, Houdini repeatedly attempts to verify each procedure.  Initially, the entire candidate pool is considered.  If verification fails due to an incorrect candidate, this candidate is discarded.  The process repeats until a fixpoint is reached.  The (possibly empty) set of remaining candidates has been proven to hold, and can be used to summarize calls and loops during further program analysis.
 
