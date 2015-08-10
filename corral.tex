@@ -4,7 +4,7 @@
 
 \noindent\textbf{Race-Checking Instrumentation }
 %
-To detect data races with \corral, \whoop outputs a Boogie program instrumented with a simple, but effective encoding of race checks. Whenever there is a write access to a shared variable $s$, \whoop instruments the program as follows:
+To detect data races with \corral, \whoop outputs a Boogie program instrumented with a simple, but effective encoding of race checks~\cite{erickson2010datacollider}. Whenever there is a write access to a shared variable $s$, \whoop instruments the program as follows:
 %
 \begin{boogie}
 s = e;         // original write
