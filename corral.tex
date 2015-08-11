@@ -22,9 +22,9 @@ assert x == s; // check read value
 %
 A \texttt{yield} statement denotes a nondeterministic context-switch, and is used by \corral to guide the sequentialization.
 
-\corral is inherently unsound (i.e.\ can miss real races), because it performs bounded verification. However, \corral is precise and, assuming a precise environmental model, it will only report true races. \whoop takes advantage of this precision to report only feasible data races.
+\corral is inherently unsound (i.e.\ can miss real races), because it performs bounded verification. However, \corral is precise and, assuming a precise environmental model, it will only report true races. \whoop takes advantage of this precision to report only feasible races.
 %
-Note that our instrumentation conveniently tolerates some benign races: it does not report a read-write race if the write access updates the racy memory location with the same value that already existed; it also does not report a write-write race if the two write accesses update the racy memory location with the same value, which can be different from the pre-existing.
+Note that our instrumentation conveniently tolerates some benign races: it does not report a read-write race if the write access updates the shared memory location with the same value that already existed; it also does not report a write-write race if the two write accesses update the shared memory location with the same value (which can be different from the pre-existing value).
 
 In this work, we use \corral to analyze individual pairs of entry points. We do not use any abstraction to model additional threads, as we want \corral to report only true races. Because we only analyze pairs, though, \corral will miss races that require more than two threads to manifest. We could extend our setup so that more than two threads are considered by \corral, but because the number of threads that an OS kernel might launch is unknown in general, we are inevitably limited by some fixed maximum thread count.
 
@@ -40,6 +40,6 @@ We have implemented two different \texttt{yield} instrumentations in \whoop: \yi
 %
 The first instruments \texttt{yield} statements in a binary fashion: if \whoop proves an entry point pair (EPP) as race-free, then it will instrument a \texttt{yield} only after each lock and unlock statement of the pair; else if \whoop finds that a pair might race, then it will instrument a \texttt{yield} after all visible operations of the pair.
 %
-\yieldmr is a finer-grained instrumentation: it instruments a \texttt{yield} only after each access to a memory region (MR) that might race in the pair (regardless if the pair has not been fully proven as race-free), and after each lock and unlock. In our experiments (see \S\ref{evaluation}), \yieldmr is significantly faster than \yieldcoarse.
+\yieldmr is a finer-grained instrumentation: it instruments a \texttt{yield} only after each access to a memory region (MR) that might race in the pair (regardless if the pair has not been fully proven as race-free), and after each lock and unlock statement. In our experiments (see \S\ref{evaluation}), \yieldmr is significantly faster than \yieldcoarse.
 
 Our partial-order reduction is able in principle to accelerate \corral for \emph{arbitrary} bug-finding in concurrent programs. Although we did preliminary explorations in this direction, identifying useful safety properties to check was challenging since drivers typically contain no assertions. Thus, in this paper we use \corral solely to find data races.

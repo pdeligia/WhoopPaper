@@ -7,7 +7,7 @@ Modern operating systems address the demand for responsiveness and performance i
 A \emph{data race} occurs when two distinct threads access a shared memory location, at least one of the accesses is a write access, at least one of the accesses is non-atomic, and there is no mechanism in place to prevent these accesses from being simultaneous.
 \end{definition}
 
-Fig.~\ref{fig:data_race_example} shows a racy entry point, \texttt{nvram\_llseek}, in the generic\_nvram Linux 4.0 driver. The driver can invoke the entry point concurrently from two threads, with the same \texttt{file} struct as a parameter. This can lead to multiple possible data races because the threads can access the \texttt{f\_pos} field of \texttt{file} in arbitrary order. Our tool, \whoop (see \S\ref{whoop}), was able to find these races automatically (see \S\ref{evaluation}).
+Fig.~\ref{fig:data_race_example} shows a racy entry point, \texttt{nvram\_llseek}, in the generic\_nvram Linux 4.0 device driver. This entry point can be invoked concurrently from two threads, with the same \texttt{file} struct as a parameter. This can lead to multiple possible data races because the threads can access the \texttt{f\_pos} field of \texttt{file} in arbitrary order. Our tool, \whoop (see \S\ref{whoop}), was able to find these races automatically (see \S\ref{evaluation}).
 
 \begin{figure}[t]
 \begin{lstlisting}
@@ -65,7 +65,9 @@ static loff_t nvram_llseek(struct file *file,
 %
 Lockset analysis is a lightweight race detection method proposed in the context of Eraser~\cite{savage1997eraser}, a dynamic data race detector.  The idea is to track the set of locks (i.e.\ \emph{lockset}) that are \emph{consistently} used to protect a memory location during program execution. An empty lockset suggests that a memory location \emph{may} be accessed simultaneously by two or more threads. Consequently, the analysis reports a \emph{potential} race on that memory location.
 
-Lockset analysis for a concurrent program starts by creating a \emph{current} lockset $\mathit{CLS}_T$ for each thread $T$ of the program, and a lockset $\mathit{LS}_s$ for each shared variable $s$ used in the program. Initially, every $\mathit{CLS}_T$ is empty because the threads do not hold any locks on program start. In addition, every $\mathit{LS}_s$ is initialized to the set of all locks manipulated by the program since initially each access to $s$ is (vacuously) protected by every lock. The program is executed as usual (with threads scheduled according to the OS scheduler), except that instrumentation is added to update locksets as follows.
+Lockset analysis for a concurrent program starts by creating a \emph{current} lockset $\mathit{CLS}_T$ for each thread $T$ of the program, and a lockset $\mathit{LS}_s$ for each shared variable $s$ used in the program.
+%
+Every $\mathit{CLS}_T$ is initially empty because the threads do not hold any locks when they start executing. In addition, every $\mathit{LS}_s$ is initialized to the set of all locks manipulated by the program since initially each access to $s$ is (vacuously) protected by every lock. The program is executed as usual (with threads scheduled according to the OS scheduler), except that instrumentation is added to update locksets as follows.
 %
 After each \emph{lock} and \emph{unlock} operation by $T$, $\mathit{CLS}_T$ is updated to reflect the locks currently held by $T$.
 %
